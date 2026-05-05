@@ -68,3 +68,31 @@
     @apply glass rounded-xl overflow-hidden glass-hover;
   }
 }
+
+/* Checkout drawer animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+/* Stripe embedded checkout styling */
+.stripe-embed-container {
+  min-height: 400px;
+}
+
+.stripe-embed-container iframe {
+  border-radius: 0.5rem;
+}

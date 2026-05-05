@@ -4,6 +4,8 @@ import './globals.css';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import ConvexClientProvider from './ConvexClientProvider';
+import { CheckoutProvider } from '@/components/checkout/CheckoutContext';
+import { CheckoutDrawer } from '@/components/checkout/CheckoutDrawer';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -46,9 +48,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="dark">
       <body className={`${inter.variable} font-sans min-h-screen flex flex-col`}>
         <ConvexClientProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <CheckoutProvider>
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+            <CheckoutDrawer />
+          </CheckoutProvider>
         </ConvexClientProvider>
       </body>
     </html>

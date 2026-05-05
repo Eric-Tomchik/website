@@ -30,9 +30,11 @@ export function Navbar() {
               height={36}
               className="rounded-lg group-hover:brightness-110 transition-all"
             />
-            <span className="text-lg font-bold text-white">
-              Eric <span className="text-brand-400">Tomchik</span>
-            </span>
+            <img
+              src="/et-wordmark.png"
+              alt="Eric Tomchik"
+              className="h-6 sm:h-7 w-auto group-hover:brightness-110 transition-all"
+            />
           </Link>
 
           <div className="hidden md:flex items-center gap-1">

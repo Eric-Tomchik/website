@@ -2,7 +2,7 @@
 
 import { BookOpen, ShoppingCart, ExternalLink } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
-import { useState } from 'react';
+import { useCheckout } from '@/components/checkout/CheckoutContext';
 
 interface Book {
   _id: string;
@@ -17,32 +17,19 @@ interface Book {
 }
 
 export function BookCard({ book }: { book: Book }) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { openCheckout } = useCheckout();
 
-  const handleBuy = async (format: 'physical' | 'digital') => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: [{ book_id: book._id, format, quantity: 1 }],
-        }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        setError(data.error || 'Checkout failed. Please try again.');
-        console.error('Checkout response:', data);
-      }
-    } catch (err) {
-      setError('Network error. Please try again.');
-      console.error('Checkout error:', err);
-    }
-    setLoading(false);
+  const handleBuy = (format: 'physical' | 'digital') => {
+    openCheckout(
+      {
+        _id: book._id,
+        title: book.title,
+        description: book.description,
+        price_cents: book.price_cents,
+        cover_image_url: book.cover_image_url,
+      },
+      format
+    );
   };
 
   return (
@@ -81,16 +68,11 @@ export function BookCard({ book }: { book: Book }) {
           </span>
         </div>
 
-        {error && (
-          <p className="text-red-400 text-xs mb-2">{error}</p>
-        )}
-
         <div className="flex gap-2">
           {(book.book_format === 'digital' || book.book_format === 'both') && (
             <button
               onClick={() => handleBuy('digital')}
-              disabled={loading}
-              className="btn-primary flex-1 text-sm py-2 disabled:opacity-50"
+              className="btn-primary flex-1 text-sm py-2"
             >
               <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
               Digital
@@ -99,8 +81,7 @@ export function BookCard({ book }: { book: Book }) {
           {(book.book_format === 'physical' || book.book_format === 'both') && (
             <button
               onClick={() => handleBuy('physical')}
-              disabled={loading}
-              className="btn-primary flex-1 text-sm py-2 disabled:opacity-50"
+              className="btn-primary flex-1 text-sm py-2"
             >
               <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
               Physical

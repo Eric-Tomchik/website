@@ -12,12 +12,13 @@ const checkoutSchema = z.object({
       quantity: z.number().int().min(1).max(10),
     })
   ).min(1),
+  embedded: z.boolean().optional(),
 });
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { items } = checkoutSchema.parse(body);
+    const { items, embedded } = checkoutSchema.parse(body);
 
     const convex = getConvexClient();
     const allBooks = await convex.query(api.books.list, { activeOnly: true });
@@ -30,7 +31,6 @@ export async function POST(req: Request) {
     }
 
     const hasPhysical = items.some((i) => i.format === 'physical');
-
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://erictomchik.com';
 
     const lineItems = items.map((item) => {
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
         price_data: {
           currency: 'usd',
           product_data: {
-            name: `${book.title} (${item.format === 'digital' ? 'Digital' : 'Physical'})`,
+            name: `${book.title} (${item.format === 'digital' ? 'Digital' : 'Hardcover'})`,
             description: book.description,
             ...(imageUrl ? { images: [imageUrl] } : {}),
           },
@@ -57,39 +57,10 @@ export async function POST(req: Request) {
       };
     });
 
-    const session = await stripe.checkout.sessions.create({
+    const sessionConfig: Record<string, unknown> = {
       mode: 'payment',
       payment_method_types: ['card'],
       line_items: lineItems,
-      ...(hasPhysical && {
-        shipping_address_collection: {
-          allowed_countries: ['US'],
-        },
-        shipping_options: [
-          {
-            shipping_rate_data: {
-              type: 'fixed_amount',
-              fixed_amount: { amount: 499, currency: 'usd' },
-              display_name: 'Standard Shipping',
-              delivery_estimate: {
-                minimum: { unit: 'business_day', value: 5 },
-                maximum: { unit: 'business_day', value: 10 },
-              },
-            },
-          },
-          {
-            shipping_rate_data: {
-              type: 'fixed_amount',
-              fixed_amount: { amount: 1299, currency: 'usd' },
-              display_name: 'Priority Shipping',
-              delivery_estimate: {
-                minimum: { unit: 'business_day', value: 2 },
-                maximum: { unit: 'business_day', value: 4 },
-              },
-            },
-          },
-        ],
-      }),
       metadata: {
         order_items: JSON.stringify(
           items.map((i) => ({
@@ -100,9 +71,53 @@ export async function POST(req: Request) {
           }))
         ),
       },
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/books/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/books`,
-    });
+    };
+
+    if (hasPhysical) {
+      sessionConfig.shipping_address_collection = {
+        allowed_countries: ['US'],
+      };
+      sessionConfig.shipping_options = [
+        {
+          shipping_rate_data: {
+            type: 'fixed_amount',
+            fixed_amount: { amount: 499, currency: 'usd' },
+            display_name: 'Standard Shipping',
+            delivery_estimate: {
+              minimum: { unit: 'business_day', value: 5 },
+              maximum: { unit: 'business_day', value: 10 },
+            },
+          },
+        },
+        {
+          shipping_rate_data: {
+            type: 'fixed_amount',
+            fixed_amount: { amount: 1299, currency: 'usd' },
+            display_name: 'Priority Shipping',
+            delivery_estimate: {
+              minimum: { unit: 'business_day', value: 2 },
+              maximum: { unit: 'business_day', value: 4 },
+            },
+          },
+        },
+      ];
+    }
+
+    if (embedded) {
+      // Embedded checkout mode — returns client_secret
+      sessionConfig.ui_mode = 'embedded';
+      sessionConfig.return_url = `${siteUrl}/books/success?session_id={CHECKOUT_SESSION_ID}`;
+    } else {
+      // Hosted checkout mode — returns URL
+      sessionConfig.success_url = `${siteUrl}/books/success?session_id={CHECKOUT_SESSION_ID}`;
+      sessionConfig.cancel_url = `${siteUrl}/books`;
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig as any);
+
+    if (embedded) {
+      return NextResponse.json({ clientSecret: session.client_secret });
+    }
 
     return NextResponse.json({ url: session.url });
   } catch (err) {
@@ -110,6 +125,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid request', details: err.errors }, { status: 400 });
     }
     console.error('Checkout error:', err);
-    return NextResponse.json({ error: 'Failed to create checkout session' }, { status: 500 });
+    const message = err instanceof Error ? err.message : 'Failed to create checkout session';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
