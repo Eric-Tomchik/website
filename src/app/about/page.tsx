@@ -51,8 +51,7 @@ export default function AboutPage() {
               </p>
               <p>
                 When I&apos;m not writing or coding, you can find me exploring new
-                technologies, mentoring aspiring developers, and sharing what I learn
-                across my social media channels.
+                technologies and sharing what I learn across my social media channels.
               </p>
             </div>
 
