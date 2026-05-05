@@ -1,43 +1,18 @@
 import { Metadata } from 'next';
+import { fetchQuery } from 'convex/nextjs';
+import { api } from '../../../convex/_generated/api';
 import { PortfolioCard } from '@/components/ui/PortfolioCard';
 import { Briefcase } from 'lucide-react';
-import type { PortfolioProject } from '@/types';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Portfolio',
   description: 'View my web development portfolio. Custom websites and applications built for real clients.',
 };
 
-// Sample data — replace with Supabase query
-const sampleProjects: PortfolioProject[] = [
-  {
-    id: '1',
-    title: 'Sample Client Website',
-    slug: 'sample-client',
-    description: 'A modern e-commerce website built with Next.js and Stripe for a boutique retail brand.',
-    thumbnail_url: '/images/placeholder-project.png',
-    images: [],
-    live_url: 'https://example.com',
-    technologies: ['Next.js', 'React', 'Tailwind CSS', 'Stripe', 'Supabase'],
-    category: 'E-Commerce',
-    is_featured: true,
-    is_active: true,
-    sort_order: 0,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
-
 export default async function PortfolioPage() {
-  // When Supabase is connected:
-  // const supabase = createServerSupabase();
-  // const { data: projects } = await supabase
-  //   .from('portfolio_projects')
-  //   .select('*')
-  //   .eq('is_active', true)
-  //   .order('sort_order', { ascending: true });
-
-  const projects = sampleProjects;
+  const projects = await fetchQuery(api.portfolio.list, { activeOnly: true });
 
   return (
     <div className="py-16">
@@ -57,10 +32,10 @@ export default async function PortfolioPage() {
         </div>
 
         {/* Project grid */}
-        {projects.length > 0 ? (
+        {projects && projects.length > 0 ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((project) => (
-              <PortfolioCard key={project.id} project={project} />
+              <PortfolioCard key={project._id} project={project} />
             ))}
           </div>
         ) : (

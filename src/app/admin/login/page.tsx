@@ -1,11 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { Lock } from 'lucide-react';
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -15,14 +13,24 @@ export default function AdminLoginPage() {
     setLoading(true);
     setError('');
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
 
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-    } else {
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || 'Invalid password');
+        setLoading(false);
+        return;
+      }
+
       window.location.href = '/admin';
+    } catch {
+      setError('Something went wrong. Please try again.');
+      setLoading(false);
     }
   };
 
@@ -39,23 +47,6 @@ export default function AdminLoginPage() {
         </div>
 
         <form onSubmit={handleLogin} className="card p-6 space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-surface-300 mb-1.5">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-lg bg-surface-800 border border-surface-700
-                         text-white placeholder-surface-500 focus:border-brand-500
-                         focus:ring-1 focus:ring-brand-500 outline-none transition-colors"
-              placeholder="admin@erictomchik.com"
-            />
-          </div>
-
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-surface-300 mb-1.5">
               Password

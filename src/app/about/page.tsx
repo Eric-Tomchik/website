@@ -76,8 +76,8 @@ export default function AboutPage() {
               <div className="flex flex-wrap gap-2">
                 {[
                   'JavaScript', 'TypeScript', 'React', 'Next.js', 'Node.js',
-                  'Python', 'HTML/CSS', 'Tailwind CSS', 'PostgreSQL', 'Supabase',
-                  'Stripe', 'Git', 'Vercel', 'AWS',
+                  'Python', 'HTML/CSS', 'Tailwind CSS', 'Convex', 'Stripe',
+                  'Git', 'Netlify', 'AWS',
                 ].map((skill) => (
                   <span
                     key={skill}

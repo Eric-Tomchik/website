@@ -1,20 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { ShoppingCart, Package, Download, Truck, ChevronDown, ChevronUp } from 'lucide-react';
-
-interface Order {
-  id: string;
-  customer_email: string;
-  customer_name: string;
-  items: Array<{ book_id: string; format: string; quantity: number; title?: string }>;
-  total_cents: number;
-  status: string;
-  shipping_address: any;
-  stripe_session_id: string;
-  created_at: string;
-}
+import { useQuery, useMutation } from 'convex/react';
+import { useState } from 'react';
+import { api } from '../../../../../convex/_generated/api';
+import { ShoppingCart, Package, Download, ChevronDown, ChevronUp } from 'lucide-react';
+import type { Id } from '../../../../../convex/_generated/dataModel';
 
 const statusColors: Record<string, string> = {
   paid: 'bg-green-500/10 text-green-400',
@@ -24,27 +14,9 @@ const statusColors: Record<string, string> = {
 };
 
 export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+  const orders = useQuery(api.orders.list) ?? [];
+  const updateStatus = useMutation(api.orders.updateStatus);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  const supabase = createClient();
-
-  const fetchOrders = async () => {
-    const { data } = await supabase
-      .from('orders')
-      .select('*')
-      .order('created_at', { ascending: false });
-    setOrders(data || []);
-    setLoading(false);
-  };
-
-  useEffect(() => { fetchOrders(); }, []);
-
-  const updateStatus = async (id: string, status: string) => {
-    await supabase.from('orders').update({ status }).eq('id', id);
-    fetchOrders();
-  };
 
   const totalRevenue = orders
     .filter((o) => o.status !== 'refunded')
@@ -76,26 +48,24 @@ export default function AdminOrdersPage() {
         ))}
       </div>
 
-      {loading ? (
-        <div className="text-center py-12 text-surface-400">Loading...</div>
-      ) : orders.length === 0 ? (
+      {orders.length === 0 ? (
         <div className="card p-12 text-center">
           <ShoppingCart className="w-10 h-10 text-surface-600 mx-auto mb-3" />
-          <p className="text-surface-400">No orders yet. They'll show up here once customers start buying.</p>
+          <p className="text-surface-400">No orders yet. They&apos;ll show up here once customers start buying.</p>
         </div>
       ) : (
         <div className="space-y-3">
           {orders.map((order) => (
-            <div key={order.id} className="card overflow-hidden">
+            <div key={order._id} className="card overflow-hidden">
               <button
-                onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
+                onClick={() => setExpandedId(expandedId === order._id ? null : order._id)}
                 className="w-full px-5 py-4 flex items-center justify-between hover:bg-surface-800/30 transition-colors"
               >
                 <div className="flex items-center gap-4">
                   <div className="text-left">
                     <div className="text-sm font-medium text-white">{order.customer_name || order.customer_email}</div>
                     <div className="text-xs text-surface-400">
-                      {new Date(order.created_at).toLocaleDateString('en-US', {
+                      {new Date(order._creationTime).toLocaleDateString('en-US', {
                         month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
                       })}
                     </div>
@@ -110,7 +80,7 @@ export default function AdminOrdersPage() {
                   }`}>
                     {order.status}
                   </span>
-                  {expandedId === order.id ? (
+                  {expandedId === order._id ? (
                     <ChevronUp className="w-4 h-4 text-surface-400" />
                   ) : (
                     <ChevronDown className="w-4 h-4 text-surface-400" />
@@ -118,7 +88,7 @@ export default function AdminOrdersPage() {
                 </div>
               </button>
 
-              {expandedId === order.id && (
+              {expandedId === order._id && (
                 <div className="px-5 pb-5 space-y-4 border-t border-surface-800">
                   <div className="grid sm:grid-cols-2 gap-4 pt-4">
                     <div>
@@ -130,7 +100,7 @@ export default function AdminOrdersPage() {
                           ) : (
                             <Package className="w-3.5 h-3.5 text-brand-400" />
                           )}
-                          {item.title || item.book_id} × {item.quantity}
+                          {item.book_title || item.book_id} × {item.quantity}
                           <span className="text-xs text-surface-500 capitalize">({item.format})</span>
                         </div>
                       ))}
@@ -152,10 +122,10 @@ export default function AdminOrdersPage() {
 
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-surface-400">Update status:</span>
-                    {['paid', 'shipped', 'fulfilled'].map((s) => (
+                    {(['paid', 'shipped', 'fulfilled'] as const).map((s) => (
                       <button
                         key={s}
-                        onClick={() => updateStatus(order.id, s)}
+                        onClick={() => updateStatus({ id: order._id as Id<"orders">, status: s })}
                         disabled={order.status === s}
                         className={`px-3 py-1 rounded text-xs font-medium capitalize transition-colors ${
                           order.status === s

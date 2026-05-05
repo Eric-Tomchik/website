@@ -1,41 +1,45 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { useQuery, useMutation } from 'convex/react';
+import { useState } from 'react';
+import { api } from '../../../../../convex/_generated/api';
 import { BookOpen, Plus, Pencil, Trash2, Eye, EyeOff } from 'lucide-react';
-import type { Book } from '@/types';
+import type { Id } from '../../../../../convex/_generated/dataModel';
+
+type Book = {
+  _id: Id<"books">;
+  _creationTime: number;
+  title: string;
+  slug: string;
+  description: string;
+  long_description?: string;
+  price_cents: number;
+  book_format: 'physical' | 'digital' | 'both';
+  cover_image_url?: string;
+  amazon_url?: string;
+  digital_file_url?: string;
+  page_count?: number;
+  isbn?: string;
+  published_date?: string;
+  is_featured: boolean;
+  is_active: boolean;
+};
 
 export default function AdminBooksPage() {
-  const [books, setBooks] = useState<Book[]>([]);
-  const [loading, setLoading] = useState(true);
+  const books = useQuery(api.books.list, {}) ?? [];
+  const updateBook = useMutation(api.books.update);
+  const deleteBook = useMutation(api.books.remove);
+
   const [showForm, setShowForm] = useState(false);
   const [editingBook, setEditingBook] = useState<Book | null>(null);
 
-  const supabase = createClient();
-
-  const fetchBooks = async () => {
-    const { data } = await supabase
-      .from('books')
-      .select('*')
-      .order('created_at', { ascending: false });
-    setBooks(data || []);
-    setLoading(false);
+  const handleToggleActive = async (book: Book) => {
+    await updateBook({ id: book._id, is_active: !book.is_active });
   };
 
-  useEffect(() => { fetchBooks(); }, []);
-
-  const toggleActive = async (book: Book) => {
-    await supabase
-      .from('books')
-      .update({ is_active: !book.is_active })
-      .eq('id', book.id);
-    fetchBooks();
-  };
-
-  const deleteBook = async (id: string) => {
+  const handleDelete = async (id: Id<"books">) => {
     if (!confirm('Are you sure you want to delete this book?')) return;
-    await supabase.from('books').delete().eq('id', id);
-    fetchBooks();
+    await deleteBook({ id });
   };
 
   return (
@@ -57,14 +61,12 @@ export default function AdminBooksPage() {
       {showForm && (
         <BookForm
           book={editingBook}
-          onSave={() => { setShowForm(false); fetchBooks(); }}
+          onSave={() => setShowForm(false)}
           onCancel={() => setShowForm(false)}
         />
       )}
 
-      {loading ? (
-        <div className="text-center py-12 text-surface-400">Loading...</div>
-      ) : books.length === 0 ? (
+      {books.length === 0 ? (
         <div className="card p-12 text-center">
           <BookOpen className="w-10 h-10 text-surface-600 mx-auto mb-3" />
           <p className="text-surface-400">No books yet. Add your first book!</p>
@@ -83,7 +85,7 @@ export default function AdminBooksPage() {
             </thead>
             <tbody className="divide-y divide-surface-800">
               {books.map((book) => (
-                <tr key={book.id} className="hover:bg-surface-800/30">
+                <tr key={book._id} className="hover:bg-surface-800/30">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       {book.cover_image_url && (
@@ -113,7 +115,7 @@ export default function AdminBooksPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
                       <button
-                        onClick={() => toggleActive(book)}
+                        onClick={() => handleToggleActive(book)}
                         className="p-1.5 rounded hover:bg-surface-700 text-surface-400 hover:text-white transition-colors"
                         title={book.is_active ? 'Hide' : 'Show'}
                       >
@@ -127,7 +129,7 @@ export default function AdminBooksPage() {
                         <Pencil className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => deleteBook(book.id)}
+                        onClick={() => handleDelete(book._id)}
                         className="p-1.5 rounded hover:bg-red-900/30 text-surface-400 hover:text-red-400 transition-colors"
                         title="Delete"
                       >
@@ -154,14 +156,15 @@ function BookForm({
   onSave: () => void;
   onCancel: () => void;
 }) {
-  const supabase = createClient();
+  const createBook = useMutation(api.books.create);
+  const updateBook = useMutation(api.books.update);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     title: book?.title || '',
     slug: book?.slug || '',
     description: book?.description || '',
     price_cents: book?.price_cents || 0,
-    book_format: book?.book_format || 'both',
+    book_format: (book?.book_format || 'both') as 'physical' | 'digital' | 'both',
     cover_image_url: book?.cover_image_url || '',
     amazon_url: book?.amazon_url || '',
     is_featured: book?.is_featured || false,
@@ -174,14 +177,29 @@ function BookForm({
 
     const slug = form.slug || form.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
-    if (book) {
-      await supabase.from('books').update({ ...form, slug }).eq('id', book.id);
-    } else {
-      await supabase.from('books').insert({ ...form, slug });
+    try {
+      if (book) {
+        await updateBook({
+          id: book._id,
+          ...form,
+          slug,
+          cover_image_url: form.cover_image_url || undefined,
+          amazon_url: form.amazon_url || undefined,
+        });
+      } else {
+        await createBook({
+          ...form,
+          slug,
+          cover_image_url: form.cover_image_url || undefined,
+          amazon_url: form.amazon_url || undefined,
+        });
+      }
+      onSave();
+    } catch (err) {
+      console.error('Error saving book:', err);
     }
 
     setSaving(false);
-    onSave();
   };
 
   return (
@@ -237,7 +255,7 @@ function BookForm({
           <label className="block text-sm text-surface-300 mb-1">Format</label>
           <select
             value={form.book_format}
-            onChange={(e) => setForm({ ...form, book_format: e.target.value as any })}
+            onChange={(e) => setForm({ ...form, book_format: e.target.value as 'physical' | 'digital' | 'both' })}
             className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
           >
             <option value="digital">Digital Only</option>

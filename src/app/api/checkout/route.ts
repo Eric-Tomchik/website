@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { createAdminSupabase } from '@/lib/supabase/server';
+import { getConvexClient } from '@/lib/convex';
+import { api } from '../../../../convex/_generated/api';
 import { z } from 'zod';
 
 const checkoutSchema = z.object({
   items: z.array(
     z.object({
-      book_id: z.string().uuid(),
+      book_id: z.string(),
       format: z.enum(['physical', 'digital']),
       quantity: z.number().int().min(1).max(10),
     })
@@ -18,18 +19,18 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { items } = checkoutSchema.parse(body);
 
-    const supabase = createAdminSupabase();
+    const convex = getConvexClient();
 
-    // Fetch book details from DB
-    const bookIds = items.map((i) => i.book_id);
-    const { data: books, error } = await supabase
-      .from('books')
-      .select('*')
-      .in('id', bookIds)
-      .eq('is_active', true);
+    // Fetch all active books from Convex
+    const allBooks = await convex.query(api.books.list, { activeOnly: true });
 
-    if (error || !books) {
-      return NextResponse.json({ error: 'Failed to fetch books' }, { status: 500 });
+    // Find matching books
+    const books = allBooks.filter((b) =>
+      items.some((i) => i.book_id === b._id)
+    );
+
+    if (!books.length) {
+      return NextResponse.json({ error: 'No matching books found' }, { status: 400 });
     }
 
     // Check if any physical items need shipping
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
 
     // Build Stripe line items
     const lineItems = items.map((item) => {
-      const book = books.find((b) => b.id === item.book_id);
+      const book = books.find((b) => b._id === item.book_id);
       if (!book) throw new Error(`Book not found: ${item.book_id}`);
 
       return {
@@ -92,9 +93,9 @@ export async function POST(req: Request) {
         order_items: JSON.stringify(
           items.map((i) => ({
             book_id: i.book_id,
+            book_title: books.find((b) => b._id === i.book_id)?.title || '',
             format: i.format,
             quantity: i.quantity,
-            title: books.find((b) => b.id === i.book_id)?.title,
           }))
         ),
       },

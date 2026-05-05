@@ -4,10 +4,18 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ShoppingCart, Download, Truck } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
-import type { Book } from '@/types';
 
 interface BookCardProps {
-  book: Book;
+  book: {
+    _id: string;
+    title: string;
+    slug: string;
+    description: string;
+    price_cents: number;
+    book_format: 'physical' | 'digital' | 'both';
+    cover_image_url?: string;
+    is_featured: boolean;
+  };
 }
 
 export function BookCard({ book }: BookCardProps) {

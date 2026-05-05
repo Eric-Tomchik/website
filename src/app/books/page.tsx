@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
-import { createServerSupabase } from '@/lib/supabase/server';
+import { fetchQuery } from 'convex/nextjs';
+import { api } from '../../../convex/_generated/api';
 import { BookCard } from '@/components/ui/BookCard';
-import { BookOpen, Filter } from 'lucide-react';
-import type { Book } from '@/types';
+import { BookOpen } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,10 +16,10 @@ export default async function BooksPage({
 }: {
   searchParams: { book_format?: string };
 }) {
-  const supabase = createServerSupabase();
-  let query = supabase.from('books').select('*').eq('is_active', true).order('created_at', { ascending: false });
-  if (searchParams.book_format) query = query.eq('book_format', searchParams.book_format);
-  const { data: books } = await query;
+  const books = await fetchQuery(api.books.list, {
+    activeOnly: true,
+    format: searchParams.book_format || undefined,
+  });
 
   return (
     <div className="py-16">
@@ -73,10 +73,10 @@ export default async function BooksPage({
         </div>
 
         {/* Book grid */}
-        {books.length > 0 ? (
+        {books && books.length > 0 ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {books.map((book) => (
-              <BookCard key={book.id} book={book} />
+              <BookCard key={book._id} book={book} />
             ))}
           </div>
         ) : (

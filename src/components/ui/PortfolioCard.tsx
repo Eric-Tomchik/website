@@ -1,12 +1,20 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { ExternalLink, Github } from 'lucide-react';
-import type { PortfolioProject } from '@/types';
 
 interface PortfolioCardProps {
-  project: PortfolioProject;
+  project: {
+    _id: string;
+    title: string;
+    slug: string;
+    description: string;
+    thumbnail_url?: string;
+    live_url?: string;
+    github_url?: string;
+    technologies: string[];
+    category: string;
+  };
 }
 
 export function PortfolioCard({ project }: PortfolioCardProps) {

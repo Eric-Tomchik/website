@@ -1,38 +1,43 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { useQuery, useMutation } from 'convex/react';
+import { useState } from 'react';
+import { api } from '../../../../../convex/_generated/api';
 import { Briefcase, Plus, Pencil, Trash2, Eye, EyeOff, ExternalLink } from 'lucide-react';
-import type { PortfolioProject } from '@/types';
+import type { Id } from '../../../../../convex/_generated/dataModel';
+
+type Project = {
+  _id: Id<"portfolio_projects">;
+  _creationTime: number;
+  title: string;
+  slug: string;
+  description: string;
+  thumbnail_url?: string;
+  images: string[];
+  live_url?: string;
+  github_url?: string;
+  technologies: string[];
+  category: string;
+  is_featured: boolean;
+  is_active: boolean;
+  sort_order: number;
+};
 
 export default function AdminPortfolioPage() {
-  const [projects, setProjects] = useState<PortfolioProject[]>([]);
-  const [loading, setLoading] = useState(true);
+  const projects = useQuery(api.portfolio.list, {}) ?? [];
+  const updateProject = useMutation(api.portfolio.update);
+  const deleteProject = useMutation(api.portfolio.remove);
+
   const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<PortfolioProject | null>(null);
+  const [editing, setEditing] = useState<Project | null>(null);
 
-  const supabase = createClient();
-
-  const fetchProjects = async () => {
-    const { data } = await supabase
-      .from('portfolio_projects')
-      .select('*')
-      .order('sort_order', { ascending: true });
-    setProjects(data || []);
-    setLoading(false);
+  const handleToggleActive = async (p: Project) => {
+    await updateProject({ id: p._id, is_active: !p.is_active });
   };
 
-  useEffect(() => { fetchProjects(); }, []);
-
-  const toggleActive = async (p: PortfolioProject) => {
-    await supabase.from('portfolio_projects').update({ is_active: !p.is_active }).eq('id', p.id);
-    fetchProjects();
-  };
-
-  const deleteProject = async (id: string) => {
+  const handleDelete = async (id: Id<"portfolio_projects">) => {
     if (!confirm('Delete this project?')) return;
-    await supabase.from('portfolio_projects').delete().eq('id', id);
-    fetchProjects();
+    await deleteProject({ id });
   };
 
   return (
@@ -54,14 +59,12 @@ export default function AdminPortfolioPage() {
       {showForm && (
         <ProjectForm
           project={editing}
-          onSave={() => { setShowForm(false); fetchProjects(); }}
+          onSave={() => setShowForm(false)}
           onCancel={() => setShowForm(false)}
         />
       )}
 
-      {loading ? (
-        <div className="text-center py-12 text-surface-400">Loading...</div>
-      ) : projects.length === 0 ? (
+      {projects.length === 0 ? (
         <div className="card p-12 text-center">
           <Briefcase className="w-10 h-10 text-surface-600 mx-auto mb-3" />
           <p className="text-surface-400">No projects yet. Add your first portfolio piece!</p>
@@ -69,7 +72,7 @@ export default function AdminPortfolioPage() {
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {projects.map((p) => (
-            <div key={p.id} className="card p-4 space-y-3">
+            <div key={p._id} className="card p-4 space-y-3">
               {p.thumbnail_url && (
                 <img src={p.thumbnail_url} alt="" className="w-full h-32 rounded-lg object-cover" />
               )}
@@ -98,7 +101,7 @@ export default function AdminPortfolioPage() {
                       <ExternalLink className="w-3.5 h-3.5" />
                     </a>
                   )}
-                  <button onClick={() => toggleActive(p)}
+                  <button onClick={() => handleToggleActive(p)}
                           className="p-1.5 rounded hover:bg-surface-700 text-surface-400 hover:text-white">
                     {p.is_active ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
@@ -106,7 +109,7 @@ export default function AdminPortfolioPage() {
                           className="p-1.5 rounded hover:bg-surface-700 text-surface-400 hover:text-white">
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
-                  <button onClick={() => deleteProject(p.id)}
+                  <button onClick={() => handleDelete(p._id)}
                           className="p-1.5 rounded hover:bg-red-900/30 text-surface-400 hover:text-red-400">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -125,11 +128,12 @@ function ProjectForm({
   onSave,
   onCancel,
 }: {
-  project: PortfolioProject | null;
+  project: Project | null;
   onSave: () => void;
   onCancel: () => void;
 }) {
-  const supabase = createClient();
+  const createProject = useMutation(api.portfolio.create);
+  const updateProject = useMutation(api.portfolio.update);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     title: project?.title || '',
@@ -151,18 +155,42 @@ function ProjectForm({
     const slug = form.slug || form.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     const technologies = form.technologies.split(',').map((t) => t.trim()).filter(Boolean);
 
-    const data = { ...form, slug, technologies, images: project?.images || [] };
-    delete (data as any).technologies;
-    Object.assign(data, { technologies });
-
-    if (project) {
-      await supabase.from('portfolio_projects').update(data).eq('id', project.id);
-    } else {
-      await supabase.from('portfolio_projects').insert(data);
+    try {
+      if (project) {
+        await updateProject({
+          id: project._id,
+          title: form.title,
+          slug,
+          description: form.description,
+          thumbnail_url: form.thumbnail_url || undefined,
+          live_url: form.live_url || undefined,
+          technologies,
+          category: form.category,
+          is_featured: form.is_featured,
+          is_active: form.is_active,
+          sort_order: form.sort_order,
+        });
+      } else {
+        await createProject({
+          title: form.title,
+          slug,
+          description: form.description,
+          thumbnail_url: form.thumbnail_url || undefined,
+          images: [],
+          live_url: form.live_url || undefined,
+          technologies,
+          category: form.category,
+          is_featured: form.is_featured,
+          is_active: form.is_active,
+          sort_order: form.sort_order,
+        });
+      }
+      onSave();
+    } catch (err) {
+      console.error('Error saving project:', err);
     }
 
     setSaving(false);
-    onSave();
   };
 
   return (
@@ -207,7 +235,7 @@ function ProjectForm({
       <div>
         <label className="block text-sm text-surface-300 mb-1">Technologies (comma-separated)</label>
         <input value={form.technologies} onChange={(e) => setForm({ ...form, technologies: e.target.value })}
-          placeholder="React, Next.js, Tailwind CSS, Supabase"
+          placeholder="React, Next.js, Tailwind CSS, Convex"
           className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500" />
       </div>
 

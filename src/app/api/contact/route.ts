@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createAdminSupabase } from '@/lib/supabase/server';
+import { getConvexClient } from '@/lib/convex';
+import { api } from '../../../../convex/_generated/api';
 import { z } from 'zod';
 
 const contactSchema = z.object({
@@ -15,18 +16,14 @@ export async function POST(req: Request) {
     const body = await req.json();
     const data = contactSchema.parse(body);
 
-    const supabase = createAdminSupabase();
-    const { error } = await supabase.from('contact_messages').insert({
+    const convex = getConvexClient();
+    await convex.mutation(api.contacts.create, {
       name: data.name,
       email: data.email,
       subject: data.subject,
       message: data.message,
-      service_interest: data.service_interest || null,
+      service_interest: data.service_interest || undefined,
     });
-
-    if (error) throw error;
-
-    // TODO: Send email notification to yourself via Resend, SendGrid, etc.
 
     return NextResponse.json({ success: true });
   } catch (err) {
