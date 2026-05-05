@@ -20,10 +20,19 @@ const adminNav = [
   { href: '/admin/messages', label: 'Messages', icon: MessageSquare, badgeKey: 'messages' as const },
 ];
 
+function useSafeQuery<T>(queryFn: any, fallback: T): T {
+  try {
+    const result = useQuery(queryFn);
+    return result ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export default function AdminSidebar() {
   const pathname = usePathname();
-  const unreadMessages = useQuery(api.contacts.unreadCount) ?? 0;
-  const newOrders = useQuery(api.orders.newCount) ?? 0;
+  const unreadMessages = useSafeQuery(api.contacts.unreadCount, 0);
+  const newOrders = useSafeQuery(api.orders.newCount, 0);
 
   const badges: Record<string, number> = {
     orders: newOrders,
