@@ -81,7 +81,7 @@ export async function POST(req: Request) {
           </div>
         `;
 
-        await fetch('https://api.resend.com/emails', {
+        const resendRes = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -95,6 +95,12 @@ export async function POST(req: Request) {
             html: emailHtml,
           }),
         });
+        const resendData = await resendRes.json();
+        if (!resendRes.ok) {
+          console.error('Resend API error:', resendRes.status, JSON.stringify(resendData));
+        } else {
+          console.log('Resend email sent:', resendData.id);
+        }
       } catch (emailErr) {
         // Log email error but don't fail the request (submission is saved in Convex)
         console.error('Resend email error:', emailErr);
