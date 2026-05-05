@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe';
+import { getStripe } from '@/lib/stripe';
 import { getConvexClient } from '@/lib/convex';
 import { api } from '../../../../convex/_generated/api';
 import { z } from 'zod';
@@ -113,7 +113,7 @@ export async function POST(req: Request) {
       sessionConfig.cancel_url = `${siteUrl}/books`;
     }
 
-    const session = await stripe.checkout.sessions.create(sessionConfig as any);
+    const session = await getStripe().checkout.sessions.create(sessionConfig as any);
 
     if (embedded) {
       return NextResponse.json({ clientSecret: session.client_secret });
