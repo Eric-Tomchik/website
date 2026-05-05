@@ -1,0 +1,122 @@
+import Link from 'next/link';
+import { Facebook, Linkedin, Instagram, Twitter } from 'lucide-react';
+
+const socialLinks = [
+  { icon: Facebook, href: '#', label: 'Facebook' },
+  { icon: Linkedin, href: '#', label: 'LinkedIn' },
+  { icon: Instagram, href: '#', label: 'Instagram' },
+  { icon: Twitter, href: '#', label: 'X (Twitter)' },
+  // TikTok — using a custom SVG since lucide doesn't have one
+];
+
+const footerLinks = [
+  {
+    title: 'Shop',
+    links: [
+      { label: 'All Books', href: '/books' },
+      { label: 'Digital Downloads', href: '/books?format=digital' },
+      { label: 'Physical Copies', href: '/books?format=physical' },
+    ],
+  },
+  {
+    title: 'Services',
+    links: [
+      { label: 'Web Development', href: '/services' },
+      { label: 'Portfolio', href: '/portfolio' },
+      { label: 'Get a Quote', href: '/contact' },
+    ],
+  },
+  {
+    title: 'Connect',
+    links: [
+      { label: 'About Me', href: '/about' },
+      { label: 'Contact', href: '/contact' },
+      { label: 'All Links', href: '/links' },
+    ],
+  },
+];
+
+export function Footer() {
+  return (
+    <footer className="border-t border-surface-800/50 bg-surface-950/80">
+      <div className="section-container py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Brand column */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-white">
+              Eric <span className="text-brand-400">Tomchik</span>
+            </h3>
+            <p className="text-sm text-surface-400 leading-relaxed">
+              Author, web developer, and creator. Building digital experiences
+              and telling stories that matter.
+            </p>
+            <div className="flex items-center gap-3">
+              {socialLinks.map((social) => (
+                <a
+                  key={social.label}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-lg bg-surface-800 hover:bg-brand-600
+                             flex items-center justify-center transition-colors"
+                  aria-label={social.label}
+                >
+                  <social.icon className="w-4 h-4 text-surface-300 hover:text-white" />
+                </a>
+              ))}
+              {/* TikTok icon (custom) */}
+              <a
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 rounded-lg bg-surface-800 hover:bg-brand-600
+                           flex items-center justify-center transition-colors"
+                aria-label="TikTok"
+              >
+                <svg className="w-4 h-4 text-surface-300" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 0010.86 4.44 6.21 6.21 0 001.82-4.44V8.84a8.18 8.18 0 004.76 1.52V6.88a4.84 4.84 0 01-1-.19z" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          {/* Link columns */}
+          {footerLinks.map((group) => (
+            <div key={group.title}>
+              <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+                {group.title}
+              </h4>
+              <ul className="space-y-2.5">
+                {group.links.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-surface-400 hover:text-brand-400 transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-12 pt-8 border-t border-surface-800/50 flex flex-col sm:flex-row
+                        items-center justify-between gap-4">
+          <p className="text-sm text-surface-500">
+            © {new Date().getFullYear()} Eric Tomchik. All rights reserved.
+          </p>
+          <div className="flex items-center gap-4 text-sm text-surface-500">
+            <Link href="/privacy" className="hover:text-surface-300 transition-colors">
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="hover:text-surface-300 transition-colors">
+              Terms of Service
+            </Link>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
