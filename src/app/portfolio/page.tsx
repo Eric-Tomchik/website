@@ -24,7 +24,7 @@ const projects: Project[] = [
     tagline: 'Smoked Meats, Seafood & Southern Soul',
     description:
       'Full-featured restaurant website with real-time menu management powered by Convex, online reservations, interactive Google Maps integration, image gallery, and live events calendar. Bay St. Louis, MS.',
-    image: '/images/portfolio/boonies-on-the-bayou.jpg',
+    image: '/images/portfolio/boonies-on-the-bayou.png',
     category: 'Restaurant',
     tech: ['HTML/CSS', 'JavaScript', 'Convex', 'Google Maps API'],
     features: ['Real-Time Menus', 'Reservations', 'Events Calendar', 'Image Gallery', 'Maps'],
@@ -34,7 +34,7 @@ const projects: Project[] = [
     tagline: 'Premium Hand-Cut Steaks & Gulf Seafood',
     description:
       'Multi-location steakhouse site with Convex-powered dynamic menus, table reservation system, private events booking, catering request forms, and location-specific content for four Gulf Coast restaurants.',
-    image: '/images/portfolio/butcher-block.jpg',
+    image: '/images/portfolio/butcher-block.png',
     category: 'Restaurant',
     tech: ['HTML/CSS', 'JavaScript', 'Convex', 'Responsive Design'],
     features: ['Multi-Location', 'Reservations', 'Dynamic Menus', 'Catering', 'Contact Forms'],
@@ -44,7 +44,7 @@ const projects: Project[] = [
     tagline: 'Space-Themed Breakfast & Lunch',
     description:
       'Immersive space-themed café website for The Pearl Hotel in Bay St. Louis. Features an animated menu system, photo gallery with lightbox, embedded maps, and bold cosmic visual design.',
-    image: '/images/portfolio/cosmos.jpg',
+    image: '/images/portfolio/cosmos.png',
     category: 'Restaurant',
     tech: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     features: ['Themed Design', 'Animated Menus', 'Photo Gallery', 'Maps Integration'],
@@ -54,7 +54,7 @@ const projects: Project[] = [
     tagline: 'A Bay St. Louis Landmark Since 1981',
     description:
       'Three-floor restaurant and entertainment venue website featuring interactive menus, photo galleries of harbor views, live music event calendar, and responsive design showcasing decades of history.',
-    image: '/images/portfolio/dan-b-murphys.jpg',
+    image: '/images/portfolio/dan-b-murphys.png',
     category: 'Restaurant',
     tech: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     features: ['Multi-Floor Layout', 'Event Calendar', 'Photo Gallery', 'Interactive Menus', 'Maps'],
@@ -64,7 +64,7 @@ const projects: Project[] = [
     tagline: 'Elevated Cocktails in the Depot District',
     description:
       'Upscale cocktail bar website with elegant dark design, curated drink menus with detailed descriptions, artisan small plates showcase, event listings, and an immersive gallery of the venue.',
-    image: '/images/portfolio/hen-house.jpg',
+    image: '/images/portfolio/hen-house.png',
     category: 'Bar & Lounge',
     tech: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     features: ['Cocktail Menus', 'Event Listings', 'Venue Gallery', 'Elegant Dark Theme', 'Maps'],
@@ -74,7 +74,7 @@ const projects: Project[] = [
     tagline: 'Waterfront Tiki Bar on Beach Boulevard',
     description:
       'Tropical-themed waterfront bar website with vibrant visual design, food and drink menus, photo gallery of harbor views, embedded maps, and event information for the Bay St. Louis hotspot.',
-    image: '/images/portfolio/lemoines-landing.jpg',
+    image: '/images/portfolio/lemoines-landing.png',
     category: 'Bar & Restaurant',
     tech: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     features: ['Tropical Theme', 'Menu System', 'Photo Gallery', 'Events', 'Maps Integration'],
@@ -84,7 +84,7 @@ const projects: Project[] = [
     tagline: 'Gulf Coast Seafood & Cajun Cuisine',
     description:
       'Redesigned website for Waveland\'s beloved 25-year legacy seafood restaurant. Features comprehensive Cajun/seafood menus, press coverage showcase, customer review integration, and location mapping.',
-    image: '/images/portfolio/rickeys-on-coleman.jpg',
+    image: '/images/portfolio/rickeys-on-coleman.png',
     category: 'Restaurant',
     tech: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'Responsive Design'],
     features: ['Full Menu System', 'Press Coverage', 'Review Integration', 'Maps', 'Responsive'],
@@ -94,7 +94,7 @@ const projects: Project[] = [
     tagline: "Mississippi's First Official Pirate Pub",
     description:
       'Personality-packed website for a legendary Bay St. Louis pirate-themed café and bar. Features extensive press/article showcase, full pizza and menu system, events calendar, contact forms, and fun pirate branding.',
-    image: '/images/portfolio/ugly-pirate.jpg',
+    image: '/images/portfolio/ugly-pirate.png',
     category: 'Cafe & Bar',
     tech: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     features: ['Press Showcase', 'Full Menus', 'Events Calendar', 'Contact Forms', 'Themed Design'],
@@ -104,7 +104,7 @@ const projects: Project[] = [
     tagline: 'Southern-Inspired Bistro & Bar',
     description:
       'Modern bistro website with rich photography, comprehensive food and cocktail menus, photo gallery, patio and venue showcase, event listings, and smooth scroll animations throughout.',
-    image: '/images/portfolio/wicked-pig.jpg',
+    image: '/images/portfolio/wicked-pig.png',
     category: 'Restaurant',
     tech: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     features: ['Menu System', 'Photo Gallery', 'Event Listings', 'Smooth Animations', 'Maps'],
@@ -166,7 +166,7 @@ export default function PortfolioPage() {
                     <img
                       src={project.image}
                       alt={project.name}
-                      className="w-full aspect-[8/5] object-cover group-hover:scale-105 transition-transform duration-700"
+                      className="w-full aspect-[16/10] object-cover group-hover:scale-105 transition-transform duration-700"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-surface-950/60 via-transparent to-transparent" />
                     <div className="absolute bottom-4 left-4">
