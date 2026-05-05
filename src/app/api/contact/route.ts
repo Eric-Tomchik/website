@@ -28,7 +28,13 @@ export async function POST(req: Request) {
 
     // Send email via Resend
     const resendKey = process.env.RESEND_API_KEY;
-    if (resendKey) {
+    let emailStatus = 'skipped';
+    let emailError = '';
+
+    if (!resendKey) {
+      emailStatus = 'no_api_key';
+      console.error('RESEND_API_KEY is not set');
+    } else {
       try {
         const serviceLabel = data.service_interest
           ? {
@@ -97,17 +103,21 @@ export async function POST(req: Request) {
         });
         const resendData = await resendRes.json();
         if (!resendRes.ok) {
-          console.error('Resend API error:', resendRes.status, JSON.stringify(resendData));
+          emailStatus = 'error';
+          emailError = `${resendRes.status}: ${JSON.stringify(resendData)}`;
+          console.error('Resend API error:', emailError);
         } else {
+          emailStatus = 'sent';
           console.log('Resend email sent:', resendData.id);
         }
       } catch (emailErr) {
-        // Log email error but don't fail the request (submission is saved in Convex)
+        emailStatus = 'exception';
+        emailError = String(emailErr);
         console.error('Resend email error:', emailErr);
       }
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, emailStatus, emailError: emailError || undefined });
   } catch (err) {
     if (err instanceof z.ZodError) {
       return NextResponse.json({ error: 'Invalid form data', details: err.errors }, { status: 400 });
