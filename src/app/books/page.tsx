@@ -17,7 +17,7 @@ const sampleBooks: Book[] = [
     slug: 'your-book-title',
     description: 'A compelling description of your book that draws readers in and makes them want to learn more.',
     price_cents: 1499,
-    format: 'both',
+    book_format: 'both',
     cover_image_url: '/images/placeholder-book.png',
     amazon_url: 'https://amazon.com',
     is_featured: true,
@@ -30,7 +30,7 @@ const sampleBooks: Book[] = [
 export default async function BooksPage({
   searchParams,
 }: {
-  searchParams: { format?: string };
+  searchParams: { book_format?: string };
 }) {
   // When Supabase is connected, uncomment:
   // const supabase = createServerSupabase();
@@ -70,7 +70,7 @@ export default async function BooksPage({
             All Books
           </a>
           <a
-            href="/books?format=digital"
+            href="/books?book_format=digital"
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               searchParams.book_format === 'digital'
                 ? 'bg-brand-600 text-white'
@@ -80,7 +80,7 @@ export default async function BooksPage({
             Digital
           </a>
           <a
-            href="/books?format=physical"
+            href="/books?book_format=physical"
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               searchParams.book_format === 'physical'
                 ? 'bg-brand-600 text-white'

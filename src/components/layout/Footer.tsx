@@ -14,8 +14,8 @@ const footerLinks = [
     title: 'Shop',
     links: [
       { label: 'All Books', href: '/books' },
-      { label: 'Digital Downloads', href: '/books?format=digital' },
-      { label: 'Physical Copies', href: '/books?format=physical' },
+      { label: 'Digital Downloads', href: '/books?book_format=digital' },
+      { label: 'Physical Copies', href: '/books?book_format=physical' },
     ],
   },
   {
