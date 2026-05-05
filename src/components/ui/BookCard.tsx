@@ -18,9 +18,11 @@ interface Book {
 
 export function BookCard({ book }: { book: Book }) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleBuy = async (format: 'physical' | 'digital') => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch('/api/checkout', {
         method: 'POST',
@@ -32,8 +34,12 @@ export function BookCard({ book }: { book: Book }) {
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
+      } else {
+        setError(data.error || 'Checkout failed. Please try again.');
+        console.error('Checkout response:', data);
       }
     } catch (err) {
+      setError('Network error. Please try again.');
       console.error('Checkout error:', err);
     }
     setLoading(false);
@@ -74,6 +80,10 @@ export function BookCard({ book }: { book: Book }) {
             {book.book_format === 'both' ? 'Digital + Physical' : book.book_format}
           </span>
         </div>
+
+        {error && (
+          <p className="text-red-400 text-xs mb-2">{error}</p>
+        )}
 
         <div className="flex gap-2">
           {(book.book_format === 'digital' || book.book_format === 'both') && (

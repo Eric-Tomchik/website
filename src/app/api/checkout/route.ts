@@ -31,9 +31,17 @@ export async function POST(req: Request) {
 
     const hasPhysical = items.some((i) => i.format === 'physical');
 
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://erictomchik.com';
+
     const lineItems = items.map((item) => {
       const book = books.find((b) => b._id === item.book_id);
       if (!book) throw new Error(`Book not found: ${item.book_id}`);
+
+      // Ensure cover image URLs are absolute for Stripe
+      let imageUrl = book.cover_image_url;
+      if (imageUrl && imageUrl.startsWith('/')) {
+        imageUrl = `${siteUrl}${imageUrl}`;
+      }
 
       return {
         price_data: {
@@ -41,7 +49,7 @@ export async function POST(req: Request) {
           product_data: {
             name: `${book.title} (${item.format === 'digital' ? 'Digital' : 'Physical'})`,
             description: book.description,
-            images: book.cover_image_url ? [book.cover_image_url] : [],
+            ...(imageUrl ? { images: [imageUrl] } : {}),
           },
           unit_amount: book.price_cents,
         },
