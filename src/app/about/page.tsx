@@ -14,9 +14,9 @@ export default function AboutPage() {
         <div className="grid lg:grid-cols-2 gap-16 items-start">
           {/* Image */}
           <div className="flex justify-center lg:sticky lg:top-24">
-            <div className="relative">
+            <div className="relative w-full max-w-md">
               <div className="absolute -inset-1 bg-gradient-to-r from-brand-500 to-brand-700 rounded-2xl blur-lg opacity-30" />
-              <div className="relative w-full max-w-md aspect-[3/4] rounded-2xl overflow-hidden border-2 border-surface-800">
+              <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden border-2 border-surface-800">
                 <img
                   src="/images/eric-profile.png"
                   alt="Eric Tomchik"
