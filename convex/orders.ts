@@ -9,6 +9,13 @@ export const list = query({
   },
 });
 
+export const newCount = query({
+  handler: async (ctx) => {
+    const orders = await ctx.db.query("orders").collect();
+    return orders.filter((o) => o.status === "paid").length;
+  },
+});
+
 export const create = mutation({
   args: {
     customer_email: v.string(),

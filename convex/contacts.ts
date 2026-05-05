@@ -38,3 +38,17 @@ export const unreadCount = query({
     return messages.filter((m) => !m.is_read).length;
   },
 });
+
+export const remove = mutation({
+  args: { id: v.id("contact_messages") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.id);
+  },
+});
+
+export const markUnread = mutation({
+  args: { id: v.id("contact_messages") },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.id, { is_read: false });
+  },
+});
