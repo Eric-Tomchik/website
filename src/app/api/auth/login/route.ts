@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       JSON.stringify({ admin: true, ts: Date.now() })
     ).toString('base64');
 
-    cookies().set('admin_session', token, {
+    (await cookies()).set('admin_session', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

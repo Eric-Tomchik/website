@@ -9,11 +9,12 @@ import { BookDetailActions } from './BookDetailActions';
 export const dynamic = 'force-dynamic';
 
 interface Props {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const book = await fetchQuery(api.books.getBySlug, { slug: params.slug });
+  const { slug } = await params;
+  const book = await fetchQuery(api.books.getBySlug, { slug });
   if (!book) {
     return { title: 'Book Not Found' };
   }
@@ -24,7 +25,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function BookDetailPage({ params }: Props) {
-  const book = await fetchQuery(api.books.getBySlug, { slug: params.slug });
+  const { slug } = await params;
+  const book = await fetchQuery(api.books.getBySlug, { slug });
 
   if (!book) {
     return (
