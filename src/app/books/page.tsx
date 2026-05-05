@@ -43,40 +43,6 @@ export default async function BooksPage({
           </div>
         </div>
 
-        {/* Format filter */}
-        <div className="flex justify-center gap-3 mb-12">
-          <a
-            href="/books"
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              !searchParams.book_format
-                ? 'bg-brand-600 text-white'
-                : 'glass text-surface-300 hover:text-white'
-            }`}
-          >
-            All Books
-          </a>
-          <a
-            href="/books?book_format=digital"
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              searchParams.book_format === 'digital'
-                ? 'bg-brand-600 text-white'
-                : 'glass text-surface-300 hover:text-white'
-            }`}
-          >
-            Digital
-          </a>
-          <a
-            href="/books?book_format=physical"
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              searchParams.book_format === 'physical'
-                ? 'bg-brand-600 text-white'
-                : 'glass text-surface-300 hover:text-white'
-            }`}
-          >
-            Physical
-          </a>
-        </div>
-
         {/* Book grid */}
         {books && books.length > 0 ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
