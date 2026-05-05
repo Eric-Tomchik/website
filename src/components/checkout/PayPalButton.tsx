@@ -22,11 +22,17 @@ export function PayPalButton({
   onError,
 }: PayPalButtonProps) {
   const [processing, setProcessing] = useState(false);
+  const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
+
+  // Don't render if PayPal client ID is not configured
+  if (!clientId) {
+    return null;
+  }
 
   return (
     <PayPalScriptProvider
       options={{
-        clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!,
+        clientId,
         currency: 'USD',
         intent: 'capture',
       }}
