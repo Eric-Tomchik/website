@@ -1,10 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Send, Mail, MapPin, Clock, CheckCircle } from 'lucide-react';
 
 export default function ContactPage() {
+  return (
+    <Suspense fallback={<div className="py-16 text-center text-surface-400">Loading...</div>}>
+      <ContactContent />
+    </Suspense>
+  );
+}
+
+function ContactContent() {
   const searchParams = useSearchParams();
   const serviceInterest = searchParams.get('service') || '';
 
