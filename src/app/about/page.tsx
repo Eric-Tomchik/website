@@ -33,10 +33,13 @@ export default function AboutPage() {
                 About <span className="gradient-text">Me</span>
               </h1>
               <p className="text-lg text-surface-300 leading-relaxed">
-                I&apos;m Eric Tomchik — a published author and professional web developer
-                with a passion for creating things that matter. Whether it&apos;s a story
-                that keeps you up at night or a website that drives your business forward,
-                I put the same level of craft and care into everything I build.
+                I&apos;m Eric Tomchik — a published author, founder of{' '}
+                <Link href="/books" className="text-brand-400 hover:text-brand-300 transition-colors">
+                  ArcLight Press
+                </Link>
+                , and professional web developer with a passion for creating things that matter.
+                Whether it&apos;s a book that keeps you up at night or a website that drives
+                your business forward, I put the same level of craft and care into everything I build.
               </p>
             </div>
 

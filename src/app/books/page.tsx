@@ -7,8 +7,8 @@ import { BookOpen } from 'lucide-react';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Books',
-  description: 'Browse and purchase books by Eric Tomchik. Available in digital and physical formats.',
+  title: 'ArcLight Press — Books',
+  description: 'Browse and purchase books from ArcLight Press by Eric Tomchik. Available in hardcover.',
 };
 
 export default async function BooksPage({
@@ -25,17 +25,22 @@ export default async function BooksPage({
     <div className="py-16">
       <div className="section-container">
         {/* Header */}
-        <div className="text-center space-y-4 mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-sm text-brand-400">
-            <BookOpen className="w-4 h-4" />
-            Bookshop
+        <div className="text-center space-y-6 mb-12">
+          <div className="flex justify-center">
+            <img
+              src="/arclight-press-logo.png"
+              alt="ArcLight Press"
+              className="h-32 sm:h-40 w-auto"
+            />
           </div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold">
-            My <span className="gradient-text">Books</span>
-          </h1>
-          <p className="text-surface-400 max-w-xl mx-auto">
-            Available in digital download and signed physical copies shipped directly from the author.
-          </p>
+          <div className="space-y-3">
+            <h1 className="text-4xl sm:text-5xl font-extrabold">
+              <span className="gradient-text">ArcLight Press</span>
+            </h1>
+            <p className="text-surface-400 max-w-xl mx-auto">
+              Premium hardcover editions by Eric Tomchik. Shipped directly from the author.
+            </p>
+          </div>
         </div>
 
         {/* Format filter */}

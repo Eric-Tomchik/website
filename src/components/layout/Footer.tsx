@@ -2,19 +2,18 @@ import Link from 'next/link';
 import { Facebook, Linkedin, Instagram, Twitter } from 'lucide-react';
 
 const socialLinks = [
-  { icon: Facebook, href: '#', label: 'Facebook' },
-  { icon: Linkedin, href: '#', label: 'LinkedIn' },
-  { icon: Instagram, href: '#', label: 'Instagram' },
-  { icon: Twitter, href: '#', label: 'X (Twitter)' },
+  { icon: Facebook, href: 'https://www.facebook.com/Cyb3rOn3', label: 'Facebook' },
+  { icon: Linkedin, href: 'https://www.linkedin.com/in/eric-tomchik-jr/', label: 'LinkedIn' },
+  { icon: Instagram, href: 'https://www.instagram.com/cyb3ron3/', label: 'Instagram' },
+  { icon: Twitter, href: 'https://x.com/EricTomchikJr', label: 'X (Twitter)' },
 ];
 
 const footerLinks = [
   {
-    title: 'Shop',
+    title: 'ArcLight Press',
     links: [
       { label: 'All Books', href: '/books' },
-      { label: 'Digital Downloads', href: '/books?book_format=digital' },
-      { label: 'Physical Copies', href: '/books?book_format=physical' },
+      { label: 'Hardcover Editions', href: '/books?book_format=physical' },
     ],
   },
   {
@@ -45,8 +44,8 @@ export function Footer() {
               Eric <span className="text-brand-400">Tomchik</span>
             </h3>
             <p className="text-sm text-surface-400 leading-relaxed">
-              Author, web developer, and creator. Building digital experiences
-              and telling stories that matter.
+              Author, founder of ArcLight Press, and web developer. Building digital
+              experiences and publishing books that matter.
             </p>
             <div className="flex items-center gap-3">
               {socialLinks.map((social) => (
@@ -63,7 +62,7 @@ export function Footer() {
                 </a>
               ))}
               <a
-                href="#"
+                href="https://www.tiktok.com/@c3rt1f13dg33k"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-lg bg-surface-800 hover:bg-brand-600

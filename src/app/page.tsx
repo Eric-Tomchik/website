@@ -72,10 +72,10 @@ export default async function HomePage() {
               <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass text-xs text-brand-400 mb-3">
                   <BookOpen className="w-3.5 h-3.5" />
-                  Bookshop
+                  ArcLight Press
                 </div>
                 <h2 className="text-3xl font-bold text-white">
-                  Latest <span className="gradient-text">Books</span>
+                  Latest from <span className="gradient-text">ArcLight Press</span>
                 </h2>
               </div>
               <Link
@@ -102,8 +102,8 @@ export default async function HomePage() {
             {[
               {
                 icon: BookOpen,
-                title: 'My Books',
-                description: 'Business & tech books in digital and signed physical copies.',
+                title: 'ArcLight Press',
+                description: 'Premium hardcover business & tech books by Eric Tomchik.',
                 href: '/books',
               },
               {
