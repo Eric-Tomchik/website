@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 const socialLinks = [
   {
     platform: 'Facebook',
-    url: 'https://www.facebook.com/Cyb3rOn3',
+    url: 'https://www.facebook.com/profile.php?id=61589407526718',
     icon: Facebook,
     color: 'hover:bg-[#1877F2]/20 hover:border-[#1877F2]/40',
     description: 'Follow for updates and behind-the-scenes content',
