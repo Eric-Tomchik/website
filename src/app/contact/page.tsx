@@ -61,7 +61,7 @@ function ContactContent() {
 
             <div className="space-y-4">
               {[
-                { icon: Mail, label: 'Email', value: 'contact@erictomchik.com' },
+                { icon: Mail, label: 'Email', value: 'info@erictomchik.com' },
                 { icon: Clock, label: 'Response Time', value: 'Within 24 hours' },
                 { icon: MapPin, label: 'Location', value: 'United States' },
               ].map((item) => (
