@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 const socialLinks = [
   {
     platform: 'Facebook',
-    url: '#', // Replace with actual URL
+    url: '#',
     icon: Facebook,
     color: 'hover:bg-[#1877F2]/20 hover:border-[#1877F2]/40',
     description: 'Follow for updates and behind-the-scenes content',
@@ -32,7 +32,7 @@ const socialLinks = [
   {
     platform: 'TikTok',
     url: '#',
-    icon: null, // Custom SVG below
+    icon: null,
     color: 'hover:bg-[#00f2ea]/20 hover:border-[#00f2ea]/40',
     description: 'Short-form video content',
   },
@@ -62,7 +62,7 @@ const siteLinks = [
     label: 'Get In Touch',
     href: '/contact',
     icon: Mail,
-    description: 'Let\'s work together',
+    description: "Let's work together",
   },
 ];
 

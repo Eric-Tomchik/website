@@ -15,7 +15,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
     }
 
-    // Set a signed session cookie
     const token = Buffer.from(
       JSON.stringify({ admin: true, ts: Date.now() })
     ).toString('base64');
@@ -24,7 +23,7 @@ export async function POST(req: Request) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
       path: '/',
     });
 

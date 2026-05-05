@@ -33,7 +33,6 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      {/* Quick stats */}
       <div className="grid grid-cols-4 gap-4">
         {[
           { label: 'Paid', count: orders.filter((o) => o.status === 'paid').length, color: 'text-green-400' },

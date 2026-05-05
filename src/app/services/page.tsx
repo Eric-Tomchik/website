@@ -9,7 +9,6 @@ export const metadata: Metadata = {
   description: 'Professional web development services by Eric Tomchik. Custom websites, e-commerce, and web applications.',
 };
 
-// Service plans — can be moved to Convex if needed
 const servicePlans: ServicePlan[] = [
   {
     id: '1',

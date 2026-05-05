@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { BookOpen, Code2, ArrowRight, Award, Coffee, Globe } from 'lucide-react';
+import { BookOpen, Code2, ArrowRight, Coffee, Globe } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'About',
@@ -55,10 +55,10 @@ export default function AboutPage() {
               </p>
             </div>
 
-            {/* Stats / highlights */}
+            {/* Stats */}
             <div className="grid grid-cols-3 gap-4">
               {[
-                { icon: BookOpen, label: 'Published Books', value: '—' },
+                { icon: BookOpen, label: 'Published Books', value: '4' },
                 { icon: Globe, label: 'Websites Built', value: '—' },
                 { icon: Coffee, label: 'Cups of Coffee', value: '∞' },
               ].map((stat) => (

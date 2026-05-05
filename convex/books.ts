@@ -21,7 +21,6 @@ export const list = query({
       books = books.filter((b) => b.book_format === args.format);
     }
 
-    // Sort by creation time descending
     books.sort((a, b) => b._creationTime - a._creationTime);
     return books;
   },
@@ -99,7 +98,6 @@ export const update = mutation({
   },
   handler: async (ctx, args) => {
     const { id, ...updates } = args;
-    // Filter out undefined values
     const filtered: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(updates)) {
       if (value !== undefined) filtered[key] = value;

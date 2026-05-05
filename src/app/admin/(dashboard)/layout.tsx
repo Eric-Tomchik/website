@@ -11,7 +11,6 @@ const adminNav = [
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  // Auth check — redirect to login if no valid session cookie
   const cookieStore = cookies();
   const session = cookieStore.get('admin_session');
 
@@ -19,7 +18,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/admin/login');
   }
 
-  // Verify the session token is valid
   try {
     const decoded = JSON.parse(Buffer.from(session.value, 'base64').toString());
     if (!decoded.admin) {
@@ -31,7 +29,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen flex">
-      {/* Sidebar */}
       <aside className="w-64 glass border-r border-surface-800/50 flex flex-col">
         <div className="p-6 border-b border-surface-800/50">
           <h2 className="text-lg font-bold text-white">Admin Panel</h2>
@@ -72,7 +69,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
       </aside>
 
-      {/* Main content */}
       <div className="flex-1 p-8">{children}</div>
     </div>
   );

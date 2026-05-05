@@ -13,7 +13,6 @@
     @apply bg-brand-600/40 text-white;
   }
 
-  /* Custom scrollbar */
   ::-webkit-scrollbar {
     @apply w-2;
   }

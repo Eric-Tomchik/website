@@ -6,7 +6,6 @@ const socialLinks = [
   { icon: Linkedin, href: '#', label: 'LinkedIn' },
   { icon: Instagram, href: '#', label: 'Instagram' },
   { icon: Twitter, href: '#', label: 'X (Twitter)' },
-  // TikTok — using a custom SVG since lucide doesn't have one
 ];
 
 const footerLinks = [
@@ -41,7 +40,6 @@ export function Footer() {
     <footer className="border-t border-surface-800/50 bg-surface-950/80">
       <div className="section-container py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Brand column */}
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-white">
               Eric <span className="text-brand-400">Tomchik</span>
@@ -64,7 +62,6 @@ export function Footer() {
                   <social.icon className="w-4 h-4 text-surface-300 hover:text-white" />
                 </a>
               ))}
-              {/* TikTok icon (custom) */}
               <a
                 href="#"
                 target="_blank"
@@ -80,7 +77,6 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Link columns */}
           {footerLinks.map((group) => (
             <div key={group.title}>
               <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">

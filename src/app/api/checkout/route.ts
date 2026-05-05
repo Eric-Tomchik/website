@@ -20,11 +20,7 @@ export async function POST(req: Request) {
     const { items } = checkoutSchema.parse(body);
 
     const convex = getConvexClient();
-
-    // Fetch all active books from Convex
     const allBooks = await convex.query(api.books.list, { activeOnly: true });
-
-    // Find matching books
     const books = allBooks.filter((b) =>
       items.some((i) => i.book_id === b._id)
     );
@@ -33,10 +29,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No matching books found' }, { status: 400 });
     }
 
-    // Check if any physical items need shipping
     const hasPhysical = items.some((i) => i.format === 'physical');
 
-    // Build Stripe line items
     const lineItems = items.map((item) => {
       const book = books.find((b) => b._id === item.book_id);
       if (!book) throw new Error(`Book not found: ${item.book_id}`);
@@ -55,7 +49,6 @@ export async function POST(req: Request) {
       };
     });
 
-    // Create Stripe Checkout session
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card'],

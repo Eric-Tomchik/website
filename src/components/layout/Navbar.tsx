@@ -23,7 +23,6 @@ export function Navbar() {
     <header className="sticky top-0 z-50 glass border-b border-surface-800/50">
       <div className="section-container">
         <nav className="flex items-center justify-between h-16">
-          {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
             <Image
               src="/et-monogram.png"
@@ -37,7 +36,6 @@ export function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
               <Link
@@ -51,7 +49,6 @@ export function Navbar() {
             ))}
           </div>
 
-          {/* CTA */}
           <div className="hidden md:flex items-center gap-3">
             <Link href="/books" className="btn-primary text-sm py-2 px-4">
               <BookOpen className="w-4 h-4 mr-2" />
@@ -59,7 +56,6 @@ export function Navbar() {
             </Link>
           </div>
 
-          {/* Mobile toggle */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="md:hidden p-2 rounded-lg text-surface-300 hover:text-white
@@ -70,7 +66,6 @@ export function Navbar() {
         </nav>
       </div>
 
-      {/* Mobile menu */}
       <div
         className={cn(
           'md:hidden overflow-hidden transition-all duration-300 border-t border-surface-800/50',

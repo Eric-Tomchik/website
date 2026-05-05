@@ -34,7 +34,6 @@ export default function AdminDashboard() {
         <p className="text-surface-400 mt-1">Welcome back, Eric.</p>
       </div>
 
-      {/* Stats grid */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => (
           <div key={stat.label} className="card p-6">
@@ -47,7 +46,6 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* Recent orders */}
       <div className="card p-6">
         <h2 className="text-lg font-semibold text-white mb-4">Recent Orders</h2>
         {recentOrders.length === 0 ? (

@@ -27,7 +27,6 @@ export async function POST(req: Request) {
       const session = event.data.object as Stripe.Checkout.Session;
       const items = JSON.parse(session.metadata?.order_items || '[]');
 
-      // Build shipping address from Stripe data
       const shippingAddress = session.shipping_details?.address
         ? {
             line1: session.shipping_details.address.line1 || undefined,
@@ -39,7 +38,6 @@ export async function POST(req: Request) {
           }
         : undefined;
 
-      // Create order in Convex
       await convex.mutation(api.orders.create, {
         customer_email: session.customer_details?.email || '',
         customer_name: session.customer_details?.name || '',
