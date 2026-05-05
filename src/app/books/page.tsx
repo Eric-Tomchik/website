@@ -14,11 +14,12 @@ export const metadata: Metadata = {
 export default async function BooksPage({
   searchParams,
 }: {
-  searchParams: { book_format?: string };
+  searchParams: Promise<{ book_format?: string }>;
 }) {
+  const { book_format } = await searchParams;
   const books = await fetchQuery(api.books.list, {
     activeOnly: true,
-    format: searchParams.book_format || undefined,
+    format: book_format || undefined,
   });
 
   return (
