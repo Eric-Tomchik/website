@@ -8,6 +8,7 @@ import {
 } from '@stripe/react-stripe-js';
 import { X, BookOpen, CheckCircle, Loader2 } from 'lucide-react';
 import { useCheckout } from './CheckoutContext';
+import { PayPalButton } from './PayPalButton';
 import { formatPrice } from '@/lib/utils';
 
 const stripePromise = loadStripe(
@@ -187,7 +188,7 @@ export function CheckoutDrawer() {
                 )}
               </div>
 
-              {/* Right: Stripe Embedded Checkout */}
+              {/* Right: Payment Options */}
               <div className="md:col-span-3 p-6 flex flex-col">
                 <h3 className="text-sm font-semibold text-surface-400 uppercase tracking-wider mb-4">
                   Payment Details
@@ -202,21 +203,47 @@ export function CheckoutDrawer() {
                       </button>
                     </div>
                   </div>
-                ) : !clientSecret ? (
-                  <div className="flex-1 flex items-center justify-center">
-                    <div className="text-center space-y-3">
-                      <Loader2 className="w-8 h-8 text-brand-400 animate-spin mx-auto" />
-                      <p className="text-surface-400 text-sm">Loading payment form...</p>
-                    </div>
-                  </div>
                 ) : (
-                  <div className="flex-1 stripe-embed-container">
-                    <EmbeddedCheckoutProvider
-                      stripe={stripePromise}
-                      options={{ clientSecret, onComplete: handleComplete }}
-                    >
-                      <EmbeddedCheckout className="h-full" />
-                    </EmbeddedCheckoutProvider>
+                  <div className="flex-1 flex flex-col gap-0">
+                    {/* PayPal Button */}
+                    {book && (
+                      <div className="pb-4">
+                        <PayPalButton
+                          amountCents={book.price_cents}
+                          bookTitle={book.title}
+                          bookId={book._id}
+                          format={format}
+                          onSuccess={handleComplete}
+                          onError={(msg) => setError(msg)}
+                        />
+                      </div>
+                    )}
+
+                    {/* Divider */}
+                    <div className="flex items-center gap-3 py-3">
+                      <div className="flex-1 border-t border-surface-700" />
+                      <span className="text-xs text-surface-500 uppercase tracking-wider">or pay with card</span>
+                      <div className="flex-1 border-t border-surface-700" />
+                    </div>
+
+                    {/* Stripe Embedded Checkout */}
+                    {!clientSecret ? (
+                      <div className="flex-1 flex items-center justify-center">
+                        <div className="text-center space-y-3">
+                          <Loader2 className="w-8 h-8 text-brand-400 animate-spin mx-auto" />
+                          <p className="text-surface-400 text-sm">Loading payment form...</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex-1 stripe-embed-container">
+                        <EmbeddedCheckoutProvider
+                          stripe={stripePromise}
+                          options={{ clientSecret, onComplete: handleComplete }}
+                        >
+                          <EmbeddedCheckout className="h-full" />
+                        </EmbeddedCheckoutProvider>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
