@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { BookOpen, ShoppingCart, ExternalLink } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import { useCheckout } from '@/components/checkout/CheckoutContext';
@@ -19,7 +20,9 @@ interface Book {
 export function BookCard({ book }: { book: Book }) {
   const { openCheckout } = useCheckout();
 
-  const handleBuy = (format: 'physical' | 'digital') => {
+  const handleBuy = (e: React.MouseEvent, format: 'physical' | 'digital') => {
+    e.preventDefault();
+    e.stopPropagation();
     openCheckout(
       {
         _id: book._id,
@@ -33,7 +36,7 @@ export function BookCard({ book }: { book: Book }) {
   };
 
   return (
-    <div className="card group flex flex-col">
+    <Link href={`/books/${book.slug}`} className="card group flex flex-col cursor-pointer">
       {/* Cover */}
       <div className="relative aspect-[3/4] bg-surface-800 overflow-hidden">
         {book.cover_image_url ? (
@@ -56,7 +59,9 @@ export function BookCard({ book }: { book: Book }) {
 
       {/* Info */}
       <div className="p-5 flex flex-col flex-1">
-        <h3 className="text-lg font-bold text-white mb-1 line-clamp-2">{book.title}</h3>
+        <h3 className="text-lg font-bold text-white mb-1 line-clamp-2 group-hover:text-brand-400 transition-colors">
+          {book.title}
+        </h3>
         <p className="text-sm text-surface-400 mb-4 line-clamp-2 flex-1">{book.description}</p>
 
         <div className="flex items-center justify-between mb-3">
@@ -71,7 +76,7 @@ export function BookCard({ book }: { book: Book }) {
         <div className="flex gap-2">
           {(book.book_format === 'digital' || book.book_format === 'both') && (
             <button
-              onClick={() => handleBuy('digital')}
+              onClick={(e) => handleBuy(e, 'digital')}
               className="btn-primary flex-1 text-sm py-2"
             >
               <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
@@ -80,7 +85,7 @@ export function BookCard({ book }: { book: Book }) {
           )}
           {(book.book_format === 'physical' || book.book_format === 'both') && (
             <button
-              onClick={() => handleBuy('physical')}
+              onClick={(e) => handleBuy(e, 'physical')}
               className="btn-primary flex-1 text-sm py-2"
             >
               <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
@@ -94,12 +99,13 @@ export function BookCard({ book }: { book: Book }) {
               rel="noopener noreferrer"
               className="btn-secondary text-sm py-2 px-3"
               title="View on Amazon"
+              onClick={(e) => e.stopPropagation()}
             >
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           )}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
