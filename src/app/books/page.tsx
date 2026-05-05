@@ -4,6 +4,8 @@ import { BookCard } from '@/components/ui/BookCard';
 import { BookOpen, Filter } from 'lucide-react';
 import type { Book } from '@/types';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Books',
   description: 'Browse and purchase books by Eric Tomchik. Available in digital and physical formats.',
