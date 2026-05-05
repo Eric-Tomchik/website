@@ -27,12 +27,12 @@ export function BookCard({ book }: BookCardProps) {
           </div>
         )}
         <div className="absolute top-3 right-3 flex flex-col gap-1.5">
-          {(book.format === 'digital' || book.format === 'both') && (
+          {(book.book_format === 'digital' || book.book_format === 'both') && (
             <div className="px-2 py-1 rounded-full bg-surface-900/80 backdrop-blur text-xs text-surface-300 flex items-center gap-1">
               <Download className="w-3 h-3" /> Digital
             </div>
           )}
-          {(book.format === 'physical' || book.format === 'both') && (
+          {(book.book_format === 'physical' || book.book_format === 'both') && (
             <div className="px-2 py-1 rounded-full bg-surface-900/80 backdrop-blur text-xs text-surface-300 flex items-center gap-1">
               <Truck className="w-3 h-3" /> Physical
             </div>

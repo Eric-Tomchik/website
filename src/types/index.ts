@@ -6,7 +6,7 @@ export interface Book {
   description: string;
   long_description?: string;
   price_cents: number;
-  format: 'physical' | 'digital' | 'both';
+  book_format: 'physical' | 'digital' | 'both';
   cover_image_url: string;
   amazon_url?: string;
   digital_file_url?: string;

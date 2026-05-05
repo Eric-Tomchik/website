@@ -35,7 +35,7 @@ export default async function BooksPage({
   // When Supabase is connected, uncomment:
   // const supabase = createServerSupabase();
   // let query = supabase.from('books').select('*').eq('is_active', true).order('created_at', { ascending: false });
-  // if (searchParams.format) query = query.eq('format', searchParams.format);
+  // if (searchParams.book_format) query = query.eq('book_format', searchParams.book_format);
   // const { data: books } = await query;
 
   const books = sampleBooks; // placeholder
@@ -62,7 +62,7 @@ export default async function BooksPage({
           <a
             href="/books"
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              !searchParams.format
+              !searchParams.book_format
                 ? 'bg-brand-600 text-white'
                 : 'glass text-surface-300 hover:text-white'
             }`}
@@ -72,7 +72,7 @@ export default async function BooksPage({
           <a
             href="/books?format=digital"
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              searchParams.format === 'digital'
+              searchParams.book_format === 'digital'
                 ? 'bg-brand-600 text-white'
                 : 'glass text-surface-300 hover:text-white'
             }`}
@@ -82,7 +82,7 @@ export default async function BooksPage({
           <a
             href="/books?format=physical"
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              searchParams.format === 'physical'
+              searchParams.book_format === 'physical'
                 ? 'bg-brand-600 text-white'
                 : 'glass text-surface-300 hover:text-white'
             }`}

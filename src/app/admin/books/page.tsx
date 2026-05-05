@@ -97,7 +97,7 @@ export default function AdminBooksPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm text-surface-300 capitalize">{book.format}</td>
+                  <td className="px-4 py-3 text-sm text-surface-300 capitalize">{book.book_format}</td>
                   <td className="px-4 py-3 text-sm text-surface-300">
                     ${(book.price_cents / 100).toFixed(2)}
                   </td>
@@ -161,7 +161,7 @@ function BookForm({
     slug: book?.slug || '',
     description: book?.description || '',
     price_cents: book?.price_cents || 0,
-    format: book?.format || 'both',
+    book_format: book?.book_format || 'both',
     cover_image_url: book?.cover_image_url || '',
     amazon_url: book?.amazon_url || '',
     is_featured: book?.is_featured || false,
@@ -236,8 +236,8 @@ function BookForm({
         <div>
           <label className="block text-sm text-surface-300 mb-1">Format</label>
           <select
-            value={form.format}
-            onChange={(e) => setForm({ ...form, format: e.target.value as any })}
+            value={form.book_format}
+            onChange={(e) => setForm({ ...form, book_format: e.target.value as any })}
             className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
           >
             <option value="digital">Digital Only</option>

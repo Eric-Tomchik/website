@@ -13,7 +13,7 @@ create table public.books (
   description text not null,
   long_description text,
   price_cents integer not null default 0,
-  format text not null default 'both' check (format in ('physical', 'digital', 'both')),
+  book_format text not null default 'both' check (book_format in ('physical', 'digital', 'both')),
   cover_image_url text,
   amazon_url text,
   digital_file_url text,
