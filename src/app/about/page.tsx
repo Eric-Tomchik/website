@@ -60,7 +60,7 @@ export default function AboutPage() {
             <div className="grid grid-cols-3 gap-4">
               {[
                 { icon: BookOpen, label: 'Published Books', value: '4' },
-                { icon: Globe, label: 'Websites Built', value: '—' },
+                { icon: Globe, label: 'Websites Built', value: '9' },
                 { icon: Coffee, label: 'Cups of Coffee', value: '∞' },
               ].map((stat) => (
                 <div key={stat.label} className="card p-4 text-center">
