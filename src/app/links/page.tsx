@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import Image from 'next/image';
 import { Facebook, Linkedin, Instagram, Twitter, ExternalLink, BookOpen, Code2, Mail } from 'lucide-react';
 
 export const metadata: Metadata = {
@@ -73,11 +72,10 @@ export default function LinksPage() {
         {/* Profile */}
         <div className="text-center space-y-4 mb-10">
           <div className="relative w-24 h-24 mx-auto rounded-full overflow-hidden border-2 border-brand-500 shadow-lg shadow-brand-600/20">
-            <Image
+            <img
               src="/images/eric-profile.png"
               alt="Eric Tomchik"
-              fill
-              className="object-cover object-top"
+              className="absolute inset-0 w-full h-full object-cover object-top"
             />
           </div>
           <div>

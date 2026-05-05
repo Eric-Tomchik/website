@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
 import { BookOpen, Code2, ArrowRight, Coffee, Globe } from 'lucide-react';
 
@@ -18,11 +17,10 @@ export default function AboutPage() {
             <div className="relative">
               <div className="absolute -inset-1 bg-gradient-to-r from-brand-500 to-brand-700 rounded-2xl blur-lg opacity-30" />
               <div className="relative w-full max-w-md aspect-[3/4] rounded-2xl overflow-hidden border-2 border-surface-800">
-                <Image
+                <img
                   src="/images/eric-profile.png"
                   alt="Eric Tomchik"
-                  fill
-                  className="object-cover object-top"
+                  className="absolute inset-0 w-full h-full object-cover object-top"
                 />
               </div>
             </div>

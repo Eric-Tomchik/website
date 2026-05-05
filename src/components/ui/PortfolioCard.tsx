@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import { ExternalLink, Github, Briefcase } from 'lucide-react';
 
 interface Project {
@@ -19,11 +18,10 @@ export function PortfolioCard({ project }: { project: Project }) {
       {/* Thumbnail */}
       <div className="relative aspect-video bg-surface-800 overflow-hidden">
         {project.thumbnail_url ? (
-          <Image
+          <img
             src={project.thumbnail_url}
             alt={project.title}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
           <div className="flex items-center justify-center h-full">

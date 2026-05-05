@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { useState } from 'react';
 import { Menu, X, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -24,7 +23,7 @@ export function Navbar() {
       <div className="section-container">
         <nav className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2 group">
-            <Image
+            <img
               src="/et-monogram.png"
               alt="ET Logo"
               width={36}

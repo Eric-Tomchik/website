@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { BookOpen, ShoppingCart, ExternalLink } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import { useState } from 'react';
@@ -45,11 +44,10 @@ export function BookCard({ book }: { book: Book }) {
       {/* Cover */}
       <div className="relative aspect-[3/4] bg-surface-800 overflow-hidden">
         {book.cover_image_url ? (
-          <Image
+          <img
             src={book.cover_image_url}
             alt={book.title}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
           <div className="flex items-center justify-center h-full">
