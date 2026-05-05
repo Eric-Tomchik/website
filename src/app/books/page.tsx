@@ -9,36 +9,15 @@ export const metadata: Metadata = {
   description: 'Browse and purchase books by Eric Tomchik. Available in digital and physical formats.',
 };
 
-// For now, sample data — replace with Supabase query when DB is set up
-const sampleBooks: Book[] = [
-  {
-    id: '1',
-    title: 'Your Book Title Here',
-    slug: 'your-book-title',
-    description: 'A compelling description of your book that draws readers in and makes them want to learn more.',
-    price_cents: 1499,
-    book_format: 'both',
-    cover_image_url: '/images/placeholder-book.png',
-    amazon_url: 'https://amazon.com',
-    is_featured: true,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
-
 export default async function BooksPage({
   searchParams,
 }: {
   searchParams: { book_format?: string };
 }) {
-  // When Supabase is connected, uncomment:
-  // const supabase = createServerSupabase();
-  // let query = supabase.from('books').select('*').eq('is_active', true).order('created_at', { ascending: false });
-  // if (searchParams.book_format) query = query.eq('book_format', searchParams.book_format);
-  // const { data: books } = await query;
-
-  const books = sampleBooks; // placeholder
+  const supabase = createServerSupabase();
+  let query = supabase.from('books').select('*').eq('is_active', true).order('created_at', { ascending: false });
+  if (searchParams.book_format) query = query.eq('book_format', searchParams.book_format);
+  const { data: books } = await query;
 
   return (
     <div className="py-16">
