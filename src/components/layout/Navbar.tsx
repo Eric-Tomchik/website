@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Menu, X, BookOpen } from 'lucide-react';
+import { Menu, X, BookOpen, LogIn } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navLinks = [
@@ -50,6 +50,14 @@ export function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center gap-3">
+            <Link
+              href="/portal"
+              className="px-3 py-2 rounded-lg text-sm font-medium text-surface-400
+                         hover:text-white hover:bg-surface-800/60 transition-all flex items-center gap-1.5"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              Client Portal
+            </Link>
             <Link href="/books" className="btn-primary text-sm py-2 px-4">
               <BookOpen className="w-4 h-4 mr-2" />
               Shop Books
@@ -84,6 +92,15 @@ export function Navbar() {
               {link.label}
             </Link>
           ))}
+          <Link
+            href="/portal"
+            onClick={() => setMobileOpen(false)}
+            className="block px-3 py-2.5 rounded-lg text-surface-300 hover:text-white
+                       hover:bg-surface-800/60 transition-all font-medium flex items-center gap-2"
+          >
+            <LogIn className="w-4 h-4" />
+            Client Portal
+          </Link>
           <Link
             href="/books"
             onClick={() => setMobileOpen(false)}

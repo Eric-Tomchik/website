@@ -21,6 +21,7 @@ const footerLinks = [
     links: [
       { label: 'Web Development', href: '/services' },
       { label: 'Portfolio', href: '/portfolio' },
+      { label: 'Client Portal', href: '/portal' },
       { label: 'Get a Quote', href: '/contact' },
     ],
   },
