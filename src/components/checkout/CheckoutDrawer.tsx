@@ -22,7 +22,7 @@ export function CheckoutDrawer() {
   const [error, setError] = useState<string | null>(null);
   const [completed, setCompleted] = useState(false);
 
-  // Fetch client secret when drawer opens
+  // Fetch client secret when dialog opens
   useEffect(() => {
     if (!isOpen || !book) {
       setClientSecret(null);
@@ -86,17 +86,17 @@ export function CheckoutDrawer() {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100]">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in"
         onClick={closeCheckout}
       />
 
-      {/* Panel */}
-      <div className="absolute right-0 top-0 h-full w-full max-w-4xl bg-surface-950 border-l border-surface-800 shadow-2xl animate-slide-in-right flex flex-col">
+      {/* Dialog */}
+      <div className="relative w-full max-w-2xl max-h-[90vh] bg-surface-950 border border-surface-800 rounded-2xl shadow-2xl animate-scale-in flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-surface-800">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-surface-800 flex-shrink-0">
           <h2 className="text-lg font-bold text-white">
             {completed ? 'Order Complete!' : 'Complete Your Purchase'}
           </h2>
@@ -112,7 +112,7 @@ export function CheckoutDrawer() {
         <div className="flex-1 overflow-y-auto">
           {completed ? (
             /* Success state */
-            <div className="flex items-center justify-center h-full p-8">
+            <div className="flex items-center justify-center p-10">
               <div className="text-center space-y-4">
                 <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto">
                   <CheckCircle className="w-8 h-8 text-green-400" />
@@ -131,122 +131,94 @@ export function CheckoutDrawer() {
               </div>
             </div>
           ) : (
-            /* Checkout layout: book info + payment */
-            <div className="grid md:grid-cols-5 h-full">
-              {/* Left: Order summary */}
-              <div className="md:col-span-2 p-6 border-b md:border-b-0 md:border-r border-surface-800 bg-surface-900/50">
-                <h3 className="text-sm font-semibold text-surface-400 uppercase tracking-wider mb-4">
-                  Order Summary
-                </h3>
-
-                {book && (
-                  <div className="space-y-4">
-                    {/* Book cover */}
-                    <div className="relative aspect-[3/4] max-w-[200px] mx-auto rounded-lg overflow-hidden border border-surface-700 shadow-lg">
-                      {book.cover_image_url ? (
-                        <img
-                          src={book.cover_image_url}
-                          alt={book.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex items-center justify-center h-full bg-surface-800">
-                          <BookOpen className="w-10 h-10 text-surface-600" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Book info */}
-                    <div className="text-center space-y-2">
-                      <h4 className="text-lg font-bold text-white">{book.title}</h4>
-                      <p className="text-sm text-surface-400 line-clamp-2">{book.description}</p>
-                      <div className="flex items-center justify-center gap-2">
-                        <span className="text-xs text-surface-500 capitalize px-2 py-1 rounded bg-surface-800">
-                          {format === 'physical' ? 'Hardcover' : 'Digital'} Edition
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Price */}
-                    <div className="border-t border-surface-800 pt-4 space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-surface-400">Subtotal</span>
-                        <span className="text-white font-medium">{formatPrice(book.price_cents)}</span>
-                      </div>
-                      {format === 'physical' && (
-                        <div className="flex justify-between text-sm">
-                          <span className="text-surface-400">Shipping</span>
-                          <span className="text-surface-400 text-xs">calculated at checkout</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between text-base font-bold border-t border-surface-800 pt-2">
-                        <span className="text-white">Total</span>
-                        <span className="text-brand-400">{formatPrice(book.price_cents)}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Right: Payment Options */}
-              <div className="md:col-span-3 p-6 flex flex-col">
-                <h3 className="text-sm font-semibold text-surface-400 uppercase tracking-wider mb-4">
-                  Payment Details
-                </h3>
-
-                {error ? (
-                  <div className="flex-1 flex items-center justify-center">
-                    <div className="text-center space-y-3">
-                      <p className="text-red-400">{error}</p>
-                      <button onClick={closeCheckout} className="btn-secondary text-sm">
-                        Close
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex-1 flex flex-col gap-0">
-                    {/* PayPal Button */}
-                    {book && (
-                      <div className="pb-4">
-                        <PayPalButton
-                          amountCents={book.price_cents}
-                          bookTitle={book.title}
-                          bookId={book._id}
-                          format={format}
-                          onSuccess={handleComplete}
-                          onError={(msg) => setError(msg)}
-                        />
-                      </div>
-                    )}
-
-                    {/* Divider */}
-                    <div className="flex items-center gap-3 py-3">
-                      <div className="flex-1 border-t border-surface-700" />
-                      <span className="text-xs text-surface-500 uppercase tracking-wider">or pay with card</span>
-                      <div className="flex-1 border-t border-surface-700" />
-                    </div>
-
-                    {/* Stripe Embedded Checkout */}
-                    {!clientSecret ? (
-                      <div className="flex-1 flex items-center justify-center">
-                        <div className="text-center space-y-3">
-                          <Loader2 className="w-8 h-8 text-brand-400 animate-spin mx-auto" />
-                          <p className="text-surface-400 text-sm">Loading payment form...</p>
-                        </div>
-                      </div>
+            /* Checkout layout: book summary + payment centered */
+            <div className="p-6 space-y-6">
+              {/* Order summary — compact horizontal */}
+              {book && (
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-surface-900/50 border border-surface-800">
+                  {/* Book cover thumbnail */}
+                  <div className="w-16 h-20 rounded-lg overflow-hidden border border-surface-700 flex-shrink-0">
+                    {book.cover_image_url ? (
+                      <img
+                        src={book.cover_image_url}
+                        alt={book.title}
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
-                      <div className="flex-1 stripe-embed-container">
-                        <EmbeddedCheckoutProvider
-                          stripe={stripePromise}
-                          options={{ clientSecret, onComplete: handleComplete }}
-                        >
-                          <EmbeddedCheckout className="h-full" />
-                        </EmbeddedCheckoutProvider>
+                      <div className="flex items-center justify-center h-full bg-surface-800">
+                        <BookOpen className="w-6 h-6 text-surface-600" />
                       </div>
                     )}
                   </div>
-                )}
-              </div>
+
+                  {/* Book info */}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-base font-bold text-white truncate">{book.title}</h4>
+                    <p className="text-sm text-surface-400">
+                      {format === 'physical' ? 'Hardcover' : 'Digital'} Edition
+                    </p>
+                  </div>
+
+                  {/* Price */}
+                  <div className="text-right flex-shrink-0">
+                    <span className="text-xl font-bold text-brand-400">
+                      {formatPrice(book.price_cents)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Payment section */}
+              {error ? (
+                <div className="text-center py-8 space-y-3">
+                  <p className="text-red-400">{error}</p>
+                  <button onClick={closeCheckout} className="btn-secondary text-sm">
+                    Close
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* PayPal Button */}
+                  {book && (
+                    <div>
+                      <PayPalButton
+                        amountCents={book.price_cents}
+                        bookTitle={book.title}
+                        bookId={book._id}
+                        format={format}
+                        onSuccess={handleComplete}
+                        onError={(msg) => setError(msg)}
+                      />
+                    </div>
+                  )}
+
+                  {/* Divider */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 border-t border-surface-700" />
+                    <span className="text-xs text-surface-500 uppercase tracking-wider">or pay with card</span>
+                    <div className="flex-1 border-t border-surface-700" />
+                  </div>
+
+                  {/* Stripe Embedded Checkout */}
+                  {!clientSecret ? (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="text-center space-y-3">
+                        <Loader2 className="w-8 h-8 text-brand-400 animate-spin mx-auto" />
+                        <p className="text-surface-400 text-sm">Loading payment form...</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="stripe-embed-container">
+                      <EmbeddedCheckoutProvider
+                        stripe={stripePromise}
+                        options={{ clientSecret, onComplete: handleComplete }}
+                      >
+                        <EmbeddedCheckout />
+                      </EmbeddedCheckoutProvider>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>

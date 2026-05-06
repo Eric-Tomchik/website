@@ -69,23 +69,23 @@
   }
 }
 
-/* Checkout drawer animations */
+/* Checkout dialog animations */
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-@keyframes slide-in-right {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .animate-fade-in {
   animation: fade-in 0.2s ease-out;
 }
 
-.animate-slide-in-right {
-  animation: slide-in-right 0.3s ease-out;
+.animate-scale-in {
+  animation: scale-in 0.3s ease-out;
 }
 
 /* Stripe embedded checkout styling */
