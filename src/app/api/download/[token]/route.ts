@@ -96,7 +96,7 @@ export async function GET(
         result.order_id || token.slice(0, 8)
       );
 
-      return new NextResponse(watermarkedBytes, {
+      return new NextResponse(watermarkedBytes as unknown as BodyInit, {
         headers: {
           'Content-Type': 'application/pdf',
           'Content-Disposition': `attachment; filename="${filename}"`,
