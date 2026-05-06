@@ -107,7 +107,39 @@ export default async function PortfolioPage() {
     projects = fallbackProjects;
   }
 
+  const portfolioJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Portfolio — Eric Tomchik',
+    description: 'Web development portfolio by Eric Tomchik — restaurant websites, e-commerce, and custom web applications.',
+    url: 'https://erictomchik.com/portfolio',
+    author: {
+      '@type': 'Person',
+      name: 'Eric Tomchik',
+      url: 'https://erictomchik.com',
+    },
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: projects.map((p, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        item: {
+          '@type': 'CreativeWork',
+          name: p.title,
+          description: p.description,
+          image: p.thumbnail_url ? `https://erictomchik.com${p.thumbnail_url}` : undefined,
+          keywords: p.technologies.join(', '),
+        },
+      })),
+    },
+  };
+
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(portfolioJsonLd) }}
+      />
     <div className="py-16">
       <div className="section-container">
         {/* Header */}
@@ -224,5 +256,6 @@ export default async function PortfolioPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }
