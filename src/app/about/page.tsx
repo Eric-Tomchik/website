@@ -1,11 +1,49 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { BookOpen, Code2, ArrowRight, Coffee, Globe } from 'lucide-react';
+import { BookOpen, Code2, ArrowRight, Coffee, Globe, Facebook, Linkedin, Instagram, Twitter, ExternalLink, Mail } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'About',
-  description: 'Learn about Eric Tomchik — author, web developer, and creator.',
+  description: 'Learn about Eric Tomchik — author, web developer, and creator. Follow me on social media.',
 };
+
+const socialLinks = [
+  {
+    platform: 'Facebook',
+    url: 'https://www.facebook.com/profile.php?id=61589407526718',
+    icon: Facebook,
+    color: 'hover:bg-[#1877F2]/20 hover:border-[#1877F2]/40',
+    description: 'Follow for updates and behind-the-scenes content',
+  },
+  {
+    platform: 'LinkedIn',
+    url: 'https://www.linkedin.com/in/eric-tomchik-jr/',
+    icon: Linkedin,
+    color: 'hover:bg-[#0A66C2]/20 hover:border-[#0A66C2]/40',
+    description: 'Connect professionally',
+  },
+  {
+    platform: 'Instagram',
+    url: 'https://www.instagram.com/cyb3ron3/',
+    icon: Instagram,
+    color: 'hover:bg-[#E4405F]/20 hover:border-[#E4405F]/40',
+    description: 'Photos, stories, and reels',
+  },
+  {
+    platform: 'TikTok',
+    url: 'https://www.tiktok.com/@c3rt1f13dg33k',
+    icon: null,
+    color: 'hover:bg-[#00f2ea]/20 hover:border-[#00f2ea]/40',
+    description: 'Short-form video content',
+  },
+  {
+    platform: 'X (Twitter)',
+    url: 'https://x.com/EricTomchikJr',
+    icon: Twitter,
+    color: 'hover:bg-[#1DA1F2]/20 hover:border-[#1DA1F2]/40',
+    description: 'Thoughts, threads, and tech takes',
+  },
+];
 
 export default function AboutPage() {
   return (
@@ -70,14 +108,14 @@ export default function AboutPage() {
               ))}
             </div>
 
-            {/* Skills */}
+            {/* Tech Stack */}
             <div>
               <h2 className="text-xl font-bold text-white mb-4">Tech Stack</h2>
               <div className="flex flex-wrap gap-2">
                 {[
                   'JavaScript', 'TypeScript', 'React', 'Next.js', 'Node.js',
                   'Python', 'HTML/CSS', 'Tailwind CSS', 'Convex', 'Stripe',
-                  'Git', 'Netlify', 'AWS',
+                  'Git', 'Cloudflare', 'AWS',
                 ].map((skill) => (
                   <span
                     key={skill}
@@ -100,6 +138,37 @@ export default function AboutPage() {
                 <BookOpen className="w-4 h-4 mr-2" />
                 Read My Books
               </Link>
+            </div>
+
+            {/* Follow Me — Social Links */}
+            <div className="pt-4 border-t border-surface-800">
+              <h2 className="text-xl font-bold text-white mb-4">Follow Me</h2>
+              <div className="space-y-3">
+                {socialLinks.map((social) => (
+                  <a
+                    key={social.platform}
+                    href={social.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`card flex items-center gap-4 p-4 group transition-all duration-300 ${social.color}`}
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-surface-800 flex items-center justify-center flex-shrink-0">
+                      {social.icon ? (
+                        <social.icon className="w-5 h-5 text-surface-300" />
+                      ) : (
+                        <svg className="w-5 h-5 text-surface-300" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 0010.86 4.44 6.21 6.21 0 001.82-4.44V8.84a8.18 8.18 0 004.76 1.52V6.88a4.84 4.84 0 01-1-.19z" />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-white">{social.platform}</div>
+                      <div className="text-xs text-surface-400">{social.description}</div>
+                    </div>
+                    <ExternalLink className="w-4 h-4 text-surface-500" />
+                  </a>
+                ))}
+              </div>
             </div>
           </div>
         </div>
