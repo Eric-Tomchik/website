@@ -4,7 +4,8 @@ import { api } from '../../../convex/_generated/api';
 import { BookCard } from '@/components/ui/BookCard';
 import { BookOpen } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
+// Revalidate every 60s — pages are cached and served instantly from edge
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: 'ArcLight Press — Books',

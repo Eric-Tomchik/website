@@ -6,7 +6,8 @@ import { BookOpen, ArrowLeft, ShoppingCart, ExternalLink } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import { BookDetailActions } from './BookDetailActions';
 
-export const dynamic = 'force-dynamic';
+// Revalidate every 60s — pages are cached and served instantly from edge
+export const revalidate = 60;
 
 interface Props {
   params: Promise<{ slug: string }>;

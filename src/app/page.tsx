@@ -4,7 +4,8 @@ import { api } from '../../convex/_generated/api';
 import { BookCard } from '@/components/ui/BookCard';
 import { ArrowRight, BookOpen, Code2, Sparkles, Link2 } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
+// Revalidate every 60s — pages are cached and served instantly from edge
+export const revalidate = 60;
 
 export default async function HomePage() {
   const books = await fetchQuery(api.books.list, { activeOnly: true });
