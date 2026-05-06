@@ -24,6 +24,8 @@ export default function SignDocumentPage() {
   const markViewed = useMutation(api.clientDocuments.markViewed);
   const signDoc = useMutation(api.clientDocuments.sign);
   const declineDoc = useMutation(api.clientDocuments.decline);
+  const saveSignedPdf = useMutation(api.clientDocuments.saveSignedPdf);
+  const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
 
   const [signerName, setSignerName] = useState('');
   const [signed, setSigned] = useState(false);
@@ -117,6 +119,30 @@ export default function SignDocumentPage() {
         signature_data: signatureData,
         signer_name: signerName.trim(),
       });
+
+      // Generate signed PDF addendum and save
+      try {
+        const { generateSignedPDF } = await import('../../../lib/pdfGenerator');
+        const signedPdf = generateSignedPDF(
+          new ArrayBuffer(0),
+          signerName.trim(),
+          signatureData,
+          Date.now(),
+          (doc as any)?.admin_signature_data,
+        );
+        const pdfBlob = signedPdf.output('blob');
+        const uploadUrl = await generateUploadUrl();
+        const uploadRes = await fetch(uploadUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/pdf' },
+          body: pdfBlob,
+        });
+        const { storageId } = await uploadRes.json();
+        await saveSignedPdf({ id: doc!._id, signed_storage_id: storageId });
+      } catch (e) {
+        console.error('Failed to generate signed PDF:', e);
+      }
+
       setSigned(true);
     } catch (err) {
       console.error(err);

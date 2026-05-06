@@ -687,7 +687,23 @@ function DocumentsTab({
                         <Link2 className="w-4 h-4" />
                       </button>
                     )}
-                    {/* Download (for stored files) */}
+                    {/* Admin sign button */}
+                    {d.signature_status && d.signature_status !== 'not_required' && !(d as any).admin_signature_data && (
+                      <button
+                        onClick={() => {
+                          const w = window.open(`/admin/sign/${d._id}`, '_blank', 'width=700,height=600');
+                        }}
+                        className="p-2 rounded-lg text-purple-400 hover:bg-purple-500/10 transition-colors"
+                        title="Sign as developer"
+                      >
+                        <PenLine className="w-4 h-4" />
+                      </button>
+                    )}
+                    {/* Download signed PDF */}
+                    {(d as any).signed_storage_id && (
+                      <DownloadButton storageId={(d as any).signed_storage_id} name={`Signed - ${d.name}`} />
+                    )}
+                    {/* Download original (for stored files) */}
                     {d.storage_id && (
                       <DownloadButton storageId={d.storage_id} name={d.name} />
                     )}

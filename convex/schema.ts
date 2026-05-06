@@ -223,6 +223,9 @@ export default defineSchema({
     signature_data: v.optional(v.string()),
     signed_at: v.optional(v.number()),
     signer_name: v.optional(v.string()),
+    admin_signature_data: v.optional(v.string()),
+    admin_signed_at: v.optional(v.number()),
+    signed_storage_id: v.optional(v.string()),
     signer_ip: v.optional(v.string()),
     sent_for_signature_at: v.optional(v.number()),
   })

@@ -173,6 +173,35 @@ export const sign = mutation({
   },
 });
 
+export const adminSign = mutation({
+  args: {
+    id: v.id("client_documents"),
+    signature_data: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const doc = await ctx.db.get(args.id);
+    if (!doc) throw new Error("Document not found");
+    await ctx.db.patch(args.id, {
+      admin_signature_data: args.signature_data,
+      admin_signed_at: Date.now(),
+    });
+    return { success: true };
+  },
+});
+
+export const saveSignedPdf = mutation({
+  args: {
+    id: v.id("client_documents"),
+    signed_storage_id: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.id, {
+      signed_storage_id: args.signed_storage_id,
+    });
+    return { success: true };
+  },
+});
+
 export const decline = mutation({
   args: { token: v.string() },
   handler: async (ctx, args) => {
