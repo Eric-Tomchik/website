@@ -1,5 +1,4 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
@@ -12,7 +11,7 @@ function signToken(payload: Record<string, unknown>, secret: string): string {
   return `${data}.${signature}`;
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     // Rate limit: 5 attempts per minute per IP
     const ip = getClientIp(req);
@@ -61,15 +60,18 @@ export async function POST(req: Request) {
       adminPassword
     );
 
-    (await cookies()).set('admin_session', token, {
+    // Use NextResponse.cookies instead of cookies() from next/headers
+    // for better compatibility with Cloudflare Workers / OpenNext
+    const response = NextResponse.json({ success: true });
+    response.cookies.set('admin_session', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: 60 * 60 * 24 * 7, // 7 days
       path: '/',
     });
 
-    return NextResponse.json({ success: true });
+    return response;
   } catch {
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }

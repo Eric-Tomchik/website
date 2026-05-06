@@ -1,33 +1,32 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('portal_session')?.value || null;
+export async function GET(req: NextRequest) {
+  // Read directly from request cookies (works on Cloudflare Workers)
+  const token = req.cookies.get('portal_session')?.value || null;
   return NextResponse.json({ token });
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const { token } = await req.json();
-  const cookieStore = await cookies();
+  const response = NextResponse.json({ success: true });
 
   if (token) {
-    cookieStore.set('portal_session', token, {
+    response.cookies.set('portal_session', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       sameSite: 'lax',
       maxAge: 30 * 24 * 60 * 60, // 30 days
       path: '/',
     });
   } else {
-    cookieStore.delete('portal_session');
+    response.cookies.delete('portal_session');
   }
 
-  return NextResponse.json({ success: true });
+  return response;
 }
 
-export async function DELETE() {
-  const cookieStore = await cookies();
-  cookieStore.delete('portal_session');
-  return NextResponse.json({ success: true });
+export async function DELETE(req: NextRequest) {
+  const response = NextResponse.json({ success: true });
+  response.cookies.delete('portal_session');
+  return response;
 }
