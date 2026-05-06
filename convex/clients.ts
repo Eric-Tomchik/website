@@ -1,11 +1,37 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import bcrypt from "bcryptjs";
 
-// Secure password hashing using Web Crypto (SHA-256 with per-user random salt)
-async function secureHash(password: string, salt?: string): Promise<string> {
-  const useSalt = salt || crypto.randomUUID().replace(/-/g, "");
-  const data = new TextEncoder().encode(password + useSalt);
-  // Stretch: hash 1000 iterations
+// Password hashing: bcrypt (preferred) with legacy SHA-256 + simpleHash fallback
+const BCRYPT_ROUNDS = 10;
+
+async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, BCRYPT_ROUNDS);
+}
+
+async function verifyPassword(
+  password: string,
+  storedHash: string
+): Promise<boolean> {
+  // bcrypt hashes start with $2a$ or $2b$
+  if (storedHash.startsWith("$2")) {
+    return bcrypt.compare(password, storedHash);
+  }
+  // Legacy SHA-256 format
+  if (storedHash.startsWith("sha256:")) {
+    const parts = storedHash.split(":");
+    if (parts.length !== 3) return false;
+    const salt = parts[1];
+    const computed = await legacySha256Hash(password, salt);
+    return computed === storedHash;
+  }
+  // Legacy simpleHash format
+  return storedHash === legacySimpleHash(password);
+}
+
+// Legacy SHA-256 — kept only for verifying old hashes; new passwords use bcrypt
+async function legacySha256Hash(password: string, salt: string): Promise<string> {
+  const data = new TextEncoder().encode(password + salt);
   let hash = data;
   for (let i = 0; i < 1000; i++) {
     hash = new Uint8Array(await crypto.subtle.digest("SHA-256", hash));
@@ -13,25 +39,10 @@ async function secureHash(password: string, salt?: string): Promise<string> {
   const hashHex = Array.from(hash)
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
-  return `sha256:${useSalt}:${hashHex}`;
+  return `sha256:${salt}:${hashHex}`;
 }
 
-async function verifyPassword(
-  password: string,
-  storedHash: string
-): Promise<boolean> {
-  if (storedHash.startsWith("sha256:")) {
-    const parts = storedHash.split(":");
-    if (parts.length !== 3) return false;
-    const salt = parts[1];
-    const computed = await secureHash(password, salt);
-    return computed === storedHash;
-  }
-  // Legacy simpleHash format — verify then caller should re-hash
-  return storedHash === legacySimpleHash(password);
-}
-
-// Keep legacy hash for migration only — will be removed once all passwords are upgraded
+// Legacy simpleHash — kept only for verifying old hashes
 function legacySimpleHash(password: string): string {
   let hash = 0;
   const str = password + "arclight_salt_2026";
@@ -99,7 +110,7 @@ export const create = mutation({
     return await ctx.db.insert("clients", {
       ...rest,
       email: args.email.toLowerCase(),
-      password_hash: await secureHash(password),
+      password_hash: await hashPassword(password),
       is_active: true,
     });
   },
@@ -131,7 +142,7 @@ export const resetPassword = mutation({
   args: { id: v.id("clients"), newPassword: v.string() },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, {
-      password_hash: await secureHash(args.newPassword),
+      password_hash: await hashPassword(args.newPassword),
     });
   },
 });
@@ -153,10 +164,10 @@ export const login = mutation({
       throw new Error("Invalid email or password");
     }
 
-    // Migrate legacy hash to secure hash on successful login
-    if (!client.password_hash.startsWith("sha256:")) {
+    // Auto-migrate legacy (simpleHash / SHA-256) hashes to bcrypt on login
+    if (!client.password_hash.startsWith("$2")) {
       await ctx.db.patch(client._id, {
-        password_hash: await secureHash(args.password),
+        password_hash: await hashPassword(args.password),
       });
     }
 

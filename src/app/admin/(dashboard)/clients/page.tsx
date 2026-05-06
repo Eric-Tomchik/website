@@ -226,8 +226,8 @@ function ClientDetail({ clientId, onBack }: { clientId: Id<'clients'>; onBack: (
           {showNewProject && (
             <div className="card p-5 space-y-4 border-brand-500/30">
               <h3 className="text-white font-semibold">New Project</h3>
-              <input value={newProject.title} onChange={(e) => setNewProject({ ...newProject, title: e.target.value })} placeholder="Project title" className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500" />
-              <textarea value={newProject.description} onChange={(e) => setNewProject({ ...newProject, description: e.target.value })} placeholder="Description" rows={2} className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500 resize-none" />
+              <input value={newProject.title} onChange={(e) => setNewProject({ ...newProject, title: e.target.value })} placeholder="Project title" aria-label="Project title" className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500" />
+              <textarea value={newProject.description} onChange={(e) => setNewProject({ ...newProject, description: e.target.value })} placeholder="Description" aria-label="Project description" rows={2} className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500 resize-none" />
               <div className="grid grid-cols-2 gap-3">
                 <select value={newProject.service_tier} onChange={(e) => setNewProject({ ...newProject, service_tier: e.target.value as any })} className="px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none">
                   <option value="starter">Starter ($1,500)</option>
@@ -840,12 +840,12 @@ export default function AdminClientsPage() {
             <button onClick={() => setShowNew(false)} className="text-surface-400 hover:text-white"><X className="w-5 h-5" /></button>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
-            <input value={newClient.name} onChange={(e) => setNewClient({ ...newClient, name: e.target.value })} placeholder="Full name *" className="px-3 py-2.5 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500" />
-            <input value={newClient.email} onChange={(e) => setNewClient({ ...newClient, email: e.target.value })} type="email" placeholder="Email *" className="px-3 py-2.5 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500" />
-            <input value={newClient.phone} onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })} placeholder="Phone" className="px-3 py-2.5 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500" />
-            <input value={newClient.company} onChange={(e) => setNewClient({ ...newClient, company: e.target.value })} placeholder="Company" className="px-3 py-2.5 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500" />
-            <input value={newClient.password} onChange={(e) => setNewClient({ ...newClient, password: e.target.value })} type="text" placeholder="Portal password *" className="px-3 py-2.5 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500" />
-            <input value={newClient.notes} onChange={(e) => setNewClient({ ...newClient, notes: e.target.value })} placeholder="Notes" className="px-3 py-2.5 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500" />
+            <input value={newClient.name} onChange={(e) => setNewClient({ ...newClient, name: e.target.value })} placeholder="Full name *" aria-label="Client full name" className="px-3 py-2.5 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500" />
+            <input value={newClient.email} onChange={(e) => setNewClient({ ...newClient, email: e.target.value })} type="email" placeholder="Email *" aria-label="Client email address" className="px-3 py-2.5 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500" />
+            <input value={newClient.phone} onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })} placeholder="Phone" aria-label="Client phone number" className="px-3 py-2.5 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500" />
+            <input value={newClient.company} onChange={(e) => setNewClient({ ...newClient, company: e.target.value })} placeholder="Company" aria-label="Client company name" className="px-3 py-2.5 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500" />
+            <input value={newClient.password} onChange={(e) => setNewClient({ ...newClient, password: e.target.value })} type="text" placeholder="Portal password *" aria-label="Portal login password" className="px-3 py-2.5 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500" />
+            <input value={newClient.notes} onChange={(e) => setNewClient({ ...newClient, notes: e.target.value })} placeholder="Notes" aria-label="Client notes" className="px-3 py-2.5 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500" />
           </div>
           {error && <p className="text-sm text-red-400">{error}</p>}
           <div className="flex justify-end gap-2">
@@ -864,7 +864,7 @@ export default function AdminClientsPage() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search clients..."
+          placeholder="Search clients..." aria-label="Search clients"
           className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500"
         />
       </div>

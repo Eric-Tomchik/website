@@ -110,7 +110,7 @@ function DiscountForm({
             value={form.code}
             onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
             className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 uppercase tracking-wider font-mono"
-            placeholder="LAUNCH20"
+            placeholder="LAUNCH20" aria-label="Discount code"
             required
           />
         </div>
@@ -121,7 +121,7 @@ function DiscountForm({
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
-            placeholder="Launch promo — 20% off all books"
+            placeholder="Launch promo — 20% off all books" aria-label="Discount description"
           />
         </div>
       </div>

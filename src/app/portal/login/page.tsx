@@ -47,7 +47,7 @@ export default function PortalLoginPage() {
 
         <form onSubmit={handleSubmit} className="card p-8 space-y-5">
           <div>
-            <label className="block text-sm font-medium text-surface-300 mb-1.5">Email</label>
+            <label htmlFor="portal-email" className="block text-sm font-medium text-surface-300 mb-1.5">Email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500" />
               <input
@@ -56,13 +56,14 @@ export default function PortalLoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-surface-800 border border-surface-700 text-white outline-none focus:border-brand-500 placeholder:text-surface-500"
+                  id="portal-email"
                 placeholder="you@company.com"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-surface-300 mb-1.5">Password</label>
+            <label htmlFor="portal-password" className="block text-sm font-medium text-surface-300 mb-1.5">Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500" />
               <input
@@ -71,6 +72,7 @@ export default function PortalLoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-surface-800 border border-surface-700 text-white outline-none focus:border-brand-500 placeholder:text-surface-500"
+                  id="portal-password"
                 placeholder="••••••••"
               />
             </div>

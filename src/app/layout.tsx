@@ -13,6 +13,8 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
   variable: '--font-mono',
   weight: ['400', '500'],
+  display: 'swap',         // Don't block render for this font
+  preload: false,           // Only load when font-mono class is used
 });
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
