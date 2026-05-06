@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRealtimeData, getHistoricalData } from '@/lib/google-analytics';
+
+const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL!;
 
 /**
  * GET /api/analytics?type=realtime|historical&days=30
  *
+ * Reads cached analytics data from Convex (populated by Viktor cron).
  * Protected: requires valid admin session cookie.
  */
 export async function GET(req: NextRequest) {
@@ -15,20 +17,41 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const type = searchParams.get('type') ?? 'historical';
-  const days = parseInt(searchParams.get('days') ?? '30', 10);
+  const days = searchParams.get('days') ?? '30';
 
   try {
-    if (type === 'realtime') {
-      const data = await getRealtimeData();
-      return NextResponse.json(data, {
-        headers: { 'Cache-Control': 'private, max-age=30' },
-      });
+    // Query Convex for cached analytics data
+    const period = type === 'realtime' ? 'realtime' : days;
+    const convexRes = await fetch(`${CONVEX_URL}/api/query`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        path: 'analytics:get',
+        args: { type, period },
+      }),
+    });
+
+    if (!convexRes.ok) {
+      throw new Error(`Convex query failed: ${convexRes.status}`);
     }
 
-    const data = await getHistoricalData(days);
-    return NextResponse.json(data, {
-      headers: { 'Cache-Control': 'private, max-age=300' },
-    });
+    const result = await convexRes.json();
+
+    if (!result.value) {
+      return NextResponse.json(
+        { error: 'No analytics data yet. Data syncs automatically every few minutes.' },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json(
+      { ...result.value.data, _cachedAt: result.value.fetched_at },
+      {
+        headers: {
+          'Cache-Control': type === 'realtime' ? 'private, max-age=30' : 'private, max-age=60',
+        },
+      },
+    );
   } catch (err: any) {
     console.error('Analytics API error:', err);
     return NextResponse.json(

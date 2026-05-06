@@ -341,6 +341,14 @@ export default defineSchema({
   })
     .index("by_key", ["key"]),
 
+  analytics_cache: defineTable({
+    type: v.union(v.literal("realtime"), v.literal("historical")),
+    period: v.optional(v.string()), // "7", "30", "90" for historical
+    data: v.string(), // JSON-serialized analytics data
+    fetched_at: v.number(),
+  })
+    .index("by_type_period", ["type", "period"]),
+
   portfolio_projects: defineTable({
     title: v.string(),
     slug: v.string(),

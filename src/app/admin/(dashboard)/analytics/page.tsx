@@ -67,7 +67,7 @@ function useAnalytics<T>(type: 'realtime' | 'historical', days?: number, refresh
       const json = await res.json();
       setData(json);
       setError(null);
-      setLastUpdated(new Date());
+      setLastUpdated(json._cachedAt ? new Date(json._cachedAt) : new Date());
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -206,7 +206,7 @@ function RealtimeSection() {
 
       <h2 className="text-lg font-semibold text-white mb-1">Real-time</h2>
       <p className="text-xs text-surface-500 mb-4">
-        {lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString()}` : 'Loading...'}
+        {lastUpdated ? `Synced ${lastUpdated.toLocaleTimeString()}` : 'Loading...'}
       </p>
 
       {loading && !data ? (
