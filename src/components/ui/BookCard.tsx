@@ -11,6 +11,7 @@ interface Book {
   slug: string;
   description: string;
   price_cents: number;
+  digital_price_cents?: number;
   book_format: 'physical' | 'digital' | 'both';
   cover_image_url?: string;
   amazon_url?: string;
@@ -29,6 +30,7 @@ export function BookCard({ book }: { book: Book }) {
         title: book.title,
         description: book.description,
         price_cents: book.price_cents,
+        digital_price_cents: book.digital_price_cents,
         cover_image_url: book.cover_image_url,
       },
       format
@@ -65,9 +67,23 @@ export function BookCard({ book }: { book: Book }) {
         <p className="text-sm text-surface-400 mb-4 line-clamp-2 flex-1">{book.description}</p>
 
         <div className="flex items-center justify-between mb-3">
-          <span className="text-xl font-bold text-brand-400">
-            {formatPrice(book.price_cents)}
-          </span>
+          <div className="flex items-center gap-2">
+            {book.book_format === 'both' && book.digital_price_cents ? (
+              <>
+                <span className="text-lg font-bold text-brand-400">
+                  {formatPrice(book.digital_price_cents)}
+                </span>
+                <span className="text-surface-600">·</span>
+                <span className="text-lg font-bold text-brand-400">
+                  {formatPrice(book.price_cents)}
+                </span>
+              </>
+            ) : (
+              <span className="text-xl font-bold text-brand-400">
+                {formatPrice(book.book_format === 'digital' && book.digital_price_cents ? book.digital_price_cents : book.price_cents)}
+              </span>
+            )}
+          </div>
           <span className="text-xs text-surface-500 capitalize px-2 py-1 rounded bg-surface-800">
             {book.book_format === 'both' ? 'Digital + Physical' : book.book_format}
           </span>

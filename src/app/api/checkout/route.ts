@@ -43,6 +43,12 @@ export async function POST(req: Request) {
         imageUrl = `${siteUrl}${imageUrl}`;
       }
 
+      // Use digital price when available for digital purchases
+      const unitAmount =
+        item.format === 'digital' && book.digital_price_cents
+          ? book.digital_price_cents
+          : book.price_cents;
+
       return {
         price_data: {
           currency: 'usd',
@@ -51,7 +57,7 @@ export async function POST(req: Request) {
             description: book.description,
             ...(imageUrl ? { images: [imageUrl] } : {}),
           },
-          unit_amount: book.price_cents,
+          unit_amount: unitAmount,
         },
         quantity: item.quantity,
       };

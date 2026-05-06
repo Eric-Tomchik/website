@@ -95,15 +95,37 @@ export default async function BookDetailPage({ params }: Props) {
             </div>
 
             {/* Price & Format */}
-            <div className="flex items-center gap-4">
-              <span className="text-3xl font-bold text-brand-400">
-                {formatPrice(book.price_cents)}
-              </span>
-              <span className="text-sm text-surface-400 capitalize px-3 py-1.5 rounded-lg bg-surface-800 border border-surface-700">
-                {book.book_format === 'both'
-                  ? 'Digital + Physical'
-                  : book.book_format}
-              </span>
+            <div className="flex flex-wrap items-center gap-4">
+              {(book.book_format === 'physical' || book.book_format === 'both') && (
+                <div className="flex items-center gap-2">
+                  <span className="text-3xl font-bold text-brand-400">
+                    {formatPrice(book.price_cents)}
+                  </span>
+                  <span className="text-sm text-surface-400 px-3 py-1.5 rounded-lg bg-surface-800 border border-surface-700">
+                    Hardcover
+                  </span>
+                </div>
+              )}
+              {book.book_format === 'both' && book.digital_price_cents && (
+                <div className="flex items-center gap-2">
+                  <span className="text-3xl font-bold text-brand-400">
+                    {formatPrice(book.digital_price_cents)}
+                  </span>
+                  <span className="text-sm text-surface-400 px-3 py-1.5 rounded-lg bg-surface-800 border border-surface-700">
+                    Digital
+                  </span>
+                </div>
+              )}
+              {book.book_format === 'digital' && (
+                <div className="flex items-center gap-2">
+                  <span className="text-3xl font-bold text-brand-400">
+                    {formatPrice(book.digital_price_cents || book.price_cents)}
+                  </span>
+                  <span className="text-sm text-surface-400 px-3 py-1.5 rounded-lg bg-surface-800 border border-surface-700">
+                    Digital
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Description */}

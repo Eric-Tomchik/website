@@ -18,6 +18,11 @@ const stripePromise = loadStripe(
 export function CheckoutDrawer() {
   const { state, closeCheckout } = useCheckout();
   const { isOpen, book, format } = state;
+  const effectivePrice = book
+    ? format === 'digital' && book.digital_price_cents
+      ? book.digital_price_cents
+      : book.price_cents
+    : 0;
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [completed, setCompleted] = useState(false);
@@ -162,7 +167,7 @@ export function CheckoutDrawer() {
                   {/* Price */}
                   <div className="text-right flex-shrink-0">
                     <span className="text-xl font-bold text-brand-400">
-                      {formatPrice(book.price_cents)}
+                      {formatPrice(effectivePrice)}
                     </span>
                   </div>
                 </div>
@@ -182,7 +187,7 @@ export function CheckoutDrawer() {
                   {book && (
                     <div>
                       <PayPalButton
-                        amountCents={book.price_cents}
+                        amountCents={effectivePrice}
                         bookTitle={book.title}
                         bookId={book._id}
                         format={format}

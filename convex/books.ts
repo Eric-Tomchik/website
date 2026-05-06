@@ -53,6 +53,7 @@ export const create = mutation({
     description: v.string(),
     long_description: v.optional(v.string()),
     price_cents: v.number(),
+    digital_price_cents: v.optional(v.number()),
     book_format: v.union(
       v.literal("physical"),
       v.literal("digital"),
@@ -61,6 +62,8 @@ export const create = mutation({
     cover_image_url: v.optional(v.string()),
     amazon_url: v.optional(v.string()),
     digital_file_url: v.optional(v.string()),
+    digital_pdf_storage_id: v.optional(v.string()),
+    digital_epub_storage_id: v.optional(v.string()),
     page_count: v.optional(v.number()),
     isbn: v.optional(v.string()),
     published_date: v.optional(v.string()),
@@ -80,6 +83,7 @@ export const update = mutation({
     description: v.optional(v.string()),
     long_description: v.optional(v.string()),
     price_cents: v.optional(v.number()),
+    digital_price_cents: v.optional(v.number()),
     book_format: v.optional(
       v.union(
         v.literal("physical"),
@@ -90,6 +94,8 @@ export const update = mutation({
     cover_image_url: v.optional(v.string()),
     amazon_url: v.optional(v.string()),
     digital_file_url: v.optional(v.string()),
+    digital_pdf_storage_id: v.optional(v.string()),
+    digital_epub_storage_id: v.optional(v.string()),
     page_count: v.optional(v.number()),
     isbn: v.optional(v.string()),
     published_date: v.optional(v.string()),

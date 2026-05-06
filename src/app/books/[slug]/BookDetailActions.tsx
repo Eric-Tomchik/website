@@ -2,12 +2,14 @@
 
 import { ShoppingCart, ExternalLink } from 'lucide-react';
 import { useCheckout } from '@/components/checkout/CheckoutContext';
+import { formatPrice } from '@/lib/utils';
 
 interface Book {
   _id: string;
   title: string;
   description: string;
   price_cents: number;
+  digital_price_cents?: number;
   book_format: 'physical' | 'digital' | 'both';
   cover_image_url?: string;
   amazon_url?: string;
@@ -23,6 +25,7 @@ export function BookDetailActions({ book }: { book: Book }) {
         title: book.title,
         description: book.description,
         price_cents: book.price_cents,
+        digital_price_cents: book.digital_price_cents,
         cover_image_url: book.cover_image_url,
       },
       format
@@ -38,7 +41,7 @@ export function BookDetailActions({ book }: { book: Book }) {
             className="btn-primary text-base py-3 px-8"
           >
             <ShoppingCart className="w-4 h-4 mr-2" />
-            Buy Digital
+            Buy Digital — {formatPrice(book.digital_price_cents || book.price_cents)}
           </button>
         )}
         {(book.book_format === 'physical' || book.book_format === 'both') && (
@@ -47,7 +50,7 @@ export function BookDetailActions({ book }: { book: Book }) {
             className="btn-primary text-base py-3 px-8"
           >
             <ShoppingCart className="w-4 h-4 mr-2" />
-            Buy Physical
+            Buy Hardcover — {formatPrice(book.price_cents)}
           </button>
         )}
         {book.amazon_url && (

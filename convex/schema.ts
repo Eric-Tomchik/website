@@ -8,6 +8,7 @@ export default defineSchema({
     description: v.string(),
     long_description: v.optional(v.string()),
     price_cents: v.number(),
+    digital_price_cents: v.optional(v.number()),
     book_format: v.union(
       v.literal("physical"),
       v.literal("digital"),
@@ -16,6 +17,8 @@ export default defineSchema({
     cover_image_url: v.optional(v.string()),
     amazon_url: v.optional(v.string()),
     digital_file_url: v.optional(v.string()),
+    digital_pdf_storage_id: v.optional(v.string()),
+    digital_epub_storage_id: v.optional(v.string()),
     page_count: v.optional(v.number()),
     isbn: v.optional(v.string()),
     published_date: v.optional(v.string()),
@@ -24,6 +27,18 @@ export default defineSchema({
   })
     .index("by_slug", ["slug"])
     .index("by_active", ["is_active"]),
+
+  download_tokens: defineTable({
+    token: v.string(),
+    order_id: v.optional(v.string()),
+    book_id: v.string(),
+    customer_email: v.string(),
+    download_count: v.number(),
+    max_downloads: v.number(),
+    expires_at: v.number(),
+  })
+    .index("by_token", ["token"])
+    .index("by_book_and_email", ["book_id", "customer_email"]),
 
   orders: defineTable({
     customer_email: v.string(),

@@ -14,10 +14,13 @@ type Book = {
   description: string;
   long_description?: string;
   price_cents: number;
+  digital_price_cents?: number;
   book_format: 'physical' | 'digital' | 'both';
   cover_image_url?: string;
   amazon_url?: string;
   digital_file_url?: string;
+  digital_pdf_storage_id?: string;
+  digital_epub_storage_id?: string;
   page_count?: number;
   isbn?: string;
   published_date?: string;
@@ -158,18 +161,44 @@ function BookForm({
 }) {
   const createBook = useMutation(api.books.create);
   const updateBook = useMutation(api.books.update);
+  const generateUploadUrl = useMutation(api.downloadTokens.generateUploadUrl);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: book?.title || '',
     slug: book?.slug || '',
     description: book?.description || '',
     price_cents: book?.price_cents || 0,
+    digital_price_cents: book?.digital_price_cents || 0,
     book_format: (book?.book_format || 'both') as 'physical' | 'digital' | 'both',
     cover_image_url: book?.cover_image_url || '',
     amazon_url: book?.amazon_url || '',
+    digital_pdf_storage_id: book?.digital_pdf_storage_id || '',
+    digital_epub_storage_id: book?.digital_epub_storage_id || '',
     is_featured: book?.is_featured || false,
     is_active: book?.is_active ?? true,
   });
+
+  const handleFileUpload = async (
+    file: File,
+    field: 'digital_pdf_storage_id' | 'digital_epub_storage_id'
+  ) => {
+    setUploading(field);
+    try {
+      const uploadUrl = await generateUploadUrl();
+      const result = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      });
+      const { storageId } = await result.json();
+      setForm((f) => ({ ...f, [field]: storageId }));
+    } catch (err) {
+      console.error('Upload failed:', err);
+      alert('File upload failed. Please try again.');
+    }
+    setUploading(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -178,21 +207,20 @@ function BookForm({
     const slug = form.slug || form.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
     try {
+      const bookData = {
+        ...form,
+        slug,
+        cover_image_url: form.cover_image_url || undefined,
+        amazon_url: form.amazon_url || undefined,
+        digital_price_cents: form.digital_price_cents || undefined,
+        digital_pdf_storage_id: form.digital_pdf_storage_id || undefined,
+        digital_epub_storage_id: form.digital_epub_storage_id || undefined,
+      };
+
       if (book) {
-        await updateBook({
-          id: book._id,
-          ...form,
-          slug,
-          cover_image_url: form.cover_image_url || undefined,
-          amazon_url: form.amazon_url || undefined,
-        });
+        await updateBook({ id: book._id, ...bookData });
       } else {
-        await createBook({
-          ...form,
-          slug,
-          cover_image_url: form.cover_image_url || undefined,
-          amazon_url: form.amazon_url || undefined,
-        });
+        await createBook(bookData);
       }
       onSave();
     } catch (err) {
@@ -272,6 +300,65 @@ function BookForm({
           />
         </div>
       </div>
+
+      {/* Digital price */}
+      {(form.book_format === 'digital' || form.book_format === 'both') && (
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm text-surface-300 mb-1">Digital Price ($)</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={(form.digital_price_cents / 100).toFixed(2)}
+              onChange={(e) => setForm({ ...form, digital_price_cents: Math.round(parseFloat(e.target.value || '0') * 100) })}
+              className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Digital file uploads */}
+      {(form.book_format === 'digital' || form.book_format === 'both') && (
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm text-surface-300 mb-1">
+              PDF File {form.digital_pdf_storage_id && '✅'}
+            </label>
+            <input
+              type="file"
+              accept=".pdf"
+              disabled={uploading === 'digital_pdf_storage_id'}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleFileUpload(file, 'digital_pdf_storage_id');
+              }}
+              className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-brand-600 file:text-white file:text-sm file:cursor-pointer"
+            />
+            {uploading === 'digital_pdf_storage_id' && (
+              <p className="text-xs text-brand-400 mt-1">Uploading PDF...</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm text-surface-300 mb-1">
+              EPUB File {form.digital_epub_storage_id && '✅'}
+            </label>
+            <input
+              type="file"
+              accept=".epub"
+              disabled={uploading === 'digital_epub_storage_id'}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleFileUpload(file, 'digital_epub_storage_id');
+              }}
+              className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-brand-600 file:text-white file:text-sm file:cursor-pointer"
+            />
+            {uploading === 'digital_epub_storage_id' && (
+              <p className="text-xs text-brand-400 mt-1">Uploading EPUB...</p>
+            )}
+          </div>
+        </div>
+      )}
 
       <div>
         <label className="block text-sm text-surface-300 mb-1">Amazon URL</label>

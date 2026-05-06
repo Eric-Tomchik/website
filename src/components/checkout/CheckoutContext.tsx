@@ -7,6 +7,7 @@ interface BookForCheckout {
   title: string;
   description: string;
   price_cents: number;
+  digital_price_cents?: number;
   cover_image_url?: string;
 }
 
