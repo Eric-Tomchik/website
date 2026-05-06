@@ -404,4 +404,13 @@ function BookForm({
       </div>
 
       <div className="flex gap-3 pt-2">
-        <button type="submit" disabled={saving} c
+        <button type="submit" disabled={saving} className="btn-primary disabled:opacity-50">
+          {saving ? 'Saving...' : book ? 'Update Book' : 'Add Book'}
+        </button>
+        <button type="button" onClick={onCancel} className="btn-secondary">
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+}
