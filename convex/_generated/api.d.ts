@@ -10,6 +10,7 @@
 
 import type * as books from "../books.js";
 import type * as contacts from "../contacts.js";
+import type * as downloadTokens from "../downloadTokens.js";
 import type * as orders from "../orders.js";
 import type * as portfolio from "../portfolio.js";
 
@@ -22,6 +23,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   books: typeof books;
   contacts: typeof contacts;
+  downloadTokens: typeof downloadTokens;
   orders: typeof orders;
   portfolio: typeof portfolio;
 }>;
