@@ -40,12 +40,12 @@ export function BookCard({ book }: { book: Book }) {
   return (
     <Link href={`/books/${book.slug}`} className="card group flex flex-col cursor-pointer">
       {/* Cover */}
-      <div className="relative aspect-[3/4] bg-surface-800 overflow-hidden">
+      <div className="relative aspect-[3/4] bg-surface-900 overflow-hidden flex items-center justify-center p-4">
         {book.cover_image_url ? (
           <img
             src={book.cover_image_url}
             alt={book.title}
-            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500 drop-shadow-lg"
           />
         ) : (
           <div className="flex items-center justify-center h-full">
