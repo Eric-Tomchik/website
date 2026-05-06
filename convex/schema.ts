@@ -225,6 +225,82 @@ export default defineSchema({
   })
     .index("by_project", ["project_id"]),
 
+  // === Social Media Marketing ===
+  social_posts: defineTable({
+    title: v.optional(v.string()),
+    content: v.string(),
+    image_url: v.optional(v.string()),
+    image_storage_id: v.optional(v.string()),
+    platforms: v.array(
+      v.union(
+        v.literal("facebook"),
+        v.literal("instagram"),
+        v.literal("x"),
+        v.literal("linkedin"),
+        v.literal("tiktok")
+      )
+    ),
+    hashtags: v.array(v.string()),
+    status: v.union(
+      v.literal("draft"),
+      v.literal("scheduled"),
+      v.literal("published"),
+      v.literal("failed")
+    ),
+    post_type: v.union(
+      v.literal("post"),
+      v.literal("ad"),
+      v.literal("story"),
+      v.literal("reel")
+    ),
+    campaign_id: v.optional(v.id("social_campaigns")),
+    scheduled_at: v.optional(v.number()),
+    published_at: v.optional(v.number()),
+    notes: v.optional(v.string()),
+    // Per-platform links after manual posting
+    platform_links: v.optional(
+      v.object({
+        facebook: v.optional(v.string()),
+        instagram: v.optional(v.string()),
+        x: v.optional(v.string()),
+        linkedin: v.optional(v.string()),
+        tiktok: v.optional(v.string()),
+      })
+    ),
+    // Engagement metrics (manually entered or via API)
+    metrics: v.optional(
+      v.object({
+        impressions: v.optional(v.number()),
+        reach: v.optional(v.number()),
+        likes: v.optional(v.number()),
+        comments: v.optional(v.number()),
+        shares: v.optional(v.number()),
+        clicks: v.optional(v.number()),
+      })
+    ),
+  })
+    .index("by_status", ["status"])
+    .index("by_campaign", ["campaign_id"])
+    .index("by_scheduled", ["scheduled_at"]),
+
+  social_campaigns: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    status: v.union(
+      v.literal("planning"),
+      v.literal("active"),
+      v.literal("paused"),
+      v.literal("completed")
+    ),
+    start_date: v.optional(v.string()),
+    end_date: v.optional(v.string()),
+    budget_cents: v.optional(v.number()),
+    spent_cents: v.optional(v.number()),
+    goal: v.optional(v.string()),
+    color: v.optional(v.string()),
+  })
+    .index("by_status", ["status"]),
+
   contact_messages: defineTable({
     name: v.string(),
     email: v.string(),

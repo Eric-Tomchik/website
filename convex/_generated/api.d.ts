@@ -21,6 +21,8 @@ import type * as projects from "../projects.js";
 import type * as seedDescriptions from "../seedDescriptions.js";
 import type * as seedISBN from "../seedISBN.js";
 import type * as seedPortfolio from "../seedPortfolio.js";
+import type * as socialCampaigns from "../socialCampaigns.js";
+import type * as socialPosts from "../socialPosts.js";
 import type * as tickets from "../tickets.js";
 
 import type {
@@ -43,6 +45,8 @@ declare const fullApi: ApiFromModules<{
   seedDescriptions: typeof seedDescriptions;
   seedISBN: typeof seedISBN;
   seedPortfolio: typeof seedPortfolio;
+  socialCampaigns: typeof socialCampaigns;
+  socialPosts: typeof socialPosts;
   tickets: typeof tickets;
 }>;
 

@@ -14,6 +14,7 @@ import {
   BarChart3,
   Users,
   LifeBuoy,
+  Share2,
 } from 'lucide-react';
 
 const adminNav = [
@@ -23,6 +24,7 @@ const adminNav = [
   { href: '/admin/discounts', label: 'Discounts', icon: Tag, badgeKey: null },
   { href: '/admin/clients', label: 'Clients', icon: Users, badgeKey: null },
   { href: '/admin/tickets', label: 'Tickets', icon: LifeBuoy, badgeKey: 'tickets' as const },
+  { href: '/admin/social', label: 'Social Media', icon: Share2, badgeKey: 'scheduled' as const },
   { href: '/admin/analytics', label: 'SEO & Analytics', icon: BarChart3, badgeKey: null },
   { href: '/admin/portfolio', label: 'Portfolio', icon: Briefcase, badgeKey: null },
   { href: '/admin/messages', label: 'Messages', icon: MessageSquare, badgeKey: 'messages' as const },
@@ -42,11 +44,13 @@ export default function AdminSidebar() {
   const unreadMessages = useSafeQuery(api.contacts.unreadCount, 0);
   const newOrders = useSafeQuery(api.orders.newCount, 0);
   const ticketCounts = useSafeQuery(api.tickets.counts, { total: 0, open: 0, in_progress: 0, waiting: 0, resolved: 0 });
+  const socialCounts = useSafeQuery(api.socialPosts.counts, { draft: 0, scheduled: 0, published: 0, total: 0 });
 
   const badges: Record<string, number> = {
     orders: newOrders,
     messages: unreadMessages,
     tickets: ticketCounts.open,
+    scheduled: socialCounts.scheduled,
   };
 
   const isActive = (href: string) => {
