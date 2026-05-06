@@ -13,6 +13,7 @@ import type * as contacts from "../contacts.js";
 import type * as downloadTokens from "../downloadTokens.js";
 import type * as orders from "../orders.js";
 import type * as portfolio from "../portfolio.js";
+import type * as seedDescriptions from "../seedDescriptions.js";
 
 import type {
   ApiFromModules,
@@ -26,6 +27,7 @@ declare const fullApi: ApiFromModules<{
   downloadTokens: typeof downloadTokens;
   orders: typeof orders;
   portfolio: typeof portfolio;
+  seedDescriptions: typeof seedDescriptions;
 }>;
 
 /**

@@ -174,6 +174,7 @@ function BookForm({
     title: book?.title || '',
     slug: book?.slug || '',
     description: book?.description || '',
+    long_description: book?.long_description || '',
     price_cents: book?.price_cents || 0,
     digital_price_cents: book?.digital_price_cents || 0,
     book_format: (book?.book_format || 'both') as 'physical' | 'digital' | 'both',
@@ -216,6 +217,7 @@ function BookForm({
       const bookData = {
         ...form,
         slug,
+        long_description: form.long_description || undefined,
         cover_image_url: form.cover_image_url || undefined,
         amazon_url: form.amazon_url || undefined,
         digital_price_cents: form.digital_price_cents || undefined,
@@ -264,12 +266,24 @@ function BookForm({
       </div>
 
       <div>
-        <label className="block text-sm text-surface-300 mb-1">Description</label>
+        <label className="block text-sm text-surface-300 mb-1">Short Description</label>
         <textarea
-          rows={3}
+          rows={2}
           value={form.description}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
           className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 resize-none"
+          placeholder="Brief description for book cards"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm text-surface-300 mb-1">Full Description</label>
+        <textarea
+          rows={10}
+          value={form.long_description}
+          onChange={(e) => setForm({ ...form, long_description: e.target.value })}
+          className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 resize-y"
+          placeholder="Detailed description shown on book detail page (supports line breaks)"
         />
       </div>
 
