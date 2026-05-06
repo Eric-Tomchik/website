@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   Shield,
   Clock,
+  Type,
 } from 'lucide-react';
 
 export default function SignDocumentPage() {
@@ -33,10 +34,34 @@ export default function SignDocumentPage() {
   const [signing, setSigning] = useState(false);
   const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
   const [redirectCountdown, setRedirectCountdown] = useState(5);
+  const [signatureMode, setSignatureMode] = useState<'draw' | 'type'>('draw');
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
+
+  // For typed signature mode — generates a data URL from the typed name
+  const typedCanvasRef = useRef<HTMLCanvasElement>(null);
+  const generateTypedSignature = useCallback((): string => {
+    const canvas = typedCanvasRef.current;
+    if (!canvas || !signerName.trim()) return '';
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return '';
+
+    canvas.width = 600;
+    canvas.height = 160;
+    ctx.clearRect(0, 0, 600, 160);
+
+    // Cursive-style typed signature
+    ctx.font = 'italic 48px Georgia, "Times New Roman", serif';
+    ctx.fillStyle = '#1a1a2e';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(signerName.trim(), 20, 80);
+
+    return canvas.toDataURL('image/png');
+  }, [signerName]);
+
+  const hasValidSignature = signatureMode === 'draw' ? hasSignature : signerName.trim().length > 0;
 
   // Mark as viewed when document loads
   useEffect(() => {
@@ -107,12 +132,17 @@ export default function SignDocumentPage() {
   };
 
   const handleSign = async () => {
-    if (!hasSignature || !signerName.trim()) return;
+    if (!hasValidSignature || !signerName.trim()) return;
     setSigning(true);
 
     try {
-      const canvas = canvasRef.current;
-      const signatureData = canvas?.toDataURL('image/png') ?? '';
+      let signatureData: string;
+      if (signatureMode === 'draw') {
+        const canvas = canvasRef.current;
+        signatureData = canvas?.toDataURL('image/png') ?? '';
+      } else {
+        signatureData = generateTypedSignature();
+      }
 
       await signDoc({
         token,
@@ -350,8 +380,9 @@ export default function SignDocumentPage() {
           <div className="p-6 space-y-4">
             {/* Signer name */}
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Full Name *</label>
+              <label htmlFor="signer-name" className="text-sm font-medium text-gray-700 mb-1 block">Full Name *</label>
               <input
+                id="signer-name"
                 value={signerName}
                 onChange={(e) => setSignerName(e.target.value)}
                 placeholder="Type your full name"
@@ -359,35 +390,92 @@ export default function SignDocumentPage() {
               />
             </div>
 
-            {/* Signature canvas */}
+            {/* Signature mode toggle */}
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-sm font-medium text-gray-700">Draw Signature *</label>
-                {hasSignature && (
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-gray-700">Signature *</label>
+                <div className="flex items-center bg-gray-100 rounded-lg p-0.5">
                   <button
-                    onClick={clearCanvas}
-                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors"
+                    onClick={() => setSignatureMode('draw')}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                      signatureMode === 'draw'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                    aria-pressed={signatureMode === 'draw'}
                   >
-                    <Eraser className="w-3 h-3" />
-                    Clear
+                    <PenLine className="w-3 h-3" />
+                    Draw
                   </button>
-                )}
+                  <button
+                    onClick={() => setSignatureMode('type')}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                      signatureMode === 'type'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                    aria-pressed={signatureMode === 'type'}
+                  >
+                    <Type className="w-3 h-3" />
+                    Type
+                  </button>
+                </div>
               </div>
-              <div className="border-2 border-dashed border-gray-300 rounded-xl overflow-hidden bg-white">
-                <canvas
-                  ref={canvasRef}
-                  className="w-full h-40 cursor-crosshair touch-none"
-                  onMouseDown={startDrawing}
-                  onMouseMove={draw}
-                  onMouseUp={stopDrawing}
-                  onMouseLeave={stopDrawing}
-                  onTouchStart={startDrawing}
-                  onTouchMove={draw}
-                  onTouchEnd={stopDrawing}
-                />
-              </div>
-              {!hasSignature && (
-                <p className="text-xs text-gray-400 mt-1">Draw your signature in the box above</p>
+
+              {/* Draw signature mode */}
+              {signatureMode === 'draw' && (
+                <div>
+                  <div className="flex items-center justify-end mb-1">
+                    {hasSignature && (
+                      <button
+                        onClick={clearCanvas}
+                        className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors"
+                      >
+                        <Eraser className="w-3 h-3" />
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl overflow-hidden bg-white">
+                    <canvas
+                      ref={canvasRef}
+                      className="w-full h-40 cursor-crosshair touch-none"
+                      onMouseDown={startDrawing}
+                      onMouseMove={draw}
+                      onMouseUp={stopDrawing}
+                      onMouseLeave={stopDrawing}
+                      onTouchStart={startDrawing}
+                      onTouchMove={draw}
+                      onTouchEnd={stopDrawing}
+                      role="img"
+                      aria-label="Signature drawing area"
+                    />
+                  </div>
+                  {!hasSignature && (
+                    <p className="text-xs text-gray-400 mt-1">Draw your signature in the box above</p>
+                  )}
+                </div>
+              )}
+
+              {/* Typed signature mode (keyboard accessible fallback) */}
+              {signatureMode === 'type' && (
+                <div>
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl bg-white p-4 flex items-center justify-center min-h-[10rem]">
+                    {signerName.trim() ? (
+                      <p
+                        className="text-4xl text-gray-800 select-none"
+                        style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic' }}
+                      >
+                        {signerName}
+                      </p>
+                    ) : (
+                      <p className="text-gray-300 text-sm">Your name will appear here as a signature</p>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">Your typed name above serves as your legally binding electronic signature</p>
+                  {/* Hidden canvas for generating the typed signature data URL */}
+                  <canvas ref={typedCanvasRef} className="hidden" aria-hidden="true" />
+                </div>
               )}
             </div>
 
@@ -402,7 +490,7 @@ export default function SignDocumentPage() {
             <div className="flex gap-3 pt-2">
               <button
                 onClick={handleSign}
-                disabled={signing || !hasSignature || !signerName.trim()}
+                disabled={signing || !hasValidSignature || !signerName.trim()}
                 className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {signing ? (

@@ -334,6 +334,13 @@ export default defineSchema({
     is_read: v.boolean(),
   }),
 
+  rate_limits: defineTable({
+    key: v.string(),
+    count: v.number(),
+    window_start: v.number(),
+  })
+    .index("by_key", ["key"]),
+
   portfolio_projects: defineTable({
     title: v.string(),
     slug: v.string(),

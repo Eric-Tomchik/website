@@ -2,7 +2,14 @@ import { NextResponse } from 'next/server';
 import { getConvexClient } from '@/lib/convex';
 import { api } from '../../../../convex/_generated/api';
 import { z } from 'zod';
-import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
+
+function getClientIp(req: Request): string {
+  const forwarded = req.headers.get('x-forwarded-for');
+  if (forwarded) return forwarded.split(',')[0].trim();
+  const real = req.headers.get('x-real-ip');
+  if (real) return real;
+  return 'unknown';
+}
 
 const contactSchema = z.object({
   name: z.string().min(1).max(100),
@@ -14,16 +21,21 @@ const contactSchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    // Rate limit: 3 submissions per minute per IP
+    // Rate limit: 3 submissions per minute per IP (distributed via Convex)
     const ip = getClientIp(req);
-    const { allowed, resetAt } = checkRateLimit(`contact:${ip}`, 3, 60_000);
-    if (!allowed) {
+    const convex = getConvexClient();
+    const rateCheck = await convex.mutation(api.rateLimit.check, {
+      key: `contact:${ip}`,
+      maxAttempts: 3,
+      windowMs: 60_000,
+    });
+    if (!rateCheck.allowed) {
       return NextResponse.json(
         { error: 'Too many submissions. Please try again later.' },
         {
           status: 429,
           headers: {
-            'Retry-After': String(Math.ceil((resetAt - Date.now()) / 1000)),
+            'Retry-After': String(Math.ceil((rateCheck.resetAt - Date.now()) / 1000)),
           },
         }
       );
@@ -32,8 +44,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const data = contactSchema.parse(body);
 
-    // Save to Convex (backup + admin dashboard)
-    const convex = getConvexClient();
+    // Save to Convex (backup + admin dashboard) — reuse convex client from rate limit check
     await convex.mutation(api.contacts.create, {
       name: data.name,
       email: data.email,

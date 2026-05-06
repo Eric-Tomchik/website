@@ -15,7 +15,7 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ['400', '500'],
 });
 
-const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-S7LEXFE3ND';
+const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 export const metadata: Metadata = {
   title: {
@@ -67,7 +67,11 @@ const organizationJsonLd = {
   name: 'Eric Tomchik',
   url: 'https://erictomchik.com',
   logo: 'https://erictomchik.com/et-monogram.png',
-  sameAs: [],
+  sameAs: [
+    'https://www.linkedin.com/in/eric-tomchik-jr/',
+    'https://www.facebook.com/profile.php?id=61589407526718',
+    'https://www.instagram.com/cyb3ron3/',
+  ],
   founder: {
     '@type': 'Person',
     name: 'Eric Tomchik',
@@ -78,18 +82,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="dark">
       <head>
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${GA_ID}');
-          `}
-        </Script>
+        {GA_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${GA_ID}');
+              `}
+            </Script>
+          </>
+        )}
       </head>
       <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans min-h-screen flex flex-col`}>
         <script

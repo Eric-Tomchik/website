@@ -45,16 +45,18 @@ export async function POST(req: Request) {
       return sum + unitAmount * item.quantity;
     }, 0);
 
-    // Validate discount code if provided
+    // Validate AND atomically reserve discount code in one transaction
+    // This prevents race conditions where two concurrent checkouts both pass validation
     let discountInfo: {
       valid: boolean;
       discount_type?: string;
       discount_value?: number;
+      error?: string;
     } | null = null;
 
     if (discount_code) {
       const firstItem = items[0];
-      discountInfo = await convex.query(api.discountCodes.validate, {
+      discountInfo = await convex.mutation(api.discountCodes.validateAndApply, {
         code: discount_code,
         book_id: firstItem?.book_id,
         format: firstItem?.format,
@@ -62,7 +64,10 @@ export async function POST(req: Request) {
       });
 
       if (!discountInfo?.valid) {
-        return NextResponse.json({ error: 'Invalid or expired discount code' }, { status: 400 });
+        return NextResponse.json(
+          { error: discountInfo?.error || 'Invalid or expired discount code' },
+          { status: 400 }
+        );
       }
     }
 
@@ -172,11 +177,15 @@ export async function POST(req: Request) {
       sessionConfig.cancel_url = `${siteUrl}/books`;
     }
 
-    const session = await getStripe().checkout.sessions.create(sessionConfig as any);
-
-    // Increment usage count for the discount code
-    if (discount_code && discountInfo?.valid) {
-      await convex.mutation(api.discountCodes.apply, { code: discount_code });
+    let session;
+    try {
+      session = await getStripe().checkout.sessions.create(sessionConfig as any);
+    } catch (stripeErr) {
+      // Release the reserved discount usage if Stripe session creation fails
+      if (discount_code && discountInfo?.valid) {
+        await convex.mutation(api.discountCodes.release, { code: discount_code });
+      }
+      throw stripeErr;
     }
 
     if (embedded) {

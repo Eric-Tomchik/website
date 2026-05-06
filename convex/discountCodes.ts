@@ -150,3 +150,86 @@ export const remove = mutation({
     await ctx.db.delete(args.id);
   },
 });
+
+/**
+ * Atomically validate AND apply a discount code in a single transaction.
+ * Prevents race conditions where two concurrent checkouts both pass validation
+ * before either increments the usage count.
+ */
+export const validateAndApply = mutation({
+  args: {
+    code: v.string(),
+    book_id: v.optional(v.string()),
+    format: v.optional(v.string()),
+    order_total_cents: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const discount = await ctx.db
+      .query("discount_codes")
+      .withIndex("by_code", (q) => q.eq("code", args.code.toUpperCase().trim()))
+      .first();
+
+    if (!discount) return { valid: false, error: "Invalid discount code." };
+    if (!discount.is_active) return { valid: false, error: "This code is no longer active." };
+    if (discount.expires_at && Date.now() > discount.expires_at)
+      return { valid: false, error: "This code has expired." };
+    if (discount.max_uses && discount.current_uses >= discount.max_uses)
+      return { valid: false, error: "This code has reached its usage limit." };
+    if (
+      discount.min_order_cents &&
+      args.order_total_cents &&
+      args.order_total_cents < discount.min_order_cents
+    )
+      return {
+        valid: false,
+        error: `Minimum order of $${(discount.min_order_cents / 100).toFixed(2)} required.`,
+      };
+
+    if (
+      discount.applicable_book_ids &&
+      discount.applicable_book_ids.length > 0 &&
+      args.book_id &&
+      !discount.applicable_book_ids.includes(args.book_id)
+    )
+      return { valid: false, error: "This code doesn't apply to this book." };
+
+    if (
+      discount.applicable_formats &&
+      discount.applicable_formats !== "all" &&
+      args.format &&
+      discount.applicable_formats !== args.format
+    )
+      return { valid: false, error: `This code only applies to ${discount.applicable_formats} purchases.` };
+
+    // Atomically increment usage count within same transaction as validation
+    await ctx.db.patch(discount._id, {
+      current_uses: discount.current_uses + 1,
+    });
+
+    return {
+      valid: true,
+      discount_type: discount.discount_type,
+      discount_value: discount.discount_value,
+      description: discount.description,
+    };
+  },
+});
+
+/**
+ * Release a previously reserved discount code usage (e.g. if checkout fails).
+ */
+export const release = mutation({
+  args: { code: v.string() },
+  handler: async (ctx, args) => {
+    const discount = await ctx.db
+      .query("discount_codes")
+      .withIndex("by_code", (q) => q.eq("code", args.code.toUpperCase().trim()))
+      .first();
+
+    if (discount && discount.current_uses > 0) {
+      await ctx.db.patch(discount._id, {
+        current_uses: discount.current_uses - 1,
+      });
+    }
+  },
+});
