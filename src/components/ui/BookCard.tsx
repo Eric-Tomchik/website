@@ -70,26 +70,34 @@ export function BookCard({ book }: { book: Book }) {
         <p className="text-xs sm:text-sm text-surface-400 mb-3 sm:mb-4 line-clamp-2 flex-1 hidden sm:block">{book.description}</p>
 
         <div className="flex items-baseline mb-2 sm:mb-3">
-          <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
+          <div className="flex items-baseline gap-1 sm:gap-3 flex-wrap">
             {book.book_format === 'both' && book.digital_price_cents ? (
               <>
-                <span className="text-sm sm:text-lg font-bold text-brand-400">
-                  {formatPrice(book.digital_price_cents)}
+                <span className="inline-flex items-baseline gap-1">
+                  <span className="text-sm sm:text-lg font-bold text-brand-400">
+                    {formatPrice(book.digital_price_cents)}
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-surface-500">Digital</span>
                 </span>
                 <span className="text-surface-600 hidden sm:inline">·</span>
-                <span className="text-sm sm:text-lg font-bold text-brand-400">
-                  {formatPrice(book.price_cents)}
+                <span className="inline-flex items-baseline gap-1">
+                  <span className="text-sm sm:text-lg font-bold text-brand-400">
+                    {formatPrice(book.price_cents)}
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-surface-500">Physical</span>
                 </span>
               </>
             ) : (
-              <span className="text-base sm:text-xl font-bold text-brand-400">
-                {formatPrice(book.book_format === 'digital' && book.digital_price_cents ? book.digital_price_cents : book.price_cents)}
-              </span>
+              <>
+                <span className="text-base sm:text-xl font-bold text-brand-400">
+                  {formatPrice(book.book_format === 'digital' && book.digital_price_cents ? book.digital_price_cents : book.price_cents)}
+                </span>
+                <span className="text-[10px] sm:text-xs text-surface-500 capitalize">
+                  {book.book_format}
+                </span>
+              </>
             )}
           </div>
-          <span className="text-[10px] sm:text-xs text-surface-500 capitalize ml-auto pl-2 sm:pl-3 text-right whitespace-nowrap">
-            {book.book_format === 'both' ? 'Digital + Physical' : book.book_format}
-          </span>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-1.5">
