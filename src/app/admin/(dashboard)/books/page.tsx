@@ -164,6 +164,12 @@ function BookForm({
   const generateUploadUrl = useMutation(api.downloadTokens.generateUploadUrl);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
+  const [priceDisplay, setPriceDisplay] = useState(
+    book?.price_cents ? (book.price_cents / 100).toFixed(2) : ''
+  );
+  const [digitalPriceDisplay, setDigitalPriceDisplay] = useState(
+    book?.digital_price_cents ? (book.digital_price_cents / 100).toFixed(2) : ''
+  );
   const [form, setForm] = useState({
     title: book?.title || '',
     slug: book?.slug || '',
@@ -307,11 +313,18 @@ function BookForm({
           <div>
             <label className="block text-sm text-surface-300 mb-1">Digital Price ($)</label>
             <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={(form.digital_price_cents / 100).toFixed(2)}
-              onChange={(e) => setForm({ ...form, digital_price_cents: Math.round(parseFloat(e.target.value || '0') * 100) })}
+              type="text"
+              inputMode="decimal"
+              placeholder="14.99"
+              value={digitalPriceDisplay}
+              onChange={(e) => setDigitalPriceDisplay(e.target.value)}
+              onBlur={() => {
+                const val = parseFloat(digitalPriceDisplay || '0');
+                if (!isNaN(val)) {
+                  setForm((f) => ({ ...f, digital_price_cents: Math.round(val * 100) }));
+                  setDigitalPriceDisplay(val.toFixed(2));
+                }
+              }}
               className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
             />
           </div>
@@ -391,13 +404,4 @@ function BookForm({
       </div>
 
       <div className="flex gap-3 pt-2">
-        <button type="submit" disabled={saving} className="btn-primary disabled:opacity-50">
-          {saving ? 'Saving...' : book ? 'Update Book' : 'Add Book'}
-        </button>
-        <button type="button" onClick={onCancel} className="btn-secondary">
-          Cancel
-        </button>
-      </div>
-    </form>
-  );
-}
+        <button type="submit" disabled={saving} c
