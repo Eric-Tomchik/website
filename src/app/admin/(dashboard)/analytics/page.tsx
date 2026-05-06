@@ -354,10 +354,10 @@ export default function AdminAnalyticsPage() {
     { path: '/', title: 'Home', hasSchema: true, note: 'Website + Organization schema' },
     { path: '/books', title: 'Books', hasSchema: true, note: 'ItemList schema' },
     { path: '/services', title: 'Services', hasSchema: true, note: 'Service schema' },
-    { path: '/portfolio', title: 'Portfolio', hasSchema: false, note: 'Add structured data' },
-    { path: '/about', title: 'About', hasSchema: false, note: 'Add Person schema' },
-    { path: '/contact', title: 'Contact', hasSchema: false, note: 'Add ContactPage schema' },
-    { path: '/links', title: 'Links', hasSchema: false, note: 'Low priority' },
+    { path: '/portfolio', title: 'Portfolio', hasSchema: true, note: 'CollectionPage + ItemList schema' },
+    { path: '/about', title: 'About', hasSchema: true, note: 'Person schema' },
+    { path: '/contact', title: 'Contact', hasSchema: true, note: 'ContactPage schema' },
+    { path: '/links', title: 'Links', hasSchema: true, note: 'Redirects to /about (Person schema)' },
   ], []);
 
   return (
