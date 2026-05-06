@@ -84,7 +84,7 @@ export function BookCard({ book }: { book: Book }) {
               </span>
             )}
           </div>
-          <span className="text-xs text-surface-500 capitalize px-2 py-1 rounded bg-surface-800">
+          <span className="text-xs text-surface-500 capitalize ml-2">
             {book.book_format === 'both' ? 'Digital + Physical' : book.book_format}
           </span>
         </div>
