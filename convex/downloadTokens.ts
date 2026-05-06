@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { Id } from "./_generated/dataModel";
 
 // Generate a unique download token for a purchased book
 export const create = mutation({
@@ -12,9 +13,8 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     const token =
-      Math.random().toString(36).substring(2) +
-      Math.random().toString(36).substring(2) +
-      Date.now().toString(36);
+      crypto.randomUUID().replace(/-/g, "") +
+      crypto.randomUUID().replace(/-/g, "");
 
     const maxDownloads = args.max_downloads ?? 5;
     const expiresHours = args.expires_hours ?? 72;
@@ -58,8 +58,9 @@ export const validate = query({
       };
     }
 
-    // Get the book
-    const book = await ctx.db.get(record.book_id as any);
+    // Get the book using typed Id
+    const bookId = record.book_id as Id<"books">;
+    const book = await ctx.db.get(bookId);
     if (!book) {
       return { valid: false, error: "Book not found." };
     }
@@ -67,10 +68,10 @@ export const validate = query({
     return {
       valid: true,
       book: {
-        title: (book as any).title,
-        cover_image_url: (book as any).cover_image_url,
-        has_pdf: !!(book as any).digital_pdf_storage_id,
-        has_epub: !!(book as any).digital_epub_storage_id,
+        title: book.title,
+        cover_image_url: book.cover_image_url,
+        has_pdf: !!book.digital_pdf_storage_id,
+        has_epub: !!book.digital_epub_storage_id,
       },
       downloads_remaining: record.max_downloads - record.download_count,
       expires_at: record.expires_at,
@@ -101,14 +102,15 @@ export const recordDownload = mutation({
     });
 
     // Return the book so we can get the storage IDs
-    const book = await ctx.db.get(record.book_id as any);
+    const bookId = record.book_id as Id<"books">;
+    const book = await ctx.db.get(bookId);
     if (!book) return { success: false };
 
     return {
       success: true,
-      digital_pdf_storage_id: (book as any).digital_pdf_storage_id,
-      digital_epub_storage_id: (book as any).digital_epub_storage_id,
-      title: (book as any).title,
+      digital_pdf_storage_id: book.digital_pdf_storage_id,
+      digital_epub_storage_id: book.digital_epub_storage_id,
+      title: book.title,
       customer_email: record.customer_email,
       order_id: record.order_id || record.token,
     };
@@ -126,6 +128,7 @@ export const generateUploadUrl = mutation({
 export const getFileUrl = query({
   args: { storageId: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.storage.getUrl(args.storageId as any);
+    const id = args.storageId as Id<"_storage">;
+    return await ctx.storage.getUrl(id);
   },
 });

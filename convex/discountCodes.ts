@@ -77,6 +77,13 @@ export const apply = mutation({
 
     if (!discount) return { success: false };
 
+    // Atomic check: re-validate inside the mutation to prevent race conditions
+    if (!discount.is_active) return { success: false };
+    if (discount.expires_at && Date.now() > discount.expires_at)
+      return { success: false };
+    if (discount.max_uses && discount.current_uses >= discount.max_uses)
+      return { success: false };
+
     await ctx.db.patch(discount._id, {
       current_uses: discount.current_uses + 1,
     });

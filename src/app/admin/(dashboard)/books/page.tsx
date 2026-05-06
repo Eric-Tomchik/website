@@ -92,7 +92,7 @@ export default function AdminBooksPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       {book.cover_image_url && (
-                        <img src={book.cover_image_url} alt="" className="w-10 h-14 rounded object-cover" />
+                        <img src={book.cover_image_url} alt={`${book.title} cover`} className="w-10 h-14 rounded object-cover" />
                       )}
                       <div>
                         <div className="text-sm font-medium text-white">{book.title}</div>

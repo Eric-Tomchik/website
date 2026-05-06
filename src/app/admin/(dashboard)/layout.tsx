@@ -1,21 +1,13 @@
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import AdminSidebar from '@/components/AdminSidebar';
+import { verifyAdminToken } from '@/lib/adminAuth';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
   const session = cookieStore.get('admin_session');
 
-  if (!session?.value) {
-    redirect('/admin/login');
-  }
-
-  try {
-    const decoded = JSON.parse(Buffer.from(session.value, 'base64').toString());
-    if (!decoded.admin) {
-      redirect('/admin/login');
-    }
-  } catch {
+  if (!session?.value || !verifyAdminToken(session.value)) {
     redirect('/admin/login');
   }
 

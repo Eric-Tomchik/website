@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getConvexClient } from '@/lib/convex';
 import { api } from '../../../../convex/_generated/api';
 import { z } from 'zod';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 const contactSchema = z.object({
   name: z.string().min(1).max(100),
@@ -13,6 +14,21 @@ const contactSchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    // Rate limit: 3 submissions per minute per IP
+    const ip = getClientIp(req);
+    const { allowed, resetAt } = checkRateLimit(`contact:${ip}`, 3, 60_000);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: 'Too many submissions. Please try again later.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(Math.ceil((resetAt - Date.now()) / 1000)),
+          },
+        }
+      );
+    }
+
     const body = await req.json();
     const data = contactSchema.parse(body);
 

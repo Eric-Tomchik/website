@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /portal
+Disallow: /portal/*
+Disallow: /api/
+Disallow: /download/
+Disallow: /sign/
+
+Sitemap: https://erictomchik.com/sitemap.xml

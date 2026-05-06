@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import { fetchQuery } from 'convex/nextjs';
 import { api } from '../../../../convex/_generated/api';
 import { BookOpen, ArrowLeft, ShoppingCart, ExternalLink } from 'lucide-react';
@@ -119,10 +120,13 @@ export default async function BookDetailPage({ params }: Props) {
               <div className="absolute -inset-1 bg-gradient-to-r from-brand-500 to-brand-700 rounded-2xl blur-lg opacity-30" />
               <div className="relative aspect-[3/4] rounded-2xl overflow-hidden border-2 border-surface-800 bg-surface-800">
                 {book.cover_image_url ? (
-                  <img
+                  <Image
                     src={book.cover_image_url}
-                    alt={book.title}
-                    className="absolute inset-0 w-full h-full object-cover"
+                    alt={`Cover of ${book.title} by Eric Tomchik`}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 448px"
+                    className="object-cover"
+                    priority
                   />
                 ) : (
                   <div className="flex items-center justify-center h-full">

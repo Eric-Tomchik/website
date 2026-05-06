@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { BookOpen, ShoppingCart, ExternalLink } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import { useCheckout } from '@/components/checkout/CheckoutContext';
@@ -42,10 +43,12 @@ export function BookCard({ book }: { book: Book }) {
       {/* Cover */}
       <div className="relative aspect-[3/4] bg-surface-900 overflow-hidden flex items-center justify-center p-2 sm:p-4">
         {book.cover_image_url ? (
-          <img
+          <Image
             src={book.cover_image_url}
-            alt={book.title}
-            className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500 drop-shadow-lg"
+            alt={`Cover of ${book.title} by Eric Tomchik`}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-contain group-hover:scale-110 transition-transform duration-500 drop-shadow-lg p-2 sm:p-4"
           />
         ) : (
           <div className="flex items-center justify-center h-full">

@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   description: 'Professional web development services by Eric Tomchik. Custom websites, e-commerce, and web applications.',
 };
 
+export const revalidate = 3600; // ISR: revalidate every hour
+
 const servicePlans: ServicePlan[] = [
   {
     id: '1',
