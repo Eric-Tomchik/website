@@ -71,11 +71,11 @@ export default function AIContractGeneratorPage() {
     return () => { if (pdfUrl) URL.revokeObjectURL(pdfUrl); };
   }, [pdfUrl]);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!selectedClient) return;
     setSaved(false);
 
-    const pdf = generatePDF(docType, {
+    const pdfBytes = await generatePDF(docType, {
       client: {
         name: selectedClient.name,
         email: selectedClient.email,
@@ -94,7 +94,7 @@ export default function AIContractGeneratorPage() {
       requireSignature,
     });
 
-    const blob = pdf.output('blob');
+    const blob = new Blob([pdfBytes as BlobPart], { type: 'application/pdf' });
     if (pdfUrl) URL.revokeObjectURL(pdfUrl);
     const url = URL.createObjectURL(blob);
     setPdfBlob(blob);

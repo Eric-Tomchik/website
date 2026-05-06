@@ -1,33 +1,56 @@
-import jsPDF from 'jspdf';
+import { PDFDocument, PDFPage, PDFFont, StandardFonts, rgb, RGB, degrees } from 'pdf-lib';
 
-// ─── Brand Colors ────────────────────────────────────────────
+// ─── Brand Colors (0–1 range for pdf-lib) ────────────────────
 const BRAND = {
-  primary: [30, 64, 175] as [number, number, number],
-  dark: [15, 23, 42] as [number, number, number],
-  text: [30, 41, 59] as [number, number, number],
-  muted: [100, 116, 139] as [number, number, number],
-  light: [241, 245, 249] as [number, number, number],
-  accent: [59, 130, 246] as [number, number, number],
-  white: [255, 255, 255] as [number, number, number],
-  line: [226, 232, 240] as [number, number, number],
-  success: [22, 163, 74] as [number, number, number],
+  primary:  rgb(30/255, 64/255, 175/255),
+  dark:     rgb(15/255, 23/255, 42/255),
+  text:     rgb(30/255, 41/255, 59/255),
+  muted:    rgb(100/255, 116/255, 139/255),
+  light:    rgb(241/255, 245/255, 249/255),
+  accent:   rgb(59/255, 130/255, 246/255),
+  white:    rgb(1, 1, 1),
+  line:     rgb(226/255, 232/255, 240/255),
+  success:  rgb(22/255, 163/255, 74/255),
+  headerSub: rgb(180/255, 190/255, 210/255),
+  legalBg:  rgb(254/255, 249/255, 195/255),
+  legalText: rgb(113/255, 63/255, 18/255),
+  thankBg:  rgb(240/255, 249/255, 255/255),
+  signedBg: rgb(220/255, 252/255, 231/255),
 };
 
-// Footer takes ~20mm from bottom. Page height is 297mm. Content must stop above footer.
-const PAGE_HEIGHT = 297;
-const FOOTER_HEIGHT = 22;
-const MAX_Y = PAGE_HEIGHT - FOOTER_HEIGHT; // 275mm - safe content area
-const MARGIN_LEFT = 20;
-const MARGIN_RIGHT = 190;
-const CONTENT_WIDTH = MARGIN_RIGHT - MARGIN_LEFT; // 170mm
+// ─── Layout constants (in points — 1mm ≈ 2.835pt) ────────────
+const MM = 2.835;
+const PW = 210 * MM;   // page width  ~595pt
+const PH = 297 * MM;   // page height ~841pt
+const ML = 20 * MM;    // margin left
+const MR = 190 * MM;   // margin right
+const CW = MR - ML;    // content width
+const FOOTER_H = 22 * MM;
+const MAX_Y = PH - FOOTER_H; // safe bottom
 
+// ─── Fonts cache ─────────────────────────────────────────────
+interface Fonts {
+  regular: PDFFont;
+  bold: PDFFont;
+  italic: PDFFont;
+  boldItalic: PDFFont;
+}
+
+// ─── Context passed to every helper ──────────────────────────
+interface Ctx {
+  doc: PDFDocument;
+  fonts: Fonts;
+  page: PDFPage;
+  pageCount: number;
+}
+
+// ─── Re-export types ─────────────────────────────────────────
 interface ClientInfo {
   name: string;
   email: string;
   company?: string;
   phone?: string;
 }
-
 interface ProjectInfo {
   title: string;
   description?: string;
@@ -35,7 +58,6 @@ interface ProjectInfo {
   start_date?: string;
   target_date?: string;
 }
-
 interface GeneratorOptions {
   client: ClientInfo;
   project?: ProjectInfo;
@@ -46,452 +68,443 @@ interface GeneratorOptions {
 
 const SERVICE_TIERS: Record<string, { label: string; price: number; features: string[] }> = {
   starter: {
-    label: 'Starter',
-    price: 1500,
+    label: 'Starter', price: 1500,
     features: [
-      'Single-page responsive website',
-      'Mobile-first design',
-      'Contact form integration',
-      'Basic SEO optimization',
-      '1 round of revisions',
+      'Single-page responsive website', 'Mobile-first design',
+      'Contact form integration', 'Basic SEO optimization', '1 round of revisions',
     ],
   },
   business_pro: {
-    label: 'Business Pro',
-    price: 3500,
+    label: 'Business Pro', price: 3500,
     features: [
-      'Multi-page website (up to 5 pages)',
-      'Mobile-first responsive design',
-      'Contact form + Google Maps integration',
-      'Full SEO optimization',
-      'Social media integration',
-      '3 rounds of revisions',
-      '30-day post-launch support',
+      'Multi-page website (up to 5 pages)', 'Mobile-first responsive design',
+      'Contact form + Google Maps integration', 'Full SEO optimization',
+      'Social media integration', '3 rounds of revisions', '30-day post-launch support',
     ],
   },
   custom: {
-    label: 'Custom Application',
-    price: 7500,
+    label: 'Custom Application', price: 7500,
     features: [
-      'Full custom web application',
-      'Database integration',
-      'User authentication system',
-      'Payment processing (Stripe/PayPal)',
-      'Custom API development',
-      'Unlimited revisions',
-      '90-day post-launch support',
+      'Full custom web application', 'Database integration',
+      'User authentication system', 'Payment processing (Stripe/PayPal)',
+      'Custom API development', 'Unlimited revisions', '90-day post-launch support',
     ],
   },
 };
 
-// ─── Page break helper ───────────────────────────────────────
-function checkPageBreak(doc: jsPDF, y: number, needed: number = 10): number {
-  if (y + needed > MAX_Y) {
-    doc.addPage();
-    return 25;
+// ─── Coordinate helper: top-left mm → bottom-left pt ─────────
+function ptY(yMm: number): number { return PH - yMm * MM; }
+function ptX(xMm: number): number { return xMm * MM; }
+
+// ─── Text wrapping (pdf-lib has no splitTextToSize) ──────────
+function wrapText(font: PDFFont, text: string, maxWidth: number, fontSize: number): string[] {
+  const words = text.split(/\s+/);
+  const lines: string[] = [];
+  let current = '';
+  for (const word of words) {
+    const test = current ? `${current} ${word}` : word;
+    if (font.widthOfTextAtSize(test, fontSize) <= maxWidth) {
+      current = test;
+    } else {
+      if (current) lines.push(current);
+      current = word;
+    }
   }
-  return y;
+  if (current) lines.push(current);
+  return lines.length ? lines : [''];
 }
 
-// ─── Helper: Draw page header ────────────────────────────────
-function drawHeader(doc: jsPDF, title: string, _subtitle: string, docNumber: string) {
-  doc.setFillColor(...BRAND.dark);
-  doc.rect(0, 0, 210, 38, 'F');
+// ─── Rounded rectangle path ─────────────────────────────────
+function drawRoundedRect(
+  page: PDFPage, x: number, y: number, w: number, h: number, r: number,
+  opts: { color?: RGB; borderColor?: RGB; borderWidth?: number }
+) {
+  // y is top-left in mm-style already converted to pt bottom-left
+  const k = 0.5522847498; // bezier arc magic number
+  const path = [
+    `${x + r} ${y} m`,
+    `${x + w - r} ${y} l`,
+    `${x + w - r + r * k} ${y} ${x + w} ${y + r - r * k} ${x + w} ${y + r} c`,
+    `${x + w} ${y + h - r} l`,
+    `${x + w} ${y + h - r + r * k} ${x + w - r + r * k} ${y + h} ${x + w - r} ${y + h} c`,
+    `${x + r} ${y + h} l`,
+    `${x + r - r * k} ${y + h} ${x} ${y + h - r + r * k} ${x} ${y + h - r} c`,
+    `${x} ${y + r} l`,
+    `${x} ${y + r - r * k} ${x + r - r * k} ${y} ${x + r} ${y} c`,
+  ].join(' ');
+  // We'll use a simpler approach: just draw a filled rect (pdf-lib supports this)
+  // For now, use borderRadius-free approach since pdf-lib lacks native rounded rect
+  if (opts.color) {
+    page.drawRectangle({
+      x, y, width: w, height: h,
+      color: opts.color,
+      borderColor: opts.borderColor,
+      borderWidth: opts.borderWidth ?? 0,
+    });
+  }
+}
 
-  doc.setTextColor(...BRAND.white);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
-  doc.text('ERIC TOMCHIK', 20, 16);
+// ─── Page break check ────────────────────────────────────────
+function checkBreak(ctx: Ctx, yMm: number, neededMm: number): number {
+  if (yMm + neededMm > (PH - FOOTER_H) / MM) {
+    ctx.page = ctx.doc.addPage([PW, PH]);
+    ctx.pageCount++;
+    return 25;
+  }
+  return yMm;
+}
 
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(180, 190, 210);
-  doc.text('Web Development & Digital Solutions', 20, 23);
-  doc.text('ArcLight Press  ·  Mississippi Gulf Coast', 20, 28);
+// ─── Draw page header ────────────────────────────────────────
+function drawHeader(ctx: Ctx, title: string, _subtitle: string, docNum: string): number {
+  const { page, fonts } = ctx;
+  // Dark header bar
+  page.drawRectangle({ x: 0, y: ptY(0), width: PW, height: 38 * MM, color: BRAND.dark });
 
-  doc.setFillColor(...BRAND.accent);
-  const badgeWidth = doc.getTextWidth(title) + 16;
-  doc.roundedRect(190 - badgeWidth, 10, badgeWidth, 10, 2, 2, 'F');
-  doc.setTextColor(...BRAND.white);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.text(title, 190 - badgeWidth + 8, 17);
+  page.drawText('ERIC TOMCHIK', { x: ML, y: ptY(16), size: 18, font: fonts.bold, color: BRAND.white });
+  page.drawText('Web Development & Digital Solutions', { x: ML, y: ptY(23), size: 8, font: fonts.regular, color: BRAND.headerSub });
+  page.drawText('ArcLight Press  ·  Mississippi Gulf Coast', { x: ML, y: ptY(28), size: 8, font: fonts.regular, color: BRAND.headerSub });
 
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(180, 190, 210);
-  doc.text(docNumber, 190 - badgeWidth, 28, { align: 'left' });
+  // Badge
+  const badgeW = fonts.bold.widthOfTextAtSize(title, 9) + 16 * MM;
+  const badgeX = MR - badgeW;
+  page.drawRectangle({ x: badgeX, y: ptY(10) - 10 * MM, width: badgeW, height: 10 * MM, color: BRAND.accent });
+  page.drawText(title, { x: badgeX + 8 * MM, y: ptY(17), size: 9, font: fonts.bold, color: BRAND.white });
+
+  page.drawText(docNum, { x: badgeX, y: ptY(28), size: 7, font: fonts.regular, color: BRAND.headerSub });
 
   return 48;
 }
 
-// ─── Helper: Draw section title ──────────────────────────────
-function drawSectionTitle(doc: jsPDF, y: number, title: string): number {
-  y = checkPageBreak(doc, y, 16);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.setTextColor(...BRAND.primary);
-  doc.text(title, MARGIN_LEFT, y);
-  y += 2;
-  doc.setDrawColor(...BRAND.accent);
-  doc.setLineWidth(0.5);
-  doc.line(MARGIN_LEFT, y, MARGIN_RIGHT, y);
-  return y + 7;
+// ─── Section title ───────────────────────────────────────────
+function drawSectionTitle(ctx: Ctx, yMm: number, title: string): number {
+  yMm = checkBreak(ctx, yMm, 16);
+  ctx.page.drawText(title, { x: ML, y: ptY(yMm), size: 11, font: ctx.fonts.bold, color: BRAND.primary });
+  yMm += 2;
+  ctx.page.drawLine({ start: { x: ML, y: ptY(yMm) }, end: { x: MR, y: ptY(yMm) }, thickness: 0.5 * MM, color: BRAND.accent });
+  return yMm + 7;
 }
 
-// ─── Helper: Draw text paragraph ─────────────────────────────
-function drawText(doc: jsPDF, y: number, text: string, opts?: { bold?: boolean; size?: number; color?: [number, number, number]; indent?: number }): number {
-  const size = opts?.size ?? 9;
-  const indent = opts?.indent ?? MARGIN_LEFT;
-  const maxWidth = MARGIN_RIGHT - indent;
-  doc.setFont('helvetica', opts?.bold ? 'bold' : 'normal');
-  doc.setFontSize(size);
-  doc.setTextColor(...(opts?.color ?? BRAND.text));
-  const lines = doc.splitTextToSize(text, maxWidth);
-  const lineHeight = size * 0.45;
-
+// ─── Text paragraph ──────────────────────────────────────────
+function drawTextBlock(ctx: Ctx, yMm: number, text: string, opts?: {
+  bold?: boolean; size?: number; color?: RGB; indent?: number;
+}): number {
+  const sz = opts?.size ?? 9;
+  const indent = opts?.indent != null ? opts.indent * MM : ML;
+  const maxW = MR - indent;
+  const font = opts?.bold ? ctx.fonts.bold : ctx.fonts.regular;
+  const color = opts?.color ?? BRAND.text;
+  const lines = wrapText(font, text, maxW, sz);
+  const lh = sz * 0.45;
   for (const line of lines) {
-    y = checkPageBreak(doc, y, lineHeight + 1);
-    doc.text(line, indent, y);
-    y += lineHeight;
+    yMm = checkBreak(ctx, yMm, lh + 1);
+    ctx.page.drawText(line, { x: indent, y: ptY(yMm), size: sz, font, color });
+    yMm += lh;
   }
-  return y + 2;
+  return yMm + 2;
 }
 
-// ─── Helper: Draw bullet point ───────────────────────────────
-function drawBullet(doc: jsPDF, y: number, text: string, indent: number = 25): number {
-  const maxWidth = MARGIN_RIGHT - indent - 3;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  const lines = doc.splitTextToSize(text, maxWidth);
-  const totalHeight = lines.length * 4.2 + 1.5;
+// ─── Bullet point ────────────────────────────────────────────
+function drawBullet(ctx: Ctx, yMm: number, text: string, indent: number = 25): number {
+  const maxW = MR - indent * MM - 3 * MM;
+  const lines = wrapText(ctx.fonts.regular, text, maxW, 9);
+  const totalH = lines.length * 4.2 + 1.5;
+  yMm = checkBreak(ctx, yMm, totalH);
 
-  y = checkPageBreak(doc, y, totalHeight);
-  doc.setFillColor(...BRAND.accent);
-  doc.circle(indent - 2, y - 1.2, 1, 'F');
-  doc.setTextColor(...BRAND.text);
-  doc.text(lines, indent + 2, y);
-  return y + totalHeight;
+  ctx.page.drawCircle({ x: (indent - 2) * MM, y: ptY(yMm - 1.2), size: 1 * MM, color: BRAND.accent });
+
+  for (let i = 0; i < lines.length; i++) {
+    ctx.page.drawText(lines[i], { x: (indent + 2) * MM, y: ptY(yMm + i * 4.2), size: 9, font: ctx.fonts.regular, color: BRAND.text });
+  }
+  return yMm + totalH;
 }
 
-// ─── Helper: Draw key-value pair ─────────────────────────────
-function drawKeyValue(doc: jsPDF, y: number, key: string, value: string, indent: number = MARGIN_LEFT): number {
-  y = checkPageBreak(doc, y, 6);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(...BRAND.muted);
-  doc.text(key, indent, y);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...BRAND.text);
-  const valueLines = doc.splitTextToSize(value, MARGIN_RIGHT - indent - 42);
-  doc.text(valueLines, indent + 40, y);
-  return y + Math.max(5.5, valueLines.length * 4.2 + 1);
+// ─── Key-value pair ──────────────────────────────────────────
+function drawKeyValue(ctx: Ctx, yMm: number, key: string, value: string, indent: number = 20): number {
+  yMm = checkBreak(ctx, yMm, 6);
+  ctx.page.drawText(key, { x: indent * MM, y: ptY(yMm), size: 9, font: ctx.fonts.bold, color: BRAND.muted });
+  const valLines = wrapText(ctx.fonts.regular, value, MR - (indent + 42) * MM, 9);
+  for (let i = 0; i < valLines.length; i++) {
+    ctx.page.drawText(valLines[i], { x: (indent + 40) * MM, y: ptY(yMm + i * 4.2), size: 9, font: ctx.fonts.regular, color: BRAND.text });
+  }
+  return yMm + Math.max(5.5, valLines.length * 4.2 + 1);
 }
 
-// ─── Helper: Draw footer ─────────────────────────────────────
-function drawFooter(doc: jsPDF, pageNum: number, totalPages: number) {
-  const h = PAGE_HEIGHT;
-  doc.setDrawColor(...BRAND.line);
-  doc.setLineWidth(0.3);
-  doc.line(MARGIN_LEFT, h - 18, MARGIN_RIGHT, h - 18);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(...BRAND.muted);
-  doc.text('info@erictomchik.com  ·  erictomchik.com', MARGIN_LEFT, h - 12);
-  doc.text(`Page ${pageNum} of ${totalPages}`, MARGIN_RIGHT, h - 12, { align: 'right' });
+// ─── Footer ──────────────────────────────────────────────────
+function drawFooter(page: PDFPage, fonts: Fonts, pageNum: number, totalPages: number) {
+  const h = 297;
+  page.drawLine({ start: { x: ML, y: ptY(h - 18) }, end: { x: MR, y: ptY(h - 18) }, thickness: 0.3 * MM, color: BRAND.line });
+  page.drawText('info@erictomchik.com  ·  erictomchik.com', { x: ML, y: ptY(h - 12), size: 7, font: fonts.regular, color: BRAND.muted });
+  const pageText = `Page ${pageNum} of ${totalPages}`;
+  const pw = fonts.regular.widthOfTextAtSize(pageText, 7);
+  page.drawText(pageText, { x: MR - pw, y: ptY(h - 12), size: 7, font: fonts.regular, color: BRAND.muted });
 }
 
-// ─── Helper: Info box ────────────────────────────────────────
-function drawInfoBox(doc: jsPDF, y: number, label: string, lines: string[], x: number = MARGIN_LEFT, width: number = 75): number {
-  const boxHeight = 8 + lines.length * 4.5;
-  y = checkPageBreak(doc, y, boxHeight);
-  doc.setFillColor(...BRAND.light);
-  doc.roundedRect(x, y, width, boxHeight, 2, 2, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
-  doc.setTextColor(...BRAND.muted);
-  doc.text(label.toUpperCase(), x + 5, y + 5);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.setTextColor(...BRAND.text);
-  lines.forEach((line, i) => {
-    doc.text(line, x + 5, y + 10 + i * 4.5);
-  });
-  return boxHeight;
+// ─── Info box ────────────────────────────────────────────────
+function drawInfoBox(ctx: Ctx, yMm: number, label: string, lines: string[], xMm: number = 20, widthMm: number = 75): number {
+  const boxH = 8 + lines.length * 4.5;
+  yMm = checkBreak(ctx, yMm, boxH);
+  ctx.page.drawRectangle({ x: xMm * MM, y: ptY(yMm + boxH), width: widthMm * MM, height: boxH * MM, color: BRAND.light });
+  ctx.page.drawText(label.toUpperCase(), { x: (xMm + 5) * MM, y: ptY(yMm + 5), size: 7, font: ctx.fonts.bold, color: BRAND.muted });
+  for (let i = 0; i < lines.length; i++) {
+    ctx.page.drawText(lines[i], { x: (xMm + 5) * MM, y: ptY(yMm + 10 + i * 4.5), size: 9, font: ctx.fonts.regular, color: BRAND.text });
+  }
+  return boxH;
 }
 
-function drawSignatureBlock(doc: jsPDF, y: number, requireSignature: boolean): number {
-  y = checkPageBreak(doc, y, 40);
-  y = drawSectionTitle(doc, y, 'SIGNATURES');
-
+// ─── Signature block ─────────────────────────────────────────
+function drawSignatureBlock(ctx: Ctx, yMm: number, requireSignature: boolean): number {
+  yMm = checkBreak(ctx, yMm, 40);
+  yMm = drawSectionTitle(ctx, yMm, 'SIGNATURES');
   if (requireSignature) {
-    y = drawText(doc, y, 'This document will be signed electronically via secure digital signature.', { size: 8, color: BRAND.muted });
-    y += 3;
+    yMm = drawTextBlock(ctx, yMm, 'This document will be signed electronically via secure digital signature.', { size: 8, color: BRAND.muted });
+    yMm += 3;
   }
-
-  y = checkPageBreak(doc, y, 28);
+  yMm = checkBreak(ctx, yMm, 28);
 
   // Developer signature line
-  doc.setDrawColor(...BRAND.line);
-  doc.setLineWidth(0.3);
-  doc.line(MARGIN_LEFT, y + 12, 90, y + 12);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(...BRAND.muted);
-  doc.text('Eric Tomchik — Developer', MARGIN_LEFT, y + 17);
-  doc.text('Date: _______________', MARGIN_LEFT, y + 22);
+  ctx.page.drawLine({ start: { x: ML, y: ptY(yMm + 12) }, end: { x: 90 * MM, y: ptY(yMm + 12) }, thickness: 0.3 * MM, color: BRAND.line });
+  ctx.page.drawText('Eric Tomchik — Developer', { x: ML, y: ptY(yMm + 17), size: 8, font: ctx.fonts.regular, color: BRAND.muted });
+  ctx.page.drawText('Date: _______________', { x: ML, y: ptY(yMm + 22), size: 8, font: ctx.fonts.regular, color: BRAND.muted });
 
   // Client signature line
-  doc.line(115, y + 12, MARGIN_RIGHT, y + 12);
-  doc.text('Client Signature', 115, y + 17);
-  doc.text('Date: _______________', 115, y + 22);
+  ctx.page.drawLine({ start: { x: 115 * MM, y: ptY(yMm + 12) }, end: { x: MR, y: ptY(yMm + 12) }, thickness: 0.3 * MM, color: BRAND.line });
+  ctx.page.drawText('Client Signature', { x: 115 * MM, y: ptY(yMm + 17), size: 8, font: ctx.fonts.regular, color: BRAND.muted });
+  ctx.page.drawText('Date: _______________', { x: 115 * MM, y: ptY(yMm + 22), size: 8, font: ctx.fonts.regular, color: BRAND.muted });
 
-  return y + 30;
+  return yMm + 30;
+}
+
+// ─── Initialize doc + fonts ──────────────────────────────────
+async function createCtx(): Promise<Ctx> {
+  const doc = await PDFDocument.create();
+  const page = doc.addPage([PW, PH]);
+  const [regular, bold, italic, boldItalic] = await Promise.all([
+    doc.embedFont(StandardFonts.Helvetica),
+    doc.embedFont(StandardFonts.HelveticaBold),
+    doc.embedFont(StandardFonts.HelveticaOblique),
+    doc.embedFont(StandardFonts.HelveticaBoldOblique),
+  ]);
+  return { doc, fonts: { regular, bold, italic, boldItalic }, page, pageCount: 1 };
+}
+
+function finalize(ctx: Ctx) {
+  const pages = ctx.doc.getPages();
+  const total = pages.length;
+  for (let i = 0; i < total; i++) {
+    drawFooter(pages[i], ctx.fonts, i + 1, total);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// CONTRACT GENERATOR
+// CONTRACT
 // ═══════════════════════════════════════════════════════════════
-export function generateContractPDF(opts: GeneratorOptions): jsPDF {
-  const doc = new jsPDF('p', 'mm', 'a4');
+export async function generateContractPDF(opts: GeneratorOptions): Promise<Uint8Array> {
+  const ctx = await createCtx();
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const docNum = `CT-${Date.now().toString(36).toUpperCase().slice(-6)}`;
   const tier = opts.serviceTier ? SERVICE_TIERS[opts.serviceTier] : null;
 
-  let y = drawHeader(doc, 'CONTRACT', 'Web Development Service Agreement', docNum);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(...BRAND.muted);
-  doc.text(`Date: ${today}`, MARGIN_LEFT, y);
+  let y = drawHeader(ctx, 'CONTRACT', 'Web Development Service Agreement', docNum);
+  ctx.page.drawText(`Date: ${today}`, { x: ML, y: ptY(y), size: 8, font: ctx.fonts.regular, color: BRAND.muted });
   y += 8;
 
   const fromLines = ['Eric Tomchik', 'ArcLight Press', 'Mississippi Gulf Coast', 'info@erictomchik.com'];
   const toLines = [opts.client.name, ...(opts.client.company ? [opts.client.company] : []), opts.client.email, ...(opts.client.phone ? [opts.client.phone] : [])];
+  const fromH = drawInfoBox(ctx, y, 'Developer', fromLines, 20, 75);
+  const toH = drawInfoBox(ctx, y, 'Client', toLines, 105, 85);
+  y += Math.max(fromH, toH) + 8;
 
-  const fromH = drawInfoBox(doc, y, 'Developer', fromLines, MARGIN_LEFT, 75);
-  const toBoxH = drawInfoBox(doc, y, 'Client', toLines, 105, 85);
-  y += Math.max(fromH, toBoxH) + 8;
-
-  y = drawSectionTitle(doc, y, 'PROJECT DETAILS');
-  if (opts.project?.title) y = drawKeyValue(doc, y, 'Project:', opts.project.title);
-  if (opts.project?.description) y = drawKeyValue(doc, y, 'Description:', opts.project.description);
-  if (tier) y = drawKeyValue(doc, y, 'Package:', `${tier.label} — $${tier.price.toLocaleString()}`);
-  if (opts.project?.start_date) y = drawKeyValue(doc, y, 'Start Date:', opts.project.start_date);
-  if (opts.project?.target_date) y = drawKeyValue(doc, y, 'Target Date:', opts.project.target_date);
+  y = drawSectionTitle(ctx, y, 'PROJECT DETAILS');
+  if (opts.project?.title) y = drawKeyValue(ctx, y, 'Project:', opts.project.title);
+  if (opts.project?.description) y = drawKeyValue(ctx, y, 'Description:', opts.project.description);
+  if (tier) y = drawKeyValue(ctx, y, 'Package:', `${tier.label} — $${tier.price.toLocaleString()}`);
+  if (opts.project?.start_date) y = drawKeyValue(ctx, y, 'Start Date:', opts.project.start_date);
+  if (opts.project?.target_date) y = drawKeyValue(ctx, y, 'Target Date:', opts.project.target_date);
   y += 3;
 
-  y = drawSectionTitle(doc, y, 'SCOPE OF WORK');
+  y = drawSectionTitle(ctx, y, 'SCOPE OF WORK');
   if (opts.customScope) {
     for (const line of opts.customScope.split('\n').filter(Boolean)) {
       const clean = line.replace(/^[\s•\-*]+/, '').trim();
-      if (clean) y = drawBullet(doc, y, clean);
+      if (clean) y = drawBullet(ctx, y, clean);
     }
   } else if (tier) {
-    for (const feat of tier.features) y = drawBullet(doc, y, feat);
+    for (const feat of tier.features) y = drawBullet(ctx, y, feat);
   }
   y += 3;
 
-  y = drawSectionTitle(doc, y, 'PAYMENT TERMS');
+  y = drawSectionTitle(ctx, y, 'PAYMENT TERMS');
   const price = tier?.price ?? 0;
   const half = price / 2;
-  y = drawBullet(doc, y, `50% deposit due upon signing${price ? ` ($${half.toLocaleString()})` : ''}`);
-  y = drawBullet(doc, y, `50% balance due upon project completion${price ? ` ($${half.toLocaleString()})` : ''}`);
-  y = drawBullet(doc, y, 'Accepted payment methods: PayPal, Stripe');
-  y = drawBullet(doc, y, 'Late payments are subject to a 1.5% monthly fee');
+  y = drawBullet(ctx, y, `50% deposit due upon signing${price ? ` ($${half.toLocaleString()})` : ''}`);
+  y = drawBullet(ctx, y, `50% balance due upon project completion${price ? ` ($${half.toLocaleString()})` : ''}`);
+  y = drawBullet(ctx, y, 'Accepted payment methods: PayPal, Stripe');
+  y = drawBullet(ctx, y, 'Late payments are subject to a 1.5% monthly fee');
   y += 3;
 
-  y = drawSectionTitle(doc, y, 'REVISION POLICY');
+  y = drawSectionTitle(ctx, y, 'REVISION POLICY');
   const revisions = opts.serviceTier === 'starter' ? '1 round' : opts.serviceTier === 'business_pro' ? '3 rounds' : 'Unlimited rounds';
-  y = drawBullet(doc, y, `${revisions} of revisions included in project scope`);
-  y = drawBullet(doc, y, 'Additional revisions billed at $75/hour');
-  y = drawBullet(doc, y, 'Revision requests must be submitted in writing via email or client portal');
+  y = drawBullet(ctx, y, `${revisions} of revisions included in project scope`);
+  y = drawBullet(ctx, y, 'Additional revisions billed at $75/hour');
+  y = drawBullet(ctx, y, 'Revision requests must be submitted in writing via email or client portal');
   y += 3;
 
-  y = drawSectionTitle(doc, y, 'INTELLECTUAL PROPERTY');
-  y = drawText(doc, y, 'Upon receipt of full payment, all custom code, designs, and content created specifically for this project shall become the sole property of the Client. The Developer retains the right to showcase the completed project in their professional portfolio.');
+  y = drawSectionTitle(ctx, y, 'INTELLECTUAL PROPERTY');
+  y = drawTextBlock(ctx, y, 'Upon receipt of full payment, all custom code, designs, and content created specifically for this project shall become the sole property of the Client. The Developer retains the right to showcase the completed project in their professional portfolio.');
   y += 3;
 
-  y = drawSectionTitle(doc, y, 'TERMINATION');
-  y = drawText(doc, y, 'Either party may terminate this agreement with seven (7) days written notice. In the event of termination, the Client shall be responsible for payment of all work completed up to the date of termination, at the Developer\'s standard hourly rate of $75/hour.');
+  y = drawSectionTitle(ctx, y, 'TERMINATION');
+  y = drawTextBlock(ctx, y, 'Either party may terminate this agreement with seven (7) days written notice. In the event of termination, the Client shall be responsible for payment of all work completed up to the date of termination, at the Developer\'s standard hourly rate of $75/hour.');
   y += 5;
 
-  y = drawSignatureBlock(doc, y, opts.requireSignature ?? false);
-
-  const totalPages = doc.getNumberOfPages();
-  for (let i = 1; i <= totalPages; i++) { doc.setPage(i); drawFooter(doc, i, totalPages); }
-
-  return doc;
+  y = drawSignatureBlock(ctx, y, opts.requireSignature ?? false);
+  finalize(ctx);
+  return ctx.doc.save();
 }
 
 // ═══════════════════════════════════════════════════════════════
-// INVOICE GENERATOR
+// INVOICE
 // ═══════════════════════════════════════════════════════════════
-export function generateInvoicePDF(opts: GeneratorOptions): jsPDF {
-  const doc = new jsPDF('p', 'mm', 'a4');
+export async function generateInvoicePDF(opts: GeneratorOptions): Promise<Uint8Array> {
+  const ctx = await createCtx();
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const dueDate = new Date(Date.now() + 30 * 86400000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const invNum = `INV-${Date.now().toString(36).toUpperCase().slice(-6)}`;
   const tier = opts.serviceTier ? SERVICE_TIERS[opts.serviceTier] : null;
 
-  let y = drawHeader(doc, 'INVOICE', 'Payment Invoice', invNum);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(...BRAND.muted);
-  doc.text(`Invoice Date: ${today}`, MARGIN_LEFT, y);
-  doc.text(`Due Date: ${dueDate}`, 120, y);
+  let y = drawHeader(ctx, 'INVOICE', 'Payment Invoice', invNum);
+  ctx.page.drawText(`Invoice Date: ${today}`, { x: ML, y: ptY(y), size: 8, font: ctx.fonts.regular, color: BRAND.muted });
+  ctx.page.drawText(`Due Date: ${dueDate}`, { x: 120 * MM, y: ptY(y), size: 8, font: ctx.fonts.regular, color: BRAND.muted });
   y += 8;
 
   const fromLines = ['Eric Tomchik', 'ArcLight Press', 'Mississippi Gulf Coast', 'info@erictomchik.com'];
   const toLines = [opts.client.name, ...(opts.client.company ? [opts.client.company] : []), opts.client.email, ...(opts.client.phone ? [opts.client.phone] : [])];
-
-  const fromH = drawInfoBox(doc, y, 'From', fromLines, MARGIN_LEFT, 75);
-  const toH = drawInfoBox(doc, y, 'Bill To', toLines, 105, 85);
+  const fromH = drawInfoBox(ctx, y, 'From', fromLines, 20, 75);
+  const toH = drawInfoBox(ctx, y, 'Bill To', toLines, 105, 85);
   y += Math.max(fromH, toH) + 10;
 
-  y = drawSectionTitle(doc, y, 'ITEMS');
+  y = drawSectionTitle(ctx, y, 'ITEMS');
 
-  y = checkPageBreak(doc, y, 12);
-  doc.setFillColor(...BRAND.dark);
-  doc.roundedRect(MARGIN_LEFT, y, CONTENT_WIDTH, 8, 1, 1, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(...BRAND.white);
-  doc.text('Description', 25, y + 5.5);
-  doc.text('Amount', 175, y + 5.5, { align: 'right' });
+  // Table header
+  y = checkBreak(ctx, y, 12);
+  ctx.page.drawRectangle({ x: ML, y: ptY(y + 8), width: CW, height: 8 * MM, color: BRAND.dark });
+  ctx.page.drawText('Description', { x: 25 * MM, y: ptY(y + 5.5), size: 8, font: ctx.fonts.bold, color: BRAND.white });
+  const amtW = ctx.fonts.bold.widthOfTextAtSize('Amount', 8);
+  ctx.page.drawText('Amount', { x: 175 * MM - amtW, y: ptY(y + 5.5), size: 8, font: ctx.fonts.bold, color: BRAND.white });
   y += 12;
 
   if (opts.customScope) {
     for (const item of opts.customScope.split('\n').filter(Boolean)) {
-      y = checkPageBreak(doc, y, 8);
+      y = checkBreak(ctx, y, 8);
       const match = item.match(/^(.+?)[\s\-–—]+\$?([\d,]+(?:\.\d{2})?)\s*$/);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.setTextColor(...BRAND.text);
       if (match) {
-        doc.text(match[1].trim(), 25, y);
-        doc.text(`$${match[2]}`, 175, y, { align: 'right' });
+        ctx.page.drawText(match[1].trim(), { x: 25 * MM, y: ptY(y), size: 9, font: ctx.fonts.regular, color: BRAND.text });
+        const valStr = `$${match[2]}`;
+        const vw = ctx.fonts.regular.widthOfTextAtSize(valStr, 9);
+        ctx.page.drawText(valStr, { x: 175 * MM - vw, y: ptY(y), size: 9, font: ctx.fonts.regular, color: BRAND.text });
       } else {
-        doc.text(item.replace(/^[\s•\-*]+/, '').trim(), 25, y);
+        ctx.page.drawText(item.replace(/^[\s•\-*]+/, '').trim(), { x: 25 * MM, y: ptY(y), size: 9, font: ctx.fonts.regular, color: BRAND.text });
       }
       y += 6;
-      doc.setDrawColor(...BRAND.line);
-      doc.setLineWidth(0.2);
-      doc.line(MARGIN_LEFT, y - 2, MARGIN_RIGHT, y - 2);
+      ctx.page.drawLine({ start: { x: ML, y: ptY(y - 2) }, end: { x: MR, y: ptY(y - 2) }, thickness: 0.2 * MM, color: BRAND.line });
     }
   } else {
     const itemName = `${opts.project?.title || 'Web Development Services'} — ${tier?.label || 'Custom'} Package`;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(...BRAND.text);
-    const nameLines = doc.splitTextToSize(itemName, 120);
-    doc.text(nameLines, 25, y);
-    doc.text(tier ? `$${tier.price.toLocaleString()}.00` : '$—', 175, y, { align: 'right' });
+    const nameLines = wrapText(ctx.fonts.regular, itemName, 120 * MM, 9);
+    for (let i = 0; i < nameLines.length; i++) {
+      ctx.page.drawText(nameLines[i], { x: 25 * MM, y: ptY(y + i * 4), size: 9, font: ctx.fonts.regular, color: BRAND.text });
+    }
+    if (tier) {
+      const priceStr = `$${tier.price.toLocaleString()}.00`;
+      const pw2 = ctx.fonts.regular.widthOfTextAtSize(priceStr, 9);
+      ctx.page.drawText(priceStr, { x: 175 * MM - pw2, y: ptY(y), size: 9, font: ctx.fonts.regular, color: BRAND.text });
+    }
     y += nameLines.length * 4 + 3;
 
     if (tier) {
       for (const feat of tier.features) {
-        y = checkPageBreak(doc, y, 5);
-        doc.setFontSize(7.5);
-        doc.setTextColor(...BRAND.muted);
-        doc.text(`  •  ${feat}`, 28, y);
+        y = checkBreak(ctx, y, 5);
+        ctx.page.drawText(`  •  ${feat}`, { x: 28 * MM, y: ptY(y), size: 7.5, font: ctx.fonts.regular, color: BRAND.muted });
         y += 3.5;
       }
     }
     y += 3;
-    doc.setDrawColor(...BRAND.line);
-    doc.setLineWidth(0.2);
-    doc.line(MARGIN_LEFT, y, MARGIN_RIGHT, y);
+    ctx.page.drawLine({ start: { x: ML, y: ptY(y) }, end: { x: MR, y: ptY(y) }, thickness: 0.2 * MM, color: BRAND.line });
     y += 5;
   }
 
-  y = checkPageBreak(doc, y, 25);
+  // Total box
+  y = checkBreak(ctx, y, 25);
   const totalPrice = tier ? `$${tier.price.toLocaleString()}.00` : '$—';
-  doc.setFillColor(...BRAND.light);
-  doc.roundedRect(120, y, 70, 18, 2, 2, 'F');
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(...BRAND.muted);
-  doc.text('Subtotal:', 125, y + 6);
-  doc.text(totalPrice, 185, y + 6, { align: 'right' });
-  doc.setDrawColor(...BRAND.line);
-  doc.line(125, y + 9, 185, y + 9);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.setTextColor(...BRAND.dark);
-  doc.text('TOTAL DUE:', 125, y + 15);
-  doc.text(totalPrice, 185, y + 15, { align: 'right' });
+  ctx.page.drawRectangle({ x: 120 * MM, y: ptY(y + 18), width: 70 * MM, height: 18 * MM, color: BRAND.light });
+  ctx.page.drawText('Subtotal:', { x: 125 * MM, y: ptY(y + 6), size: 8, font: ctx.fonts.regular, color: BRAND.muted });
+  const sw = ctx.fonts.regular.widthOfTextAtSize(totalPrice, 8);
+  ctx.page.drawText(totalPrice, { x: 185 * MM - sw, y: ptY(y + 6), size: 8, font: ctx.fonts.regular, color: BRAND.muted });
+
+  ctx.page.drawLine({ start: { x: 125 * MM, y: ptY(y + 9) }, end: { x: 185 * MM, y: ptY(y + 9) }, thickness: 0.2 * MM, color: BRAND.line });
+
+  ctx.page.drawText('TOTAL DUE:', { x: 125 * MM, y: ptY(y + 15), size: 11, font: ctx.fonts.bold, color: BRAND.dark });
+  const tw = ctx.fonts.bold.widthOfTextAtSize(totalPrice, 11);
+  ctx.page.drawText(totalPrice, { x: 185 * MM - tw, y: ptY(y + 15), size: 11, font: ctx.fonts.bold, color: BRAND.dark });
   y += 28;
 
-  y = drawSectionTitle(doc, y, 'PAYMENT METHODS');
-  y = drawBullet(doc, y, 'PayPal: info@erictomchik.com');
-  y = drawBullet(doc, y, 'Stripe: Available at erictomchik.com');
+  y = drawSectionTitle(ctx, y, 'PAYMENT METHODS');
+  y = drawBullet(ctx, y, 'PayPal: info@erictomchik.com');
+  y = drawBullet(ctx, y, 'Stripe: Available at erictomchik.com');
   y += 2;
-  y = drawText(doc, y, 'Payment is due within 30 days of invoice date. Late payments are subject to a 1.5% monthly fee.', { size: 8, color: BRAND.muted });
+  y = drawTextBlock(ctx, y, 'Payment is due within 30 days of invoice date. Late payments are subject to a 1.5% monthly fee.', { size: 8, color: BRAND.muted });
   y += 5;
 
-  y = checkPageBreak(doc, y, 16);
-  doc.setFillColor(240, 249, 255);
-  doc.roundedRect(MARGIN_LEFT, y, CONTENT_WIDTH, 12, 2, 2, 'F');
-  doc.setFont('helvetica', 'italic');
-  doc.setFontSize(10);
-  doc.setTextColor(...BRAND.primary);
-  doc.text('Thank you for your business!', 105, y + 7.5, { align: 'center' });
+  // Thank you banner
+  y = checkBreak(ctx, y, 16);
+  ctx.page.drawRectangle({ x: ML, y: ptY(y + 12), width: CW, height: 12 * MM, color: BRAND.thankBg });
+  const tyText = 'Thank you for your business!';
+  const tyW = ctx.fonts.italic.widthOfTextAtSize(tyText, 10);
+  ctx.page.drawText(tyText, { x: (PW - tyW) / 2, y: ptY(y + 7.5), size: 10, font: ctx.fonts.italic, color: BRAND.primary });
 
-  const totalPages = doc.getNumberOfPages();
-  for (let i = 1; i <= totalPages; i++) { doc.setPage(i); drawFooter(doc, i, totalPages); }
-
-  return doc;
+  finalize(ctx);
+  return ctx.doc.save();
 }
 
 // ═══════════════════════════════════════════════════════════════
-// PROPOSAL GENERATOR
+// PROPOSAL
 // ═══════════════════════════════════════════════════════════════
-export function generateProposalPDF(opts: GeneratorOptions): jsPDF {
-  const doc = new jsPDF('p', 'mm', 'a4');
+export async function generateProposalPDF(opts: GeneratorOptions): Promise<Uint8Array> {
+  const ctx = await createCtx();
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const propNum = `PROP-${Date.now().toString(36).toUpperCase().slice(-6)}`;
   const tier = opts.serviceTier ? SERVICE_TIERS[opts.serviceTier] : null;
 
-  let y = drawHeader(doc, 'PROPOSAL', 'Project Proposal', propNum);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(...BRAND.muted);
-  doc.text(`Date: ${today}`, MARGIN_LEFT, y);
-  doc.text(`Prepared for: ${opts.client.name}${opts.client.company ? ` — ${opts.client.company}` : ''}`, 80, y);
+  let y = drawHeader(ctx, 'PROPOSAL', 'Project Proposal', propNum);
+  ctx.page.drawText(`Date: ${today}`, { x: ML, y: ptY(y), size: 8, font: ctx.fonts.regular, color: BRAND.muted });
+  const prepText = `Prepared for: ${opts.client.name}${opts.client.company ? ` — ${opts.client.company}` : ''}`;
+  ctx.page.drawText(prepText, { x: 80 * MM, y: ptY(y), size: 8, font: ctx.fonts.regular, color: BRAND.muted });
   y += 10;
 
-  y = drawSectionTitle(doc, y, 'EXECUTIVE SUMMARY');
-  y = drawText(doc, y, `Thank you for considering my web development services. This proposal outlines the scope, timeline, and pricing for ${opts.project?.title || 'your upcoming project'}. I bring modern technology, professional design, and reliable Gulf Coast service to every project.`);
+  y = drawSectionTitle(ctx, y, 'EXECUTIVE SUMMARY');
+  y = drawTextBlock(ctx, y, `Thank you for considering my web development services. This proposal outlines the scope, timeline, and pricing for ${opts.project?.title || 'your upcoming project'}. I bring modern technology, professional design, and reliable Gulf Coast service to every project.`);
   y += 3;
 
-  y = drawSectionTitle(doc, y, 'SCOPE OF WORK');
+  y = drawSectionTitle(ctx, y, 'SCOPE OF WORK');
   if (tier) {
-    y = checkPageBreak(doc, y, 8);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
-    doc.setTextColor(...BRAND.dark);
-    doc.text(`${tier.label} Package — $${tier.price.toLocaleString()}`, MARGIN_LEFT, y);
+    y = checkBreak(ctx, y, 8);
+    ctx.page.drawText(`${tier.label} Package — $${tier.price.toLocaleString()}`, { x: ML, y: ptY(y), size: 10, font: ctx.fonts.bold, color: BRAND.dark });
     y += 6;
   }
-
   if (opts.customScope) {
     for (const line of opts.customScope.split('\n').filter(Boolean)) {
-      y = drawBullet(doc, y, line.replace(/^[\s•\-*]+/, '').trim());
+      y = drawBullet(ctx, y, line.replace(/^[\s•\-*]+/, '').trim());
     }
   } else if (tier) {
-    for (const feat of tier.features) y = drawBullet(doc, y, feat);
+    for (const feat of tier.features) y = drawBullet(ctx, y, feat);
   }
-
   if (opts.project?.description) {
     y += 3;
-    y = drawText(doc, y, opts.project.description, { color: BRAND.muted, size: 8 });
+    y = drawTextBlock(ctx, y, opts.project.description, { color: BRAND.muted, size: 8 });
   }
   y += 3;
 
-  y = drawSectionTitle(doc, y, 'TECHNOLOGY STACK');
+  y = drawSectionTitle(ctx, y, 'TECHNOLOGY STACK');
   const techItems: [string, string][] = [
     ['Next.js 15 & React 19', 'Modern, high-performance framework for fast page loads'],
     ['TypeScript', 'Type-safe development for fewer bugs and better maintainability'],
@@ -503,67 +516,53 @@ export function generateProposalPDF(opts: GeneratorOptions): jsPDF {
     techItems.push(['Stripe & PayPal', 'Secure, trusted payment processing']);
   }
   for (const [name, desc] of techItems) {
-    y = checkPageBreak(doc, y, 7);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(...BRAND.text);
-    doc.text(name, 25, y);
-    const nameWidth = doc.getTextWidth(name);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(...BRAND.muted);
-    doc.text(` — ${desc}`, 25 + nameWidth, y);
+    y = checkBreak(ctx, y, 7);
+    ctx.page.drawText(name, { x: 25 * MM, y: ptY(y), size: 9, font: ctx.fonts.bold, color: BRAND.text });
+    const nameW = ctx.fonts.bold.widthOfTextAtSize(name, 9);
+    ctx.page.drawText(` — ${desc}`, { x: 25 * MM + nameW, y: ptY(y), size: 8, font: ctx.fonts.regular, color: BRAND.muted });
     y += 5.5;
   }
   y += 3;
 
-  y = drawSectionTitle(doc, y, 'TIMELINE');
+  y = drawSectionTitle(ctx, y, 'TIMELINE');
   const timeline = opts.serviceTier === 'starter'
     ? [['Discovery & Planning', 'Week 1'], ['Design & Development', 'Week 2'], ['Review & Revisions', 'Week 3'], ['Launch & Handoff', 'Week 3']]
     : opts.serviceTier === 'business_pro'
     ? [['Discovery & Planning', 'Week 1'], ['Design & Development', 'Weeks 2–4'], ['Review & Revisions', 'Week 5'], ['Launch & Handoff', 'Week 6']]
     : [['Discovery & Planning', 'Week 1'], ['Design & Development', 'Weeks 2–8'], ['Review & Revisions', 'Weeks 9–10'], ['Launch & Handoff', 'Weeks 11–12']];
 
-  if (opts.project?.start_date) y = drawKeyValue(doc, y, 'Start:', opts.project.start_date);
-  if (opts.project?.target_date) y = drawKeyValue(doc, y, 'Target:', opts.project.target_date);
+  if (opts.project?.start_date) y = drawKeyValue(ctx, y, 'Start:', opts.project.start_date);
+  if (opts.project?.target_date) y = drawKeyValue(ctx, y, 'Target:', opts.project.target_date);
   y += 2;
-
   for (const [phase, time] of timeline) {
-    y = checkPageBreak(doc, y, 10);
-    doc.setFillColor(...BRAND.light);
-    doc.roundedRect(25, y - 3.5, 160, 7, 1, 1, 'F');
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
-    doc.setTextColor(...BRAND.text);
-    doc.text(phase, 30, y);
-    doc.setTextColor(...BRAND.muted);
-    doc.text(time, 180, y, { align: 'right' });
+    y = checkBreak(ctx, y, 10);
+    ctx.page.drawRectangle({ x: 25 * MM, y: ptY(y + 3.5), width: 160 * MM, height: 7 * MM, color: BRAND.light });
+    ctx.page.drawText(phase, { x: 30 * MM, y: ptY(y), size: 8.5, font: ctx.fonts.regular, color: BRAND.text });
+    const tw2 = ctx.fonts.regular.widthOfTextAtSize(time, 8.5);
+    ctx.page.drawText(time, { x: 180 * MM - tw2, y: ptY(y), size: 8.5, font: ctx.fonts.regular, color: BRAND.muted });
     y += 8;
   }
   y += 3;
 
-  y = drawSectionTitle(doc, y, 'PRICING');
+  y = drawSectionTitle(ctx, y, 'PRICING');
   if (tier) {
-    y = checkPageBreak(doc, y, 35);
-    doc.setFillColor(...BRAND.dark);
-    doc.roundedRect(MARGIN_LEFT, y, CONTENT_WIDTH, 20, 3, 3, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(13);
-    doc.setTextColor(...BRAND.white);
-    doc.text(`$${tier.price.toLocaleString()}`, 105, y + 9, { align: 'center' });
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(180, 190, 210);
-    doc.text(`${tier.label} Package`, 105, y + 15, { align: 'center' });
+    y = checkBreak(ctx, y, 35);
+    ctx.page.drawRectangle({ x: ML, y: ptY(y + 20), width: CW, height: 20 * MM, color: BRAND.dark });
+    const pText = `$${tier.price.toLocaleString()}`;
+    const pW = ctx.fonts.bold.widthOfTextAtSize(pText, 13);
+    ctx.page.drawText(pText, { x: (PW - pW) / 2, y: ptY(y + 9), size: 13, font: ctx.fonts.bold, color: BRAND.white });
+    const pkgText = `${tier.label} Package`;
+    const pkgW = ctx.fonts.regular.widthOfTextAtSize(pkgText, 8);
+    ctx.page.drawText(pkgText, { x: (PW - pkgW) / 2, y: ptY(y + 15), size: 8, font: ctx.fonts.regular, color: BRAND.headerSub });
     y += 28;
 
     const thalf = tier.price / 2;
-    y = drawBullet(doc, y, `50% deposit upon signing — $${thalf.toLocaleString()}`);
-    y = drawBullet(doc, y, `50% upon completion — $${thalf.toLocaleString()}`);
+    y = drawBullet(ctx, y, `50% deposit upon signing — $${thalf.toLocaleString()}`);
+    y = drawBullet(ctx, y, `50% upon completion — $${thalf.toLocaleString()}`);
   }
   y += 5;
 
-  y = drawSectionTitle(doc, y, 'WHY CHOOSE ME');
+  y = drawSectionTitle(ctx, y, 'WHY CHOOSE ME');
   const reasons = [
     '9 successful websites built for local businesses',
     'Published author on AI & business technology (4 books)',
@@ -572,141 +571,115 @@ export function generateProposalPDF(opts: GeneratorOptions): jsPDF {
     'Enterprise-grade hosting on Cloudflare\'s global network',
   ];
   for (const reason of reasons) {
-    y = checkPageBreak(doc, y, 7);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(...BRAND.text);
-    doc.setFillColor(...BRAND.success);
-    doc.circle(23, y - 1.2, 1, 'F');
-    doc.text(reason, 27, y);
+    y = checkBreak(ctx, y, 7);
+    ctx.page.drawCircle({ x: 23 * MM, y: ptY(y - 1.2), size: 1 * MM, color: BRAND.success });
+    ctx.page.drawText(reason, { x: 27 * MM, y: ptY(y), size: 9, font: ctx.fonts.regular, color: BRAND.text });
     y += 5.5;
   }
   y += 5;
 
-  y = checkPageBreak(doc, y, 5);
-  doc.setFont('helvetica', 'italic');
-  doc.setFontSize(8);
-  doc.setTextColor(...BRAND.muted);
-  doc.text('This proposal is valid for 30 days from the date above.', MARGIN_LEFT, y);
+  y = checkBreak(ctx, y, 5);
+  ctx.page.drawText('This proposal is valid for 30 days from the date above.', { x: ML, y: ptY(y), size: 8, font: ctx.fonts.italic, color: BRAND.muted });
   y += 8;
 
-  y = drawSignatureBlock(doc, y, opts.requireSignature ?? false);
-
-  const totalPages = doc.getNumberOfPages();
-  for (let i = 1; i <= totalPages; i++) { doc.setPage(i); drawFooter(doc, i, totalPages); }
-
-  return doc;
+  y = drawSignatureBlock(ctx, y, opts.requireSignature ?? false);
+  finalize(ctx);
+  return ctx.doc.save();
 }
 
 // ═══════════════════════════════════════════════════════════════
-// SIGNED PDF GENERATOR — embeds signatures into a copy of the PDF
+// SIGNED PDF
 // ═══════════════════════════════════════════════════════════════
-export function generateSignedPDF(
-  originalPdfBytes: ArrayBuffer,
+export async function generateSignedPDF(
+  _originalPdfBytes: ArrayBuffer,
   signerName: string,
   signatureDataUrl: string,
   signedAt: number,
   adminSignatureDataUrl?: string,
-): jsPDF {
-  // We can't easily modify existing PDF bytes with jsPDF, so we create a
-  // new single-page "Signature Addendum" that references the original.
-  const doc = new jsPDF('p', 'mm', 'a4');
+): Promise<Uint8Array> {
+  const ctx = await createCtx();
   const signedDate = new Date(signedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const signedTime = new Date(signedAt).toLocaleTimeString('en-US');
 
   // Header
-  doc.setFillColor(...BRAND.dark);
-  doc.rect(0, 0, 210, 32, 'F');
-  doc.setTextColor(...BRAND.white);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
-  doc.text('SIGNATURE CONFIRMATION', 105, 14, { align: 'center' });
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(180, 190, 210);
-  doc.text('Eric Tomchik  ·  ArcLight Press  ·  Web Development', 105, 22, { align: 'center' });
+  ctx.page.drawRectangle({ x: 0, y: ptY(32), width: PW, height: 32 * MM, color: BRAND.dark });
+  const hText = 'SIGNATURE CONFIRMATION';
+  const hW = ctx.fonts.bold.widthOfTextAtSize(hText, 16);
+  ctx.page.drawText(hText, { x: (PW - hW) / 2, y: ptY(14), size: 16, font: ctx.fonts.bold, color: BRAND.white });
+  const subText = 'Eric Tomchik  ·  ArcLight Press  ·  Web Development';
+  const subW = ctx.fonts.regular.widthOfTextAtSize(subText, 8);
+  ctx.page.drawText(subText, { x: (PW - subW) / 2, y: ptY(22), size: 8, font: ctx.fonts.regular, color: BRAND.headerSub });
 
   let y = 45;
 
   // Signed badge
-  doc.setFillColor(220, 252, 231);
-  doc.roundedRect(60, y, 90, 14, 3, 3, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.setTextColor(...BRAND.success);
-  doc.text('✓  DOCUMENT SIGNED', 105, y + 9, { align: 'center' });
+  ctx.page.drawRectangle({ x: 60 * MM, y: ptY(y + 14), width: 90 * MM, height: 14 * MM, color: BRAND.signedBg });
+  const badgeText = 'DOCUMENT SIGNED';
+  const badgeW = ctx.fonts.bold.widthOfTextAtSize(badgeText, 12);
+  ctx.page.drawText(badgeText, { x: (PW - badgeW) / 2, y: ptY(y + 9), size: 12, font: ctx.fonts.bold, color: BRAND.success });
   y += 25;
 
-  // Details
-  y = drawSectionTitle(doc, y, 'SIGNATURE DETAILS');
-  y = drawKeyValue(doc, y, 'Signed by:', signerName);
-  y = drawKeyValue(doc, y, 'Date:', signedDate);
-  y = drawKeyValue(doc, y, 'Time:', signedTime);
+  y = drawSectionTitle(ctx, y, 'SIGNATURE DETAILS');
+  y = drawKeyValue(ctx, y, 'Signed by:', signerName);
+  y = drawKeyValue(ctx, y, 'Date:', signedDate);
+  y = drawKeyValue(ctx, y, 'Time:', signedTime);
   y += 5;
 
   // Client signature image
-  y = drawSectionTitle(doc, y, 'CLIENT SIGNATURE');
+  y = drawSectionTitle(ctx, y, 'CLIENT SIGNATURE');
   if (signatureDataUrl && signatureDataUrl.startsWith('data:image')) {
     try {
-      doc.setFillColor(...BRAND.light);
-      doc.roundedRect(MARGIN_LEFT, y, CONTENT_WIDTH, 40, 3, 3, 'F');
-      doc.addImage(signatureDataUrl, 'PNG', MARGIN_LEFT + 10, y + 2, 100, 36);
+      const base64Data = signatureDataUrl.split(',')[1];
+      const imgBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+      const sigImg = await ctx.doc.embedPng(imgBytes);
+      ctx.page.drawRectangle({ x: ML, y: ptY(y + 40), width: CW, height: 40 * MM, color: BRAND.light });
+      ctx.page.drawImage(sigImg, { x: ML + 10 * MM, y: ptY(y + 38), width: 100 * MM, height: 36 * MM });
       y += 44;
     } catch {
-      y = drawText(doc, y, `[Signature on file for ${signerName}]`, { color: BRAND.muted });
+      y = drawTextBlock(ctx, y, `[Signature on file for ${signerName}]`, { color: BRAND.muted });
     }
   }
 
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(...BRAND.muted);
-  doc.text(signerName, MARGIN_LEFT, y + 2);
-  doc.setDrawColor(...BRAND.line);
-  doc.line(MARGIN_LEFT, y, 90, y);
-  doc.text('Date: ' + signedDate, MARGIN_LEFT, y + 7);
+  ctx.page.drawLine({ start: { x: ML, y: ptY(y) }, end: { x: 90 * MM, y: ptY(y) }, thickness: 0.3 * MM, color: BRAND.line });
+  ctx.page.drawText(signerName, { x: ML, y: ptY(y + 2), size: 8, font: ctx.fonts.regular, color: BRAND.muted });
+  ctx.page.drawText(`Date: ${signedDate}`, { x: ML, y: ptY(y + 7), size: 8, font: ctx.fonts.regular, color: BRAND.muted });
   y += 15;
 
-  // Admin/Developer signature
-  y = drawSectionTitle(doc, y, 'DEVELOPER SIGNATURE');
+  // Developer signature
+  y = drawSectionTitle(ctx, y, 'DEVELOPER SIGNATURE');
   if (adminSignatureDataUrl && adminSignatureDataUrl.startsWith('data:image')) {
     try {
-      doc.setFillColor(...BRAND.light);
-      doc.roundedRect(MARGIN_LEFT, y, CONTENT_WIDTH, 40, 3, 3, 'F');
-      doc.addImage(adminSignatureDataUrl, 'PNG', MARGIN_LEFT + 10, y + 2, 100, 36);
+      const base64Data = adminSignatureDataUrl.split(',')[1];
+      const imgBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+      const sigImg = await ctx.doc.embedPng(imgBytes);
+      ctx.page.drawRectangle({ x: ML, y: ptY(y + 40), width: CW, height: 40 * MM, color: BRAND.light });
+      ctx.page.drawImage(sigImg, { x: ML + 10 * MM, y: ptY(y + 38), width: 100 * MM, height: 36 * MM });
       y += 44;
     } catch {
-      y = drawText(doc, y, '[Developer signature on file]', { color: BRAND.muted });
+      y = drawTextBlock(ctx, y, '[Developer signature on file]', { color: BRAND.muted });
     }
   } else {
-    doc.setDrawColor(...BRAND.line);
-    doc.line(MARGIN_LEFT, y + 12, 90, y + 12);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(...BRAND.muted);
-    doc.text('Eric Tomchik — Developer', MARGIN_LEFT, y + 17);
+    ctx.page.drawLine({ start: { x: ML, y: ptY(y + 12) }, end: { x: 90 * MM, y: ptY(y + 12) }, thickness: 0.3 * MM, color: BRAND.line });
+    ctx.page.drawText('Eric Tomchik — Developer', { x: ML, y: ptY(y + 17), size: 8, font: ctx.fonts.regular, color: BRAND.muted });
     y += 22;
   }
-
   y += 8;
 
   // Legal notice
-  y = checkPageBreak(doc, y, 20);
-  doc.setFillColor(254, 249, 195);
-  doc.roundedRect(MARGIN_LEFT, y, CONTENT_WIDTH, 16, 2, 2, 'F');
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(113, 63, 18);
+  y = checkBreak(ctx, y, 20);
+  ctx.page.drawRectangle({ x: ML, y: ptY(y + 16), width: CW, height: 16 * MM, color: BRAND.legalBg });
   const legalText = 'This electronic signature is legally binding under the Electronic Signatures in Global and National Commerce Act (E-SIGN Act) and the Uniform Electronic Transactions Act (UETA). Both parties consent that this digital signature carries the same legal weight as a handwritten signature.';
-  const legalLines = doc.splitTextToSize(legalText, CONTENT_WIDTH - 10);
-  doc.text(legalLines, MARGIN_LEFT + 5, y + 5);
+  const legalLines = wrapText(ctx.fonts.regular, legalText, CW - 10 * MM, 7);
+  for (let i = 0; i < legalLines.length; i++) {
+    ctx.page.drawText(legalLines[i], { x: ML + 5 * MM, y: ptY(y + 5 + i * 3), size: 7, font: ctx.fonts.regular, color: BRAND.legalText });
+  }
 
-  drawFooter(doc, 1, 1);
-
-  return doc;
+  finalize(ctx);
+  return ctx.doc.save();
 }
 
 // ─── Main entry point ────────────────────────────────────────
-export function generatePDF(type: 'contract' | 'invoice' | 'proposal', opts: GeneratorOptions): jsPDF {
+export async function generatePDF(type: 'contract' | 'invoice' | 'proposal', opts: GeneratorOptions): Promise<Uint8Array> {
   switch (type) {
     case 'contract': return generateContractPDF(opts);
     case 'invoice': return generateInvoicePDF(opts);

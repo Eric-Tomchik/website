@@ -153,14 +153,14 @@ export default function SignDocumentPage() {
       // Generate signed PDF addendum and save
       try {
         const { generateSignedPDF } = await import('../../../lib/pdfGenerator');
-        const signedPdf = generateSignedPDF(
+        const signedPdfBytes = await generateSignedPDF(
           new ArrayBuffer(0),
           signerName.trim(),
           signatureData,
           Date.now(),
           (doc as any)?.admin_signature_data,
         );
-        const pdfBlob = signedPdf.output('blob');
+        const pdfBlob = new Blob([signedPdfBytes as BlobPart], { type: 'application/pdf' });
         const uploadUrl = await generateUploadUrl();
         const uploadRes = await fetch(uploadUrl, {
           method: 'POST',
