@@ -79,6 +79,24 @@ export default defineSchema({
     .index("by_stripe_payment_intent", ["stripe_payment_intent_id"])
     .index("by_status", ["status"]),
 
+  discount_codes: defineTable({
+    code: v.string(),
+    description: v.optional(v.string()),
+    discount_type: v.union(v.literal("percentage"), v.literal("fixed")),
+    discount_value: v.number(), // percentage (0-100) or fixed amount in cents
+    min_order_cents: v.optional(v.number()),
+    max_uses: v.optional(v.number()),
+    current_uses: v.number(),
+    expires_at: v.optional(v.number()),
+    is_active: v.boolean(),
+    applicable_book_ids: v.optional(v.array(v.string())), // empty = all books
+    applicable_formats: v.optional(
+      v.union(v.literal("all"), v.literal("digital"), v.literal("physical"))
+    ),
+  })
+    .index("by_code", ["code"])
+    .index("by_active", ["is_active"]),
+
   contact_messages: defineTable({
     name: v.string(),
     email: v.string(),

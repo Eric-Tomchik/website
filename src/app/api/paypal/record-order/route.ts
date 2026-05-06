@@ -23,6 +23,7 @@ const paypalOrderSchema = z.object({
       country_code: z.string().optional(),
     })
     .optional(),
+  discount_code: z.string().optional(),
 });
 
 async function sendDownloadEmail(
@@ -145,6 +146,15 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: true, download_url: downloadUrl });
       } catch (err) {
         console.error('Failed to create download token:', err);
+      }
+    }
+
+    // Increment discount code usage if applicable
+    if (data.discount_code) {
+      try {
+        await convex.mutation(api.discountCodes.apply, { code: data.discount_code });
+      } catch (err) {
+        console.error('Failed to apply discount code:', err);
       }
     }
 

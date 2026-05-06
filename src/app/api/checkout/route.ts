@@ -13,12 +13,13 @@ const checkoutSchema = z.object({
     })
   ).min(1),
   embedded: z.boolean().optional(),
+  discount_code: z.string().optional(),
 });
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { items, embedded } = checkoutSchema.parse(body);
+    const { items, embedded, discount_code } = checkoutSchema.parse(body);
 
     const convex = getConvexClient();
     const allBooks = await convex.query(api.books.list, { activeOnly: true });
@@ -32,6 +33,38 @@ export async function POST(req: Request) {
 
     const hasPhysical = items.some((i) => i.format === 'physical');
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://erictomchik.com';
+
+    // Calculate total for discount validation
+    const orderTotal = items.reduce((sum, item) => {
+      const book = books.find((b) => b._id === item.book_id);
+      if (!book) return sum;
+      const unitAmount =
+        item.format === 'digital' && book.digital_price_cents
+          ? book.digital_price_cents
+          : book.price_cents;
+      return sum + unitAmount * item.quantity;
+    }, 0);
+
+    // Validate discount code if provided
+    let discountInfo: {
+      valid: boolean;
+      discount_type?: string;
+      discount_value?: number;
+    } | null = null;
+
+    if (discount_code) {
+      const firstItem = items[0];
+      discountInfo = await convex.query(api.discountCodes.validate, {
+        code: discount_code,
+        book_id: firstItem?.book_id,
+        format: firstItem?.format,
+        order_total_cents: orderTotal,
+      });
+
+      if (!discountInfo?.valid) {
+        return NextResponse.json({ error: 'Invalid or expired discount code' }, { status: 400 });
+      }
+    }
 
     const lineItems = items.map((item) => {
       const book = books.find((b) => b._id === item.book_id);
@@ -76,8 +109,28 @@ export async function POST(req: Request) {
             quantity: i.quantity,
           }))
         ),
+        ...(discount_code ? { discount_code } : {}),
       },
     };
+
+    // Apply discount via Stripe coupon
+    if (discountInfo?.valid && discountInfo.discount_type && discountInfo.discount_value) {
+      const stripe = getStripe();
+      const couponParams: Record<string, unknown> = {
+        duration: 'once' as const,
+        name: discount_code!.toUpperCase(),
+      };
+
+      if (discountInfo.discount_type === 'percentage') {
+        couponParams.percent_off = discountInfo.discount_value;
+      } else {
+        couponParams.amount_off = discountInfo.discount_value;
+        couponParams.currency = 'usd';
+      }
+
+      const coupon = await stripe.coupons.create(couponParams as any);
+      sessionConfig.discounts = [{ coupon: coupon.id }];
+    }
 
     if (hasPhysical) {
       sessionConfig.shipping_address_collection = {
@@ -120,6 +173,11 @@ export async function POST(req: Request) {
     }
 
     const session = await getStripe().checkout.sessions.create(sessionConfig as any);
+
+    // Increment usage count for the discount code
+    if (discount_code && discountInfo?.valid) {
+      await convex.mutation(api.discountCodes.apply, { code: discount_code });
+    }
 
     if (embedded) {
       return NextResponse.json({ clientSecret: session.client_secret });

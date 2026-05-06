@@ -6,7 +6,7 @@ import {
   EmbeddedCheckoutProvider,
   EmbeddedCheckout,
 } from '@stripe/react-stripe-js';
-import { X, BookOpen, CheckCircle, Loader2 } from 'lucide-react';
+import { X, BookOpen, CheckCircle, Loader2, Tag, Check } from 'lucide-react';
 import { useCheckout } from './CheckoutContext';
 import { PayPalButton } from './PayPalButton';
 import { formatPrice } from '@/lib/utils';
@@ -15,19 +15,95 @@ const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 );
 
+interface DiscountInfo {
+  code: string;
+  discount_type: 'percentage' | 'fixed';
+  discount_value: number;
+  description?: string;
+}
+
+function calculateDiscount(price: number, discount: DiscountInfo): number {
+  if (discount.discount_type === 'percentage') {
+    return Math.round(price * (discount.discount_value / 100));
+  }
+  return Math.min(discount.discount_value, price);
+}
+
 export function CheckoutDrawer() {
   const { state, closeCheckout } = useCheckout();
   const { isOpen, book, format } = state;
-  const effectivePrice = book
+  const basePrice = book
     ? format === 'digital' && book.digital_price_cents
       ? book.digital_price_cents
       : book.price_cents
     : 0;
+
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [completed, setCompleted] = useState(false);
 
-  // Fetch client secret when dialog opens
+  // Discount state
+  const [promoInput, setPromoInput] = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [appliedDiscount, setAppliedDiscount] = useState<DiscountInfo | null>(null);
+
+  const discountAmount = appliedDiscount ? calculateDiscount(basePrice, appliedDiscount) : 0;
+  const effectivePrice = basePrice - discountAmount;
+
+  // Reset discount when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setPromoInput('');
+      setPromoError(null);
+      setAppliedDiscount(null);
+    }
+  }, [isOpen]);
+
+  const handleApplyPromo = async () => {
+    if (!promoInput.trim()) return;
+    setPromoLoading(true);
+    setPromoError(null);
+
+    try {
+      const res = await fetch('/api/discount/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: promoInput.trim(),
+          book_id: book?._id,
+          format,
+          order_total_cents: basePrice,
+        }),
+      });
+      const data = await res.json();
+
+      if (data.valid) {
+        setAppliedDiscount({
+          code: promoInput.trim().toUpperCase(),
+          discount_type: data.discount_type,
+          discount_value: data.discount_value,
+          description: data.description,
+        });
+        setPromoError(null);
+      } else {
+        setPromoError(data.error || 'Invalid code');
+      }
+    } catch {
+      setPromoError('Failed to validate code');
+    }
+    setPromoLoading(false);
+  };
+
+  const handleRemovePromo = () => {
+    setAppliedDiscount(null);
+    setPromoInput('');
+    setPromoError(null);
+    // Reset checkout session
+    setClientSecret(null);
+  };
+
+  // Fetch client secret when dialog opens or discount changes
   useEffect(() => {
     if (!isOpen || !book) {
       setClientSecret(null);
@@ -46,6 +122,7 @@ export function CheckoutDrawer() {
           body: JSON.stringify({
             items: [{ book_id: book!._id, format, quantity: 1 }],
             embedded: true,
+            discount_code: appliedDiscount?.code || undefined,
           }),
         });
         const data = await res.json();
@@ -63,7 +140,7 @@ export function CheckoutDrawer() {
 
     createSession();
     return () => { cancelled = true; };
-  }, [isOpen, book, format]);
+  }, [isOpen, book, format, appliedDiscount]);
 
   // Lock body scroll when open
   useEffect(() => {
@@ -136,7 +213,7 @@ export function CheckoutDrawer() {
               </div>
             </div>
           ) : (
-            /* Checkout layout: book summary + payment centered */
+            /* Checkout layout */
             <div className="p-6 space-y-6">
               {/* Order summary — compact horizontal */}
               {book && (
@@ -166,12 +243,74 @@ export function CheckoutDrawer() {
 
                   {/* Price */}
                   <div className="text-right flex-shrink-0">
-                    <span className="text-xl font-bold text-brand-400">
-                      {formatPrice(effectivePrice)}
-                    </span>
+                    {appliedDiscount ? (
+                      <div>
+                        <span className="text-sm text-surface-500 line-through mr-2">
+                          {formatPrice(basePrice)}
+                        </span>
+                        <span className="text-xl font-bold text-green-400">
+                          {formatPrice(effectivePrice)}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-xl font-bold text-brand-400">
+                        {formatPrice(basePrice)}
+                      </span>
+                    )}
                   </div>
                 </div>
               )}
+
+              {/* Promo Code Input */}
+              <div>
+                {appliedDiscount ? (
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-green-500/5 border border-green-500/20">
+                    <div className="flex items-center gap-2">
+                      <Tag className="w-4 h-4 text-green-400" />
+                      <span className="text-sm font-mono font-bold text-green-400">
+                        {appliedDiscount.code}
+                      </span>
+                      <span className="text-xs text-surface-400">
+                        — {appliedDiscount.discount_type === 'percentage'
+                          ? `${appliedDiscount.discount_value}% off`
+                          : `$${(appliedDiscount.discount_value / 100).toFixed(2)} off`}
+                      </span>
+                      <Check className="w-4 h-4 text-green-400" />
+                    </div>
+                    <button
+                      onClick={handleRemovePromo}
+                      className="text-xs text-surface-400 hover:text-red-400 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={promoInput}
+                      onChange={(e) => { setPromoInput(e.target.value); setPromoError(null); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleApplyPromo(); } }}
+                      placeholder="Promo code"
+                      className="flex-1 px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500 uppercase tracking-wider font-mono"
+                    />
+                    <button
+                      onClick={handleApplyPromo}
+                      disabled={promoLoading || !promoInput.trim()}
+                      className="px-4 py-2 rounded-lg bg-surface-800 border border-surface-700 text-sm text-surface-300 hover:text-white hover:border-brand-500 transition-colors disabled:opacity-50"
+                    >
+                      {promoLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        'Apply'
+                      )}
+                    </button>
+                  </div>
+                )}
+                {promoError && (
+                  <p className="text-xs text-red-400 mt-1.5">{promoError}</p>
+                )}
+              </div>
 
               {/* Payment section */}
               {error ? (
@@ -193,6 +332,7 @@ export function CheckoutDrawer() {
                         format={format}
                         onSuccess={handleComplete}
                         onError={(msg) => setError(msg)}
+                        discountCode={appliedDiscount?.code}
                       />
                     </div>
                   )}

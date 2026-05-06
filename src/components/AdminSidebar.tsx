@@ -10,13 +10,15 @@ import {
   ShoppingCart,
   LayoutDashboard,
   MessageSquare,
+  Tag,
 } from 'lucide-react';
 
 const adminNav = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, badgeKey: null },
   { href: '/admin/books', label: 'Books', icon: BookOpen, badgeKey: null },
-  { href: '/admin/portfolio', label: 'Portfolio', icon: Briefcase, badgeKey: null },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingCart, badgeKey: 'orders' as const },
+  { href: '/admin/discounts', label: 'Discounts', icon: Tag, badgeKey: null },
+  { href: '/admin/portfolio', label: 'Portfolio', icon: Briefcase, badgeKey: null },
   { href: '/admin/messages', label: 'Messages', icon: MessageSquare, badgeKey: 'messages' as const },
 ];
 

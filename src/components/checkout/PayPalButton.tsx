@@ -11,6 +11,7 @@ interface PayPalButtonProps {
   format: 'physical' | 'digital';
   onSuccess: () => void;
   onError: (error: string) => void;
+  discountCode?: string;
 }
 
 export function PayPalButton({
@@ -20,6 +21,7 @@ export function PayPalButton({
   format,
   onSuccess,
   onError,
+  discountCode,
 }: PayPalButtonProps) {
   const [processing, setProcessing] = useState(false);
   const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
@@ -96,6 +98,7 @@ export function PayPalButton({
                 quantity: 1,
                 total_cents: amountCents,
                 shipping_address: shipping?.address,
+                discount_code: discountCode,
               }),
             });
 
