@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -18,6 +18,7 @@ import {
 
 export default function SignDocumentPage() {
   const params = useParams();
+  const router = useRouter();
   const token = params.token as string;
   const doc = useQuery(api.clientDocuments.getBySignatureToken, { token });
   const markViewed = useMutation(api.clientDocuments.markViewed);
@@ -29,6 +30,7 @@ export default function SignDocumentPage() {
   const [declined, setDeclined] = useState(false);
   const [signing, setSigning] = useState(false);
   const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
+  const [redirectCountdown, setRedirectCountdown] = useState(5);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -124,6 +126,17 @@ export default function SignDocumentPage() {
     }
   };
 
+  // Auto-redirect countdown after signing
+  useEffect(() => {
+    if (!signed && doc?.signature_status !== 'signed') return;
+    if (redirectCountdown <= 0) {
+      router.push('/portal/documents');
+      return;
+    }
+    const timer = setTimeout(() => setRedirectCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [signed, doc?.signature_status, redirectCountdown, router]);
+
   const handleDecline = async () => {
     try {
       await declineDoc({ token });
@@ -174,6 +187,15 @@ export default function SignDocumentPage() {
             <Shield className="w-3 h-3" />
             Signature securely stored
           </div>
+          <p className="mt-4 text-sm text-gray-500">
+            Redirecting to your documents in {redirectCountdown}s...
+          </p>
+          <a
+            href="/portal/documents"
+            className="inline-flex items-center gap-2 mt-3 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors"
+          >
+            Go to Documents Now
+          </a>
         </div>
       </div>
     );
