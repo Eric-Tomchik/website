@@ -69,6 +69,7 @@ export const create = mutation({
     file_url: v.optional(v.string()),
     storage_id: v.optional(v.string()),
     file_size_bytes: v.optional(v.number()),
+    file_type: v.optional(v.string()),
     mime_type: v.optional(v.string()),
     notes: v.optional(v.string()),
     uploaded_by: v.union(v.literal("admin"), v.literal("client")),

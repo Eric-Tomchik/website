@@ -254,8 +254,32 @@ export default function SignDocumentPage() {
           </div>
         </div>
 
-        {/* Document content */}
-        {doc.generated_content && (
+        {/* PDF Document viewer */}
+        {doc.file_url && (doc.file_type === 'application/pdf' || doc.file_url?.endsWith('.pdf')) && (
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="px-6 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Document</p>
+              <a
+                href={doc.file_url}
+                target="_blank"
+                download
+                className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-gray-100 text-gray-600 text-xs hover:bg-gray-200 transition-colors"
+              >
+                <Download className="w-3 h-3" />
+                Download PDF
+              </a>
+            </div>
+            <iframe
+              src={doc.file_url}
+              className="w-full bg-white"
+              style={{ height: '60vh' }}
+              title="Document PDF"
+            />
+          </div>
+        )}
+
+        {/* Text document content (legacy/fallback) */}
+        {doc.generated_content && !doc.file_url && (
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <div className="px-6 py-3 bg-gray-50 border-b border-gray-200">
               <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Document Content</p>
@@ -266,8 +290,8 @@ export default function SignDocumentPage() {
           </div>
         )}
 
-        {/* File download if attached */}
-        {doc.file_url && (
+        {/* Non-PDF file download */}
+        {doc.file_url && doc.file_type !== 'application/pdf' && !doc.file_url?.endsWith('.pdf') && (
           <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex items-center justify-between">
             <div className="flex items-center gap-3">
               <FileText className="w-5 h-5 text-gray-400" />
