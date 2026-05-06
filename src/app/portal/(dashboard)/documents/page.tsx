@@ -25,6 +25,8 @@ import {
   ChevronUp,
   ExternalLink,
   Loader2,
+  FileSignature,
+  EyeOff,
 } from 'lucide-react';
 
 const categoryIcons: Record<string, typeof FileText> = {
@@ -71,7 +73,7 @@ function formatBytes(bytes?: number) {
 }
 
 // Component for downloading Convex-stored files
-function StorageDownloadLink({ storageId, name }: { storageId: string; name: string }) {
+function StorageDownloadLink({ storageId, name, label }: { storageId: string; name: string; label?: string }) {
   const url = useQuery(api.storage.getUrl, { storageId: storageId as any });
 
   if (!url) return <span className="p-2 text-surface-600"><Loader2 className="w-4 h-4 animate-spin" /></span>;
@@ -82,11 +84,146 @@ function StorageDownloadLink({ storageId, name }: { storageId: string; name: str
       target="_blank"
       download={name}
       className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-800 text-surface-300 hover:text-white text-sm transition-colors"
-      title="Download file"
+      title={label || 'Download file'}
     >
       <Download className="w-4 h-4" />
-      Download
+      {label || 'Download'}
     </a>
+  );
+}
+
+// Component for downloading signed PDF
+function SignedPdfDownloadLink({ storageId, docName }: { storageId: string; docName: string }) {
+  const url = useQuery(api.storage.getUrl, { storageId: storageId as any });
+
+  if (!url) return <span className="p-2 text-surface-600"><Loader2 className="w-4 h-4 animate-spin" /></span>;
+
+  return (
+    <a
+      href={url}
+      target="_blank"
+      download={`${docName.replace(/\.[^.]+$/, '')} - Signed.pdf`}
+      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-600/20 text-green-400 hover:bg-green-600/30 hover:text-green-300 text-sm font-medium transition-colors"
+      title="Download signed copy with both signatures"
+    >
+      <FileSignature className="w-4 h-4" />
+      Download Signed Copy
+    </a>
+  );
+}
+
+// Inline viewer for stored files (PDF iframe or image)
+function StorageFileViewer({ storageId, fileType, name }: { storageId: string; fileType?: string; name: string }) {
+  const url = useQuery(api.storage.getUrl, { storageId: storageId as any });
+
+  if (!url) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-6 h-6 text-surface-400 animate-spin" />
+      </div>
+    );
+  }
+
+  const isPdf = fileType === 'application/pdf' || name.toLowerCase().endsWith('.pdf');
+  const isImage = fileType?.startsWith('image/') || /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(name);
+
+  if (isPdf) {
+    return (
+      <iframe
+        src={url}
+        className="w-full bg-white rounded-lg"
+        style={{ height: '70vh' }}
+        title={name}
+      />
+    );
+  }
+
+  if (isImage) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <img src={url} alt={name} className="max-w-full max-h-[60vh] rounded-lg" />
+      </div>
+    );
+  }
+
+  // Fallback — can't preview, offer download
+  return (
+    <div className="flex flex-col items-center justify-center py-12 gap-3">
+      <FileText className="w-8 h-8 text-surface-500" />
+      <p className="text-sm text-surface-400">Preview not available for this file type</p>
+      <a
+        href={url}
+        target="_blank"
+        download={name}
+        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-600 text-white text-sm hover:bg-brand-500 transition-colors"
+      >
+        <Download className="w-4 h-4" />
+        Download to View
+      </a>
+    </div>
+  );
+}
+
+// Inline viewer for URL-based files
+function UrlFileViewer({ fileUrl, fileType, name }: { fileUrl: string; fileType?: string; name: string }) {
+  const isPdf = fileType === 'application/pdf' || fileUrl.toLowerCase().endsWith('.pdf');
+  const isImage = fileType?.startsWith('image/') || /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(fileUrl);
+
+  if (isPdf) {
+    return (
+      <iframe
+        src={fileUrl}
+        className="w-full bg-white rounded-lg"
+        style={{ height: '70vh' }}
+        title={name}
+      />
+    );
+  }
+
+  if (isImage) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <img src={fileUrl} alt={name} className="max-w-full max-h-[60vh] rounded-lg" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center py-12 gap-3">
+      <FileText className="w-8 h-8 text-surface-500" />
+      <p className="text-sm text-surface-400">Preview not available for this file type</p>
+      <a
+        href={fileUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-600 text-white text-sm hover:bg-brand-500 transition-colors"
+      >
+        <ExternalLink className="w-4 h-4" />
+        Open in New Tab
+      </a>
+    </div>
+  );
+}
+
+// Inline viewer for the signed PDF copy
+function SignedPdfViewer({ storageId, docName }: { storageId: string; docName: string }) {
+  const url = useQuery(api.storage.getUrl, { storageId: storageId as any });
+
+  if (!url) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-6 h-6 text-surface-400 animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <iframe
+      src={url}
+      className="w-full bg-white rounded-lg"
+      style={{ height: '70vh' }}
+      title={`${docName} - Signed Copy`}
+    />
   );
 }
 
@@ -102,6 +239,8 @@ export default function PortalDocumentsPage() {
   ) ?? [];
   const [filter, setFilter] = useState<string>('all');
   const [expandedDoc, setExpandedDoc] = useState<string | null>(null);
+  // Track which view mode: 'content' for generated_content, 'file' for stored/url file, 'signed' for signed PDF
+  const [viewMode, setViewMode] = useState<Record<string, 'content' | 'file' | 'signed'>>({});
 
   const filtered = filter === 'all' ? documents : documents.filter((d) => d.category === filter);
 
@@ -120,6 +259,16 @@ export default function PortalDocumentsPage() {
   const needsSignature = (doc: any) =>
     doc.signature_token &&
     ['sent', 'viewed', 'pending'].includes(doc.signature_status ?? '');
+
+  const toggleView = (docId: string, mode: 'content' | 'file' | 'signed') => {
+    if (expandedDoc === docId && viewMode[docId] === mode) {
+      // Collapse
+      setExpandedDoc(null);
+    } else {
+      setExpandedDoc(docId);
+      setViewMode((prev) => ({ ...prev, [docId]: mode }));
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -175,8 +324,11 @@ export default function PortalDocumentsPage() {
               const Icon = categoryIcons[doc.category] || FileText;
               const projectName = getProjectName(doc.project_id as string | undefined);
               const isExpanded = expandedDoc === doc._id;
+              const currentMode = viewMode[doc._id] || 'content';
               const hasContent = !!(doc as any).generated_content;
               const hasFile = !!doc.storage_id || !!doc.file_url;
+              const hasSignedPdf = !!(doc as any).signed_storage_id;
+              const isSigned = (doc as any).signature_status === 'signed';
               const canView = hasContent || hasFile;
               const sigStatus = sigStatusConfig[(doc as any).signature_status ?? 'not_required'];
               const SigIcon = sigStatus?.icon;
@@ -227,7 +379,7 @@ export default function PortalDocumentsPage() {
                         <p className="text-xs text-surface-500 mt-1">{doc.notes}</p>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
                       {/* Sign button */}
                       {docNeedsSign && (doc as any).signature_token && (
                         <a
@@ -238,20 +390,61 @@ export default function PortalDocumentsPage() {
                           Review & Sign
                         </a>
                       )}
-                      {/* View/expand button for generated content */}
-                      {hasContent && (
+
+                      {/* View button — for any viewable content */}
+                      {canView && (
                         <button
-                          onClick={() => setExpandedDoc(isExpanded ? null : doc._id)}
-                          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-800 text-surface-300 hover:text-white text-sm transition-colors"
+                          onClick={() => toggleView(doc._id, hasFile ? 'file' : 'content')}
+                          className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+                            isExpanded && (currentMode === 'file' || currentMode === 'content')
+                              ? 'bg-brand-600/20 text-brand-400'
+                              : 'bg-surface-800 text-surface-300 hover:text-white'
+                          }`}
                         >
-                          <Eye className="w-4 h-4" />
-                          {isExpanded ? 'Hide' : 'View'}
-                          {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                          {isExpanded && (currentMode === 'file' || currentMode === 'content') ? (
+                            <>
+                              <EyeOff className="w-4 h-4" />
+                              Hide
+                            </>
+                          ) : (
+                            <>
+                              <Eye className="w-4 h-4" />
+                              View
+                            </>
+                          )}
                         </button>
                       )}
-                      {/* Download button for stored files */}
+
+                      {/* View Signed Copy button */}
+                      {isSigned && hasSignedPdf && (
+                        <button
+                          onClick={() => toggleView(doc._id, 'signed')}
+                          className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+                            isExpanded && currentMode === 'signed'
+                              ? 'bg-green-600/20 text-green-400'
+                              : 'bg-green-600/10 text-green-400 hover:bg-green-600/20'
+                          }`}
+                        >
+                          <FileSignature className="w-4 h-4" />
+                          {isExpanded && currentMode === 'signed' ? 'Hide Signed' : 'View Signed'}
+                        </button>
+                      )}
+
+                      {/* Download Signed Copy */}
+                      {isSigned && hasSignedPdf && (
+                        <SignedPdfDownloadLink
+                          storageId={(doc as any).signed_storage_id}
+                          docName={doc.name}
+                        />
+                      )}
+
+                      {/* Download original stored file */}
                       {doc.storage_id && (
-                        <StorageDownloadLink storageId={doc.storage_id} name={doc.name} />
+                        <StorageDownloadLink
+                          storageId={doc.storage_id}
+                          name={doc.name}
+                          label={isSigned && hasSignedPdf ? 'Original' : 'Download'}
+                        />
                       )}
                       {/* Download for URL-based files */}
                       {doc.file_url && !doc.storage_id && (
@@ -263,41 +456,124 @@ export default function PortalDocumentsPage() {
                           title="Download"
                         >
                           <Download className="w-4 h-4" />
-                          Download
+                          {isSigned && hasSignedPdf ? 'Original' : 'Download'}
                         </a>
                       )}
                     </div>
                   </div>
 
-                  {/* Expanded content view */}
-                  {isExpanded && hasContent && (
+                  {/* Expanded content area */}
+                  {isExpanded && (
                     <div className="border-t border-surface-800">
-                      <div className="px-4 py-2 bg-surface-900/50 flex items-center justify-between">
-                        <span className="text-xs font-medium text-surface-500 uppercase tracking-wider">Document Content</span>
-                        {docNeedsSign && (doc as any).signature_token && (
-                          <a
-                            href={`/sign/${(doc as any).signature_token}`}
-                            className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors"
-                          >
-                            <PenLine className="w-3 h-3" />
-                            Open signing page
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
+                      {/* Tab bar when multiple views exist */}
+                      {(hasContent && hasFile) || hasSignedPdf ? (
+                        <div className="px-4 py-2 bg-surface-900/50 flex items-center gap-1 border-b border-surface-800/50">
+                          {hasFile && (
+                            <button
+                              onClick={() => setViewMode((prev) => ({ ...prev, [doc._id]: 'file' }))}
+                              className={`text-xs px-3 py-1 rounded-md font-medium transition-colors ${
+                                currentMode === 'file'
+                                  ? 'bg-brand-600/20 text-brand-400'
+                                  : 'text-surface-400 hover:text-white'
+                              }`}
+                            >
+                              Document
+                            </button>
+                          )}
+                          {hasContent && (
+                            <button
+                              onClick={() => setViewMode((prev) => ({ ...prev, [doc._id]: 'content' }))}
+                              className={`text-xs px-3 py-1 rounded-md font-medium transition-colors ${
+                                currentMode === 'content'
+                                  ? 'bg-brand-600/20 text-brand-400'
+                                  : 'text-surface-400 hover:text-white'
+                              }`}
+                            >
+                              Text Content
+                            </button>
+                          )}
+                          {hasSignedPdf && (
+                            <button
+                              onClick={() => setViewMode((prev) => ({ ...prev, [doc._id]: 'signed' }))}
+                              className={`text-xs px-3 py-1 rounded-md font-medium transition-colors ${
+                                currentMode === 'signed'
+                                  ? 'bg-green-600/20 text-green-400'
+                                  : 'text-surface-400 hover:text-white'
+                              }`}
+                            >
+                              <span className="flex items-center gap-1">
+                                <FileSignature className="w-3 h-3" />
+                                Signed Copy
+                              </span>
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="px-4 py-2 bg-surface-900/50 flex items-center justify-between">
+                          <span className="text-xs font-medium text-surface-500 uppercase tracking-wider">
+                            {currentMode === 'signed' ? 'Signed Document' : 'Document Content'}
+                          </span>
+                          {docNeedsSign && (doc as any).signature_token && (
+                            <a
+                              href={`/sign/${(doc as any).signature_token}`}
+                              className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                            >
+                              <PenLine className="w-3 h-3" />
+                              Open signing page
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Content views */}
+                      <div className="p-4">
+                        {currentMode === 'content' && hasContent && (
+                          <pre className="text-sm text-surface-200 whitespace-pre-wrap font-mono leading-relaxed max-h-[60vh] overflow-auto bg-surface-950/50 rounded-lg p-6">
+                            {(doc as any).generated_content}
+                          </pre>
+                        )}
+
+                        {currentMode === 'file' && doc.storage_id && (
+                          <StorageFileViewer
+                            storageId={doc.storage_id}
+                            fileType={doc.file_type || doc.mime_type}
+                            name={doc.name}
+                          />
+                        )}
+
+                        {currentMode === 'file' && doc.file_url && !doc.storage_id && (
+                          <UrlFileViewer
+                            fileUrl={doc.file_url}
+                            fileType={doc.file_type || doc.mime_type}
+                            name={doc.name}
+                          />
+                        )}
+
+                        {currentMode === 'signed' && hasSignedPdf && (
+                          <SignedPdfViewer
+                            storageId={(doc as any).signed_storage_id}
+                            docName={doc.name}
+                          />
                         )}
                       </div>
-                      <pre className="p-6 text-sm text-surface-200 whitespace-pre-wrap font-mono leading-relaxed max-h-[60vh] overflow-auto bg-surface-950/50">
-                        {(doc as any).generated_content}
-                      </pre>
                     </div>
                   )}
 
                   {/* Signed info */}
-                  {(doc as any).signature_status === 'signed' && (doc as any).signed_at && (
-                    <div className="border-t border-surface-800 px-4 py-2 bg-green-500/5 flex items-center gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
-                      <span className="text-xs text-green-400">
-                        Signed by {(doc as any).signer_name || 'client'} on {new Date((doc as any).signed_at).toLocaleString()}
-                      </span>
+                  {isSigned && (doc as any).signed_at && (
+                    <div className="border-t border-surface-800 px-4 py-2 bg-green-500/5 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
+                        <span className="text-xs text-green-400">
+                          Signed by {(doc as any).signer_name || 'client'} on {new Date((doc as any).signed_at).toLocaleString()}
+                        </span>
+                      </div>
+                      {(doc as any).admin_signed_at && (
+                        <span className="text-xs text-green-400/70">
+                          Countersigned by Eric Tomchik on {new Date((doc as any).admin_signed_at).toLocaleString()}
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
