@@ -11,7 +11,7 @@ export default function AdminSignPage() {
   const params = useParams();
   const id = params.id as string;
   const docs = useQuery(api.clientDocuments.list, {});
-  const clients = useQuery(api.clients.list);
+  const clients = useQuery(api.clients.list, {});
   const adminSign = useMutation(api.clientDocuments.adminSign);
 
   const [signed, setSigned] = useState(false);
