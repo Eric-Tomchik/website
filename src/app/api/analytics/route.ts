@@ -44,8 +44,14 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // data is stored as a JSON string in Convex — parse it
+    const data =
+      typeof result.value.data === 'string'
+        ? JSON.parse(result.value.data)
+        : result.value.data;
+
     return NextResponse.json(
-      { ...result.value.data, _cachedAt: result.value.fetched_at },
+      { ...data, _cachedAt: result.value.fetched_at },
       {
         headers: {
           'Cache-Control': type === 'realtime' ? 'private, max-age=30' : 'private, max-age=60',
