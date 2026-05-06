@@ -97,6 +97,134 @@ export default defineSchema({
     .index("by_code", ["code"])
     .index("by_active", ["is_active"]),
 
+  // === Client Portal & CRM ===
+  clients: defineTable({
+    name: v.string(),
+    email: v.string(),
+    phone: v.optional(v.string()),
+    company: v.optional(v.string()),
+    password_hash: v.string(),
+    avatar_url: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    is_active: v.boolean(),
+    last_login_at: v.optional(v.number()),
+  })
+    .index("by_email", ["email"])
+    .index("by_active", ["is_active"]),
+
+  client_sessions: defineTable({
+    client_id: v.id("clients"),
+    token: v.string(),
+    expires_at: v.number(),
+  })
+    .index("by_token", ["token"])
+    .index("by_client", ["client_id"]),
+
+  projects: defineTable({
+    client_id: v.id("clients"),
+    title: v.string(),
+    description: v.optional(v.string()),
+    service_tier: v.optional(
+      v.union(v.literal("starter"), v.literal("business_pro"), v.literal("custom"))
+    ),
+    status: v.union(
+      v.literal("discovery"),
+      v.literal("proposal"),
+      v.literal("in_progress"),
+      v.literal("review"),
+      v.literal("completed"),
+      v.literal("on_hold"),
+      v.literal("cancelled")
+    ),
+    progress_percent: v.number(),
+    start_date: v.optional(v.string()),
+    target_date: v.optional(v.string()),
+    completed_date: v.optional(v.string()),
+    budget_cents: v.optional(v.number()),
+    paid_cents: v.optional(v.number()),
+    live_url: v.optional(v.string()),
+    repo_url: v.optional(v.string()),
+  })
+    .index("by_client", ["client_id"])
+    .index("by_status", ["status"]),
+
+  tickets: defineTable({
+    client_id: v.id("clients"),
+    project_id: v.optional(v.id("projects")),
+    subject: v.string(),
+    category: v.union(
+      v.literal("bug"),
+      v.literal("feature_request"),
+      v.literal("support"),
+      v.literal("billing"),
+      v.literal("general")
+    ),
+    priority: v.union(
+      v.literal("low"),
+      v.literal("medium"),
+      v.literal("high"),
+      v.literal("urgent")
+    ),
+    status: v.union(
+      v.literal("open"),
+      v.literal("in_progress"),
+      v.literal("waiting_on_client"),
+      v.literal("resolved"),
+      v.literal("closed")
+    ),
+    resolved_at: v.optional(v.number()),
+  })
+    .index("by_client", ["client_id"])
+    .index("by_project", ["project_id"])
+    .index("by_status", ["status"]),
+
+  ticket_messages: defineTable({
+    ticket_id: v.id("tickets"),
+    sender_type: v.union(v.literal("client"), v.literal("admin")),
+    sender_name: v.string(),
+    message: v.string(),
+    attachment_url: v.optional(v.string()),
+  })
+    .index("by_ticket", ["ticket_id"]),
+
+  client_documents: defineTable({
+    client_id: v.id("clients"),
+    project_id: v.optional(v.id("projects")),
+    name: v.string(),
+    category: v.union(
+      v.literal("contract"),
+      v.literal("invoice"),
+      v.literal("proposal"),
+      v.literal("deliverable"),
+      v.literal("brief"),
+      v.literal("other")
+    ),
+    file_url: v.optional(v.string()),
+    storage_id: v.optional(v.string()),
+    file_size_bytes: v.optional(v.number()),
+    mime_type: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    uploaded_by: v.union(v.literal("admin"), v.literal("client")),
+  })
+    .index("by_client", ["client_id"])
+    .index("by_project", ["project_id"])
+    .index("by_category", ["category"]),
+
+  project_milestones: defineTable({
+    project_id: v.id("projects"),
+    title: v.string(),
+    description: v.optional(v.string()),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("in_progress"),
+      v.literal("completed")
+    ),
+    due_date: v.optional(v.string()),
+    completed_date: v.optional(v.string()),
+    sort_order: v.number(),
+  })
+    .index("by_project", ["project_id"]),
+
   contact_messages: defineTable({
     name: v.string(),
     email: v.string(),
