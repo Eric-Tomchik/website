@@ -66,8 +66,8 @@ export function BookCard({ book }: { book: Book }) {
         </h3>
         <p className="text-sm text-surface-400 mb-4 line-clamp-2 flex-1">{book.description}</p>
 
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
+        <div className="flex items-baseline mb-3">
+          <div className="flex items-baseline gap-2">
             {book.book_format === 'both' && book.digital_price_cents ? (
               <>
                 <span className="text-lg font-bold text-brand-400">
@@ -84,27 +84,27 @@ export function BookCard({ book }: { book: Book }) {
               </span>
             )}
           </div>
-          <span className="text-xs text-surface-500 capitalize ml-2">
+          <span className="text-xs text-surface-500 capitalize ml-auto pl-3 text-right whitespace-nowrap">
             {book.book_format === 'both' ? 'Digital + Physical' : book.book_format}
           </span>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
           {(book.book_format === 'digital' || book.book_format === 'both') && (
             <button
               onClick={(e) => handleBuy(e, 'digital')}
-              className="btn-primary flex-1 text-sm py-2"
+              className="btn-primary flex-1 text-sm py-2 px-2"
             >
-              <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
+              <ShoppingCart className="w-3 h-3 mr-1" />
               Digital
             </button>
           )}
           {(book.book_format === 'physical' || book.book_format === 'both') && (
             <button
               onClick={(e) => handleBuy(e, 'physical')}
-              className="btn-primary flex-1 text-sm py-2"
+              className="btn-primary flex-1 text-sm py-2 px-2"
             >
-              <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
+              <ShoppingCart className="w-3 h-3 mr-1" />
               Physical
             </button>
           )}
