@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRealtimeData, getHistoricalData } from '@/lib/google-analytics';
 
-export const runtime = 'edge';
-
 /**
  * GET /api/analytics?type=realtime|historical&days=30
  *
