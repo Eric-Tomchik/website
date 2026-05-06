@@ -10,7 +10,8 @@ import { CheckCircle2, Eraser, PenLine } from 'lucide-react';
 export default function AdminSignPage() {
   const params = useParams();
   const id = params.id as string;
-  const doc = useQuery(api.clientDocuments.list, {});
+  const docs = useQuery(api.clientDocuments.list, {});
+  const clients = useQuery(api.clients.list);
   const adminSign = useMutation(api.clientDocuments.adminSign);
 
   const [signed, setSigned] = useState(false);
@@ -19,7 +20,8 @@ export default function AdminSignPage() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
 
-  const foundDoc = doc?.find((d) => d._id === id);
+  const foundDoc = docs?.find((d) => d._id === id);
+  const clientName = foundDoc?.client_id ? clients?.find((c) => c._id === foundDoc.client_id)?.name : undefined;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -115,7 +117,7 @@ export default function AdminSignPage() {
       {foundDoc && (
         <div className="bg-surface-900 rounded-xl border border-surface-800 p-4 mb-6">
           <p className="text-white font-medium">{foundDoc.name}</p>
-          <p className="text-surface-400 text-sm">Client: {foundDoc.client_name}</p>
+          {clientName && <p className="text-surface-400 text-sm">Client: {clientName}</p>}
         </div>
       )}
 
