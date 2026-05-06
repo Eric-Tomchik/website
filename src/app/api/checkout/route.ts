@@ -189,7 +189,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid request', details: err.errors }, { status: 400 });
     }
     console.error('Checkout error:', err);
-    const message = err instanceof Error ? err.message : 'Failed to create checkout session';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to create checkout session' },
+      { status: 500 }
+    );
   }
 }

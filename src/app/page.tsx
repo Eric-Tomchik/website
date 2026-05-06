@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { fetchQuery } from 'convex/nextjs';
 import { api } from '../../convex/_generated/api';
 import { BookCard } from '@/components/ui/BookCard';
@@ -53,10 +54,13 @@ export default async function HomePage() {
               <div className="relative">
                 <div className="absolute -inset-4 bg-gradient-to-r from-brand-500/20 to-brand-700/20 rounded-2xl blur-2xl" />
                 <div className="relative w-80 h-96 rounded-2xl overflow-hidden border-2 border-surface-800 shadow-2xl">
-                  <img
+                  <Image
                     src="/images/eric-profile.png"
-                    alt="Eric Tomchik"
-                    className="absolute inset-0 w-full h-full object-cover object-top"
+                    alt="Eric Tomchik — Author and Web Developer"
+                    fill
+                    sizes="320px"
+                    className="object-cover object-top"
+                    priority
                   />
                 </div>
               </div>

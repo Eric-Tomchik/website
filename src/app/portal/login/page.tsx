@@ -39,7 +39,7 @@ export default function PortalLoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block mb-6">
-            <img src="/et-monogram.png" alt="ET" className="w-12 h-12 mx-auto rounded-lg" />
+            <img src="/et-monogram.png" alt="Eric Tomchik logo" className="w-12 h-12 mx-auto rounded-lg" />
           </Link>
           <h1 className="text-2xl font-bold text-white">Client Portal</h1>
           <p className="text-surface-400 mt-2">Sign in to access your projects and support</p>

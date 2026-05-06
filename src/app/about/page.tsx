@@ -1,11 +1,14 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import { BookOpen, Code2, ArrowRight, Coffee, Globe, Facebook, Linkedin, Instagram, Twitter, ExternalLink, Mail } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'About',
   description: 'Learn about Eric Tomchik — author, web developer, and creator. Follow me on social media.',
 };
+
+export const revalidate = 3600; // ISR: revalidate every hour
 
 const socialLinks = [
   {
@@ -45,9 +48,34 @@ const socialLinks = [
   },
 ];
 
+// Person JSON-LD for About page
+const personJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Eric Tomchik',
+  url: 'https://erictomchik.com',
+  image: 'https://erictomchik.com/images/eric-profile.png',
+  jobTitle: 'Author & Web Developer',
+  worksFor: {
+    '@type': 'Organization',
+    name: 'ArcLight Press',
+  },
+  sameAs: [
+    'https://www.facebook.com/profile.php?id=61589407526718',
+    'https://www.linkedin.com/in/eric-tomchik-jr/',
+    'https://www.instagram.com/cyb3ron3/',
+    'https://www.tiktok.com/@c3rt1f13dg33k',
+    'https://x.com/EricTomchikJr',
+  ],
+};
+
 export default function AboutPage() {
   return (
     <div className="py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+      />
       <div className="section-container">
         <div className="grid lg:grid-cols-2 gap-16 items-start">
           {/* Image */}
@@ -55,10 +83,13 @@ export default function AboutPage() {
             <div className="relative w-full max-w-md">
               <div className="absolute -inset-1 bg-gradient-to-r from-brand-500 to-brand-700 rounded-2xl blur-lg opacity-30" />
               <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden border-2 border-surface-800">
-                <img
+                <Image
                   src="/images/eric-profile.png"
-                  alt="Eric Tomchik"
-                  className="absolute inset-0 w-full h-full object-cover object-top"
+                  alt="Eric Tomchik — Author and Web Developer, wearing a suit and cap"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 448px"
+                  className="object-cover object-top"
+                  priority
                 />
               </div>
             </div>
@@ -150,13 +181,14 @@ export default function AboutPage() {
                     href={social.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`card flex items-center gap-4 p-4 group transition-all duration-300 ${social.color}`}
+                    className={`card flex items-center gap-4 p-4 group transition-all duration-300 ${social.color}
+                               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400`}
                   >
                     <div className="w-10 h-10 rounded-lg bg-surface-800 flex items-center justify-center flex-shrink-0">
                       {social.icon ? (
                         <social.icon className="w-5 h-5 text-surface-300" />
                       ) : (
-                        <svg className="w-5 h-5 text-surface-300" fill="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-surface-300" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                           <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 0010.86 4.44 6.21 6.21 0 001.82-4.44V8.84a8.18 8.18 0 004.76 1.52V6.88a4.84 4.84 0 01-1-.19z" />
                         </svg>
                       )}

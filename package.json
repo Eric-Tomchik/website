@@ -29,7 +29,6 @@
     "zod": "^3.23.0"
   },
   "devDependencies": {
-    "@netlify/plugin-nextjs": "^5.0.0",
     "@opennextjs/cloudflare": "^1.19.6",
     "@types/node": "^20.14.0",
     "@types/react": "^19.0.0",

@@ -74,7 +74,7 @@ export default function AdminPortfolioPage() {
           {projects.map((p) => (
             <div key={p._id} className="card p-4 space-y-3">
               {p.thumbnail_url && (
-                <img src={p.thumbnail_url} alt="" className="w-full h-32 rounded-lg object-cover" />
+                <img src={p.thumbnail_url} alt={`${p.title || 'Portfolio'} project thumbnail`} className="w-full h-32 rounded-lg object-cover" />
               )}
               <div>
                 <h3 className="font-semibold text-white text-sm">{p.title}</h3>

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, JetBrains_Mono } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
 import { Navbar } from '@/components/layout/Navbar';
@@ -9,6 +9,13 @@ import { CheckoutProvider } from '@/components/checkout/CheckoutContext';
 import { CheckoutDrawer } from '@/components/checkout/CheckoutDrawer';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-mono',
+  weight: ['400', '500'],
+});
+
+const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-S7LEXFE3ND';
 
 export const metadata: Metadata = {
   title: {
@@ -26,11 +33,20 @@ export const metadata: Metadata = {
     title: 'Eric Tomchik — Author, Web Developer, Creator',
     description:
       'Author, web developer, and creator. Browse my books, explore my web development services, and view my portfolio.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Eric Tomchik — Author, Web Developer, Creator',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Eric Tomchik',
     description: 'Author, Web Developer, Creator',
+    images: ['/og-image.png'],
   },
   robots: { index: true, follow: true },
   icons: {
@@ -44,12 +60,26 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
 };
 
+// Organization JSON-LD for site-wide rich results
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Eric Tomchik',
+  url: 'https://erictomchik.com',
+  logo: 'https://erictomchik.com/et-monogram.png',
+  sameAs: [],
+  founder: {
+    '@type': 'Person',
+    name: 'Eric Tomchik',
+  },
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark">
       <head>
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-S7LEXFE3ND"
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
           strategy="afterInteractive"
         />
         <Script id="google-analytics" strategy="afterInteractive">
@@ -57,15 +87,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-S7LEXFE3ND');
+            gtag('config', '${GA_ID}');
           `}
         </Script>
       </head>
-      <body className={`${inter.variable} font-sans min-h-screen flex flex-col`}>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans min-h-screen flex flex-col`}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
         <ConvexClientProvider>
           <CheckoutProvider>
             <Navbar />
-            <main className="flex-1">{children}</main>
+            <main id="main-content" className="flex-1">{children}</main>
             <Footer />
             <CheckoutDrawer />
           </CheckoutProvider>

@@ -31,17 +31,30 @@ export function usePortalAuth() {
   return useContext(PortalAuthContext);
 }
 
-function getToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('portal_token');
+// Use httpOnly cookie via API route instead of localStorage
+async function getTokenFromCookie(): Promise<string | null> {
+  try {
+    const res = await fetch('/api/portal/session');
+    const data = await res.json();
+    return data.token || null;
+  } catch {
+    return null;
+  }
 }
 
-function setToken(token: string | null) {
-  if (typeof window === 'undefined') return;
-  if (token) {
-    localStorage.setItem('portal_token', token);
-  } else {
-    localStorage.removeItem('portal_token');
+async function setTokenCookie(token: string | null): Promise<void> {
+  try {
+    if (token) {
+      await fetch('/api/portal/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+    } else {
+      await fetch('/api/portal/session', { method: 'DELETE' });
+    }
+  } catch {
+    // Silently fail — cookie operations are best-effort
   }
 }
 
@@ -52,11 +65,12 @@ export function PortalAuthProvider({ children }: { children: ReactNode }) {
   const loginMutation = useMutation(api.clients.login);
   const logoutMutation = useMutation(api.clients.logout);
 
-  // Read token on mount
+  // Read token from httpOnly cookie on mount
   useEffect(() => {
-    const t = getToken();
-    setTokenState(t);
-    if (!t) setIsLoading(false);
+    getTokenFromCookie().then((t) => {
+      setTokenState(t);
+      if (!t) setIsLoading(false);
+    });
   }, []);
 
   // Validate session
@@ -70,7 +84,7 @@ export function PortalAuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
       if (validatedClient === null) {
         // Session expired
-        setToken(null);
+        setTokenCookie(null);
         setTokenState(null);
       }
     }
@@ -78,7 +92,7 @@ export function PortalAuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (email: string, password: string) => {
     const result = await loginMutation({ email, password });
-    setToken(result.token);
+    await setTokenCookie(result.token);
     setTokenState(result.token);
   }, [loginMutation]);
 
@@ -86,7 +100,7 @@ export function PortalAuthProvider({ children }: { children: ReactNode }) {
     if (token) {
       try { await logoutMutation({ token }); } catch {}
     }
-    setToken(null);
+    await setTokenCookie(null);
     setTokenState(null);
   }, [token, logoutMutation]);
 

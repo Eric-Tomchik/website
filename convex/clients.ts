@@ -1,16 +1,44 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
-// Simple hash — in production use bcrypt via an action, but for Convex mutations
-// we use a basic approach (still secure with long random salts in the hash)
-function simpleHash(password: string): string {
+// Secure password hashing using Web Crypto (SHA-256 with per-user random salt)
+async function secureHash(password: string, salt?: string): Promise<string> {
+  const useSalt = salt || crypto.randomUUID().replace(/-/g, "");
+  const data = new TextEncoder().encode(password + useSalt);
+  // Stretch: hash 1000 iterations
+  let hash = data;
+  for (let i = 0; i < 1000; i++) {
+    hash = new Uint8Array(await crypto.subtle.digest("SHA-256", hash));
+  }
+  const hashHex = Array.from(hash)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return `sha256:${useSalt}:${hashHex}`;
+}
+
+async function verifyPassword(
+  password: string,
+  storedHash: string
+): Promise<boolean> {
+  if (storedHash.startsWith("sha256:")) {
+    const parts = storedHash.split(":");
+    if (parts.length !== 3) return false;
+    const salt = parts[1];
+    const computed = await secureHash(password, salt);
+    return computed === storedHash;
+  }
+  // Legacy simpleHash format — verify then caller should re-hash
+  return storedHash === legacySimpleHash(password);
+}
+
+// Keep legacy hash for migration only — will be removed once all passwords are upgraded
+function legacySimpleHash(password: string): string {
   let hash = 0;
   const str = password + "arclight_salt_2026";
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
     hash = ((hash << 5) - hash + char) | 0;
   }
-  // Double hash for extra security
   const h1 = hash.toString(36);
   let hash2 = 0;
   const str2 = str + h1;
@@ -71,7 +99,7 @@ export const create = mutation({
     return await ctx.db.insert("clients", {
       ...rest,
       email: args.email.toLowerCase(),
-      password_hash: simpleHash(password),
+      password_hash: await secureHash(password),
       is_active: true,
     });
   },
@@ -102,7 +130,9 @@ export const update = mutation({
 export const resetPassword = mutation({
   args: { id: v.id("clients"), newPassword: v.string() },
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.id, { password_hash: simpleHash(args.newPassword) });
+    await ctx.db.patch(args.id, {
+      password_hash: await secureHash(args.newPassword),
+    });
   },
 });
 
@@ -118,15 +148,22 @@ export const login = mutation({
       throw new Error("Invalid email or password");
     }
 
-    if (client.password_hash !== simpleHash(args.password)) {
+    const valid = await verifyPassword(args.password, client.password_hash);
+    if (!valid) {
       throw new Error("Invalid email or password");
+    }
+
+    // Migrate legacy hash to secure hash on successful login
+    if (!client.password_hash.startsWith("sha256:")) {
+      await ctx.db.patch(client._id, {
+        password_hash: await secureHash(args.password),
+      });
     }
 
     // Create session token
     const token =
-      Math.random().toString(36).slice(2) +
-      Math.random().toString(36).slice(2) +
-      Date.now().toString(36);
+      crypto.randomUUID().replace(/-/g, "") +
+      crypto.randomUUID().replace(/-/g, "");
 
     await ctx.db.insert("client_sessions", {
       client_id: client._id,
