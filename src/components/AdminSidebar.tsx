@@ -15,6 +15,7 @@ import {
   Users,
   LifeBuoy,
   Share2,
+  Sparkles,
 } from 'lucide-react';
 
 const adminNav = [
@@ -23,6 +24,7 @@ const adminNav = [
   { href: '/admin/orders', label: 'Orders', icon: ShoppingCart, badgeKey: 'orders' as const },
   { href: '/admin/discounts', label: 'Discounts', icon: Tag, badgeKey: null },
   { href: '/admin/clients', label: 'Clients', icon: Users, badgeKey: null },
+  { href: '/admin/contracts', label: 'Contracts', icon: Sparkles, badgeKey: null },
   { href: '/admin/tickets', label: 'Tickets', icon: LifeBuoy, badgeKey: 'tickets' as const },
   { href: '/admin/social', label: 'Social Media', icon: Share2, badgeKey: 'scheduled' as const },
   { href: '/admin/analytics', label: 'SEO & Analytics', icon: BarChart3, badgeKey: null },

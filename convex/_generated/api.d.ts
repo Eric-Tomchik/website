@@ -23,6 +23,7 @@ import type * as seedISBN from "../seedISBN.js";
 import type * as seedPortfolio from "../seedPortfolio.js";
 import type * as socialCampaigns from "../socialCampaigns.js";
 import type * as socialPosts from "../socialPosts.js";
+import type * as storage from "../storage.js";
 import type * as tickets from "../tickets.js";
 
 import type {
@@ -47,6 +48,7 @@ declare const fullApi: ApiFromModules<{
   seedPortfolio: typeof seedPortfolio;
   socialCampaigns: typeof socialCampaigns;
   socialPosts: typeof socialPosts;
+  storage: typeof storage;
   tickets: typeof tickets;
 }>;
 

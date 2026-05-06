@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../../../convex/_generated/api';
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import {
   Users,
   Plus,
@@ -29,6 +29,12 @@ import {
   Download,
   Edit2,
   Trash2,
+  Upload,
+  Link2,
+  PenLine,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
 } from 'lucide-react';
 import { Id } from '../../../../../convex/_generated/dataModel';
 
@@ -41,6 +47,9 @@ function ClientDetail({ clientId, onBack }: { clientId: Id<'clients'>; onBack: (
   const updateProject = useMutation(api.projects.update);
   const createProject = useMutation(api.projects.create);
   const createDoc = useMutation(api.clientDocuments.create);
+  const updateDoc = useMutation(api.clientDocuments.update);
+  const removeDoc = useMutation(api.clientDocuments.remove);
+  const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
 
   const [tab, setTab] = useState<'overview' | 'projects' | 'tickets' | 'documents'>('overview');
   const [showNewProject, setShowNewProject] = useState(false);
@@ -291,59 +300,437 @@ function ClientDetail({ clientId, onBack }: { clientId: Id<'clients'>; onBack: (
       )}
 
       {tab === 'documents' && (
-        <div className="space-y-4">
-          <div className="flex justify-end">
-            <button onClick={() => setShowNewDoc(true)} className="btn-primary text-sm">
-              <Plus className="w-4 h-4 mr-2" /> Add Document
+        <DocumentsTab
+          clientId={clientId}
+          documents={documents}
+          projects={projects}
+          client={client}
+          createDoc={createDoc}
+          updateDoc={updateDoc}
+          removeDoc={removeDoc}
+          generateUploadUrl={generateUploadUrl}
+        />
+      )}
+    </div>
+  );
+}
+
+// =========== Documents Tab with File Upload + Signature ===========
+function DocumentsTab({
+  clientId,
+  documents,
+  projects,
+  client,
+  createDoc,
+  updateDoc,
+  removeDoc,
+  generateUploadUrl,
+}: {
+  clientId: Id<'clients'>;
+  documents: any[];
+  projects: any[];
+  client: any;
+  createDoc: any;
+  updateDoc: any;
+  removeDoc: any;
+  generateUploadUrl: any;
+}) {
+  const [showUpload, setShowUpload] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [docName, setDocName] = useState('');
+  const [docCategory, setDocCategory] = useState<string>('contract');
+  const [docNotes, setDocNotes] = useState('');
+  const [docProjectId, setDocProjectId] = useState('');
+  const [requireSignature, setRequireSignature] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDrag = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') setDragActive(true);
+    else if (e.type === 'dragleave') setDragActive(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files?.[0]) {
+      const file = e.dataTransfer.files[0];
+      setUploadFile(file);
+      if (!docName) setDocName(file.name.replace(/\.[^/.]+$/, ''));
+    }
+  }, [docName]);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      const file = e.target.files[0];
+      setUploadFile(file);
+      if (!docName) setDocName(file.name.replace(/\.[^/.]+$/, ''));
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!docName.trim()) return;
+    setUploading(true);
+
+    try {
+      let storageId: string | undefined;
+      let fileUrl: string | undefined;
+      let fileSize: number | undefined;
+      let mimeType: string | undefined;
+
+      if (uploadFile) {
+        // Upload file to Convex storage
+        const url = await generateUploadUrl();
+        const result = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': uploadFile.type },
+          body: uploadFile,
+        });
+        const { storageId: sid } = await result.json();
+        storageId = sid;
+        fileSize = uploadFile.size;
+        mimeType = uploadFile.type;
+      }
+
+      const signatureToken = requireSignature
+        ? crypto.randomUUID().replace(/-/g, '')
+        : undefined;
+
+      await createDoc({
+        client_id: clientId,
+        project_id: docProjectId ? (docProjectId as any) : undefined,
+        name: docName,
+        category: docCategory as any,
+        storage_id: storageId,
+        file_size_bytes: fileSize,
+        mime_type: mimeType,
+        notes: docNotes || undefined,
+        uploaded_by: 'admin' as const,
+        signature_status: requireSignature ? ('pending' as const) : ('not_required' as const),
+        signature_token: signatureToken,
+      });
+
+      // Reset form
+      setUploadFile(null);
+      setDocName('');
+      setDocCategory('contract');
+      setDocNotes('');
+      setDocProjectId('');
+      setRequireSignature(false);
+      setShowUpload(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } catch (err) {
+      console.error('Upload failed:', err);
+      alert('Upload failed. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const sendForSignature = async (doc: any) => {
+    const token = doc.signature_token || crypto.randomUUID().replace(/-/g, '');
+    await updateDoc({
+      id: doc._id,
+      signature_status: 'sent' as any,
+      signature_token: token,
+      sent_for_signature_at: Date.now(),
+    });
+    // Copy signing URL to clipboard
+    const url = `${window.location.origin}/sign/${token}`;
+    await navigator.clipboard.writeText(url);
+    alert(`Signing link copied to clipboard!\n\n${url}\n\nSend this to ${client.name} to sign.`);
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const catLabels: Record<string, string> = {
+    contract: 'Contract', invoice: 'Invoice', proposal: 'Proposal',
+    deliverable: 'Deliverable', brief: 'Brief', other: 'Other',
+  };
+
+  const sigStatusStyles: Record<string, { icon: any; class: string; label: string }> = {
+    not_required: { icon: null, class: '', label: '' },
+    pending: { icon: Clock, class: 'text-surface-400', label: 'Pending' },
+    sent: { icon: Send, class: 'text-blue-400', label: 'Sent for signature' },
+    viewed: { icon: Eye, class: 'text-yellow-400', label: 'Viewed' },
+    signed: { icon: CheckCircle2, class: 'text-green-400', label: 'Signed' },
+    declined: { icon: AlertCircle, class: 'text-red-400', label: 'Declined' },
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <div className="flex gap-2">
+          <a
+            href={`/admin/contracts?client=${clientId}`}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-600/20 border border-purple-600/30 text-purple-400 text-sm font-medium hover:bg-purple-600/30 transition-colors"
+          >
+            <PenLine className="w-4 h-4" />
+            AI Contract Generator
+          </a>
+        </div>
+        <button onClick={() => setShowUpload(true)} className="btn-primary text-sm">
+          <Upload className="w-4 h-4 mr-2" /> Upload Document
+        </button>
+      </div>
+
+      {/* Upload Form */}
+      {showUpload && (
+        <div className="card p-6 space-y-4 border-brand-500/30">
+          <div className="flex items-center justify-between">
+            <h3 className="text-white font-semibold">Upload Document</h3>
+            <button onClick={() => { setShowUpload(false); setUploadFile(null); }} className="text-surface-400 hover:text-white">
+              <X className="w-5 h-5" />
             </button>
           </div>
-          {showNewDoc && (
-            <div className="card p-5 space-y-4 border-brand-500/30">
-              <h3 className="text-white font-semibold">Add Document</h3>
-              <input value={newDoc.name} onChange={(e) => setNewDoc({ ...newDoc, name: e.target.value })} placeholder="Document name" className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500" />
-              <div className="grid grid-cols-2 gap-3">
-                <select value={newDoc.category} onChange={(e) => setNewDoc({ ...newDoc, category: e.target.value as any })} className="px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none">
-                  <option value="contract">Contract</option>
-                  <option value="invoice">Invoice</option>
-                  <option value="proposal">Proposal</option>
-                  <option value="deliverable">Deliverable</option>
-                  <option value="brief">Project Brief</option>
-                  <option value="other">Other</option>
-                </select>
-                <input value={newDoc.file_url} onChange={(e) => setNewDoc({ ...newDoc, file_url: e.target.value })} placeholder="File URL (optional)" className="px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none placeholder:text-surface-500" />
+
+          {/* Drag & Drop Zone */}
+          <div
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
+              dragActive
+                ? 'border-brand-500 bg-brand-500/10'
+                : uploadFile
+                ? 'border-green-500/50 bg-green-500/5'
+                : 'border-surface-700 hover:border-surface-600 bg-surface-900/30'
+            }`}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              onChange={handleFileSelect}
+              className="hidden"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.txt,.csv"
+            />
+            {uploadFile ? (
+              <div className="space-y-2">
+                <FileText className="w-10 h-10 mx-auto text-green-400" />
+                <p className="text-sm text-white font-medium">{uploadFile.name}</p>
+                <p className="text-xs text-surface-400">{formatFileSize(uploadFile.size)} · {uploadFile.type || 'unknown type'}</p>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setUploadFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+                  className="text-xs text-red-400 hover:text-red-300"
+                >
+                  Remove file
+                </button>
               </div>
-              <input value={newDoc.notes} onChange={(e) => setNewDoc({ ...newDoc, notes: e.target.value })} placeholder="Notes (optional)" className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none placeholder:text-surface-500" />
-              <div className="flex justify-end gap-2">
-                <button onClick={() => setShowNewDoc(false)} className="btn-secondary text-sm">Cancel</button>
-                <button onClick={handleCreateDoc} disabled={!newDoc.name.trim()} className="btn-primary text-sm disabled:opacity-50">Add</button>
+            ) : (
+              <div className="space-y-2">
+                <Upload className="w-10 h-10 mx-auto text-surface-500" />
+                <p className="text-sm text-surface-300">
+                  <span className="text-brand-400 font-medium">Click to browse</span> or drag and drop
+                </p>
+                <p className="text-xs text-surface-500">PDF, Word, Excel, images up to 10MB</p>
               </div>
+            )}
+          </div>
+
+          {/* Document details */}
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-surface-400 mb-1 block">Document Name *</label>
+              <input
+                value={docName}
+                onChange={(e) => setDocName(e.target.value)}
+                placeholder="e.g. Web Development Contract"
+                className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500"
+              />
             </div>
-          )}
-          {documents.length === 0 && !showNewDoc ? <p className="text-sm text-surface-500 py-4">No documents for this client.</p> : null}
-          {documents.map((d) => {
-            const catLabels: Record<string, string> = { contract: 'Contract', invoice: 'Invoice', proposal: 'Proposal', deliverable: 'Deliverable', brief: 'Brief', other: 'Other' };
+            <div>
+              <label className="text-xs font-medium text-surface-400 mb-1 block">Category</label>
+              <select
+                value={docCategory}
+                onChange={(e) => setDocCategory(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
+              >
+                <option value="contract">Contract</option>
+                <option value="invoice">Invoice</option>
+                <option value="proposal">Proposal</option>
+                <option value="deliverable">Deliverable</option>
+                <option value="brief">Project Brief</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-surface-400 mb-1 block">Link to Project</label>
+              <select
+                value={docProjectId}
+                onChange={(e) => setDocProjectId(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
+              >
+                <option value="">No project</option>
+                {projects.map((p: any) => (
+                  <option key={p._id} value={p._id}>{p.title}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-surface-400 mb-1 block">Notes</label>
+              <input
+                value={docNotes}
+                onChange={(e) => setDocNotes(e.target.value)}
+                placeholder="Optional notes..."
+                className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500"
+              />
+            </div>
+          </div>
+
+          {/* Signature toggle */}
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-900/50 border border-surface-800">
+            <button
+              onClick={() => setRequireSignature(!requireSignature)}
+              className={`relative w-10 h-5 rounded-full transition-colors ${requireSignature ? 'bg-brand-600' : 'bg-surface-700'}`}
+            >
+              <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${requireSignature ? 'translate-x-5' : 'translate-x-0.5'}`} />
+            </button>
+            <div>
+              <p className="text-sm text-white font-medium">Require digital signature</p>
+              <p className="text-xs text-surface-500">Generate a signing link to send to the client</p>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <button onClick={() => { setShowUpload(false); setUploadFile(null); }} className="btn-secondary text-sm">
+              Cancel
+            </button>
+            <button
+              onClick={handleUpload}
+              disabled={uploading || !docName.trim()}
+              className="btn-primary text-sm disabled:opacity-50 flex items-center gap-2"
+            >
+              {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+              {uploading ? 'Uploading...' : 'Upload Document'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Documents List */}
+      {documents.length === 0 && !showUpload ? (
+        <div className="card p-12 text-center">
+          <FileText className="w-12 h-12 text-surface-600 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-white mb-2">No documents yet</h3>
+          <p className="text-surface-400 text-sm">Upload a document or generate a contract to get started.</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {documents.map((d: any) => {
+            const sigInfo = sigStatusStyles[d.signature_status ?? 'not_required'];
+            const SigIcon = sigInfo?.icon;
+
             return (
-              <div key={d._id} className="card flex items-center gap-4 p-4">
-                <div className="w-10 h-10 rounded-lg bg-surface-800 flex items-center justify-center">
-                  {d.category === 'contract' ? <ScrollText className="w-5 h-5 text-blue-400" /> :
-                   d.category === 'invoice' ? <Receipt className="w-5 h-5 text-green-400" /> :
-                   <FileText className="w-5 h-5 text-surface-400" />}
+              <div key={d._id} className="card p-4 hover:border-surface-600 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-surface-800 flex items-center justify-center flex-shrink-0">
+                    {d.category === 'contract' ? <ScrollText className="w-5 h-5 text-blue-400" /> :
+                     d.category === 'invoice' ? <Receipt className="w-5 h-5 text-green-400" /> :
+                     d.category === 'proposal' ? <FileText className="w-5 h-5 text-purple-400" /> :
+                     <FileText className="w-5 h-5 text-surface-400" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-white font-medium">{d.name}</span>
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-surface-800 text-surface-400">
+                        {catLabels[d.category] || d.category}
+                      </span>
+                      {SigIcon && (
+                        <span className={`flex items-center gap-1 text-xs ${sigInfo.class}`}>
+                          <SigIcon className="w-3 h-3" />
+                          {sigInfo.label}
+                          {d.signed_at && ` · ${new Date(d.signed_at).toLocaleDateString()}`}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-surface-500 mt-0.5">
+                      {d.file_size_bytes && <span>{formatFileSize(d.file_size_bytes)}</span>}
+                      {d.mime_type && <span>{d.mime_type}</span>}
+                      {d.notes && <span>· {d.notes}</span>}
+                      <span>· {new Date(d._creationTime).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    {/* Send for signature button */}
+                    {d.signature_status === 'pending' && (
+                      <button
+                        onClick={() => sendForSignature(d)}
+                        className="p-2 rounded-lg text-blue-400 hover:bg-blue-500/10 transition-colors"
+                        title="Send for signature"
+                      >
+                        <Send className="w-4 h-4" />
+                      </button>
+                    )}
+                    {/* Copy signing link for sent/viewed */}
+                    {(d.signature_status === 'sent' || d.signature_status === 'viewed') && d.signature_token && (
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/sign/${d.signature_token}`);
+                          alert('Signing link copied!');
+                        }}
+                        className="p-2 rounded-lg text-surface-400 hover:text-brand-400 hover:bg-surface-800 transition-colors"
+                        title="Copy signing link"
+                      >
+                        <Link2 className="w-4 h-4" />
+                      </button>
+                    )}
+                    {/* Download (for stored files) */}
+                    {d.storage_id && (
+                      <DownloadButton storageId={d.storage_id} name={d.name} />
+                    )}
+                    {d.file_url && !d.storage_id && (
+                      <a href={d.file_url} target="_blank" className="p-2 rounded-lg text-surface-400 hover:text-brand-400 hover:bg-surface-800 transition-colors">
+                        <Download className="w-4 h-4" />
+                      </a>
+                    )}
+                    <button
+                      onClick={() => { if (confirm('Delete this document?')) removeDoc({ id: d._id }); }}
+                      className="p-2 rounded-lg text-surface-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <div className="text-sm text-white font-medium">{d.name}</div>
-                  <div className="text-xs text-surface-500">{catLabels[d.category] || d.category}{d.notes ? ` · ${d.notes}` : ''}</div>
-                </div>
-                {d.file_url && (
-                  <a href={d.file_url} target="_blank" className="p-2 rounded-lg text-surface-400 hover:text-brand-400 hover:bg-surface-800 transition-colors">
-                    <Download className="w-4 h-4" />
-                  </a>
-                )}
               </div>
             );
           })}
         </div>
       )}
     </div>
+  );
+}
+
+// Helper component to download files from Convex storage
+function DownloadButton({ storageId, name }: { storageId: string; name: string }) {
+  const fileUrl = useQuery(api.storage.getUrl, { storageId: storageId as any });
+
+  if (!fileUrl) return (
+    <span className="p-2 text-surface-600"><Loader2 className="w-4 h-4 animate-spin" /></span>
+  );
+
+  return (
+    <a
+      href={fileUrl}
+      target="_blank"
+      download={name}
+      className="p-2 rounded-lg text-surface-400 hover:text-brand-400 hover:bg-surface-800 transition-colors"
+      title="Download"
+    >
+      <Download className="w-4 h-4" />
+    </a>
   );
 }
 

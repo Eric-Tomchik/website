@@ -205,10 +205,30 @@ export default defineSchema({
     mime_type: v.optional(v.string()),
     notes: v.optional(v.string()),
     uploaded_by: v.union(v.literal("admin"), v.literal("client")),
+    // AI-generated document content (for contracts/invoices/quotes)
+    generated_content: v.optional(v.string()),
+    // Digital signature workflow
+    signature_status: v.optional(
+      v.union(
+        v.literal("not_required"),
+        v.literal("pending"),
+        v.literal("sent"),
+        v.literal("viewed"),
+        v.literal("signed"),
+        v.literal("declined")
+      )
+    ),
+    signature_token: v.optional(v.string()),
+    signature_data: v.optional(v.string()),
+    signed_at: v.optional(v.number()),
+    signer_name: v.optional(v.string()),
+    signer_ip: v.optional(v.string()),
+    sent_for_signature_at: v.optional(v.number()),
   })
     .index("by_client", ["client_id"])
     .index("by_project", ["project_id"])
-    .index("by_category", ["category"]),
+    .index("by_category", ["category"])
+    .index("by_signature_token", ["signature_token"]),
 
   project_milestones: defineTable({
     project_id: v.id("projects"),
