@@ -109,6 +109,8 @@ export const recordDownload = mutation({
       digital_pdf_storage_id: (book as any).digital_pdf_storage_id,
       digital_epub_storage_id: (book as any).digital_epub_storage_id,
       title: (book as any).title,
+      customer_email: record.customer_email,
+      order_id: record.order_id || record.token,
     };
   },
 });
