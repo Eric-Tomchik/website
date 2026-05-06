@@ -22,6 +22,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${book.title} — ArcLight Press`,
     description: book.description,
+    openGraph: {
+      title: book.title,
+      description: book.description,
+      type: 'book',
+      ...(book.cover_image_url ? { images: [book.cover_image_url] } : {}),
+      url: `https://erictomchik.com/books/${slug}`,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: book.title,
+      description: book.description,
+      ...(book.cover_image_url ? { images: [book.cover_image_url] } : {}),
+    },
   };
 }
 
@@ -47,8 +60,48 @@ export default async function BookDetailPage({ params }: Props) {
     );
   }
 
+  // Structured data for SEO (Book + Product schema)
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Book',
+    name: book.title,
+    author: { '@type': 'Person', name: 'Eric Tomchik' },
+    description: book.long_description || book.description,
+    ...(book.isbn ? { isbn: book.isbn } : {}),
+    ...(book.page_count ? { numberOfPages: book.page_count } : {}),
+    ...(book.published_date ? { datePublished: book.published_date } : {}),
+    ...(book.cover_image_url ? { image: book.cover_image_url } : {}),
+    publisher: { '@type': 'Organization', name: 'ArcLight Press' },
+    url: `https://erictomchik.com/books/${book.slug}`,
+    offers: [
+      ...(book.book_format === 'physical' || book.book_format === 'both'
+        ? [{
+            '@type': 'Offer',
+            price: (book.price_cents / 100).toFixed(2),
+            priceCurrency: 'USD',
+            availability: 'https://schema.org/InStock',
+            itemCondition: 'https://schema.org/NewCondition',
+            description: 'Hardcover Edition',
+          }]
+        : []),
+      ...(book.book_format === 'digital' || book.book_format === 'both'
+        ? [{
+            '@type': 'Offer',
+            price: ((book.digital_price_cents || book.price_cents) / 100).toFixed(2),
+            priceCurrency: 'USD',
+            availability: 'https://schema.org/InStock',
+            description: 'Digital Edition',
+          }]
+        : []),
+    ],
+  };
+
   return (
     <div className="py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="section-container">
         {/* Back link */}
         <Link

@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   MessageSquare,
   Tag,
+  BarChart3,
 } from 'lucide-react';
 
 const adminNav = [
@@ -18,6 +19,7 @@ const adminNav = [
   { href: '/admin/books', label: 'Books', icon: BookOpen, badgeKey: null },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingCart, badgeKey: 'orders' as const },
   { href: '/admin/discounts', label: 'Discounts', icon: Tag, badgeKey: null },
+  { href: '/admin/analytics', label: 'SEO & Analytics', icon: BarChart3, badgeKey: null },
   { href: '/admin/portfolio', label: 'Portfolio', icon: Briefcase, badgeKey: null },
   { href: '/admin/messages', label: 'Messages', icon: MessageSquare, badgeKey: 'messages' as const },
 ];
