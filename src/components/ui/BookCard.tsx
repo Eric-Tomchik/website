@@ -129,7 +129,7 @@ export function BookCard({ book }: { book: Book }) {
             </div>
           )}
           {(book.amazon_url || book.barnes_noble_url) && (
-            <div className="flex gap-1.5 mt-0.5">
+            <div className="flex flex-col sm:flex-row gap-1.5 mt-0.5">
               {book.amazon_url && (
                 <a
                   href={book.amazon_url}
