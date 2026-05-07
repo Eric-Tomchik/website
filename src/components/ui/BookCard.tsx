@@ -75,11 +75,11 @@ export function BookCard({ book }: { book: Book }) {
         </h3>
         <p className="text-xs sm:text-sm text-surface-400 mb-3 sm:mb-4 line-clamp-2 flex-1 hidden sm:block">{book.description}</p>
 
-        {/* Price rows — price + label left, buy button right */}
+        {/* Price rows — price left, buy button flush right, all same width */}
         <div className="flex flex-col gap-1.5">
           {showDigital && (
             <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-baseline gap-1">
+              <span className="inline-flex items-baseline gap-1 min-w-0">
                 <span className="text-sm sm:text-lg font-bold text-brand-400">
                   {formatPrice(book.digital_price_cents ?? book.price_cents)}
                 </span>
@@ -87,16 +87,16 @@ export function BookCard({ book }: { book: Book }) {
               </span>
               <button
                 onClick={(e) => handleBuy(e, 'digital')}
-                className="btn-primary text-xs py-1.5 px-2 sm:px-3 shrink-0"
+                className="btn-primary text-xs py-1.5 w-[5.5rem] sm:w-28 text-center shrink-0"
               >
-                <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1 shrink-0" />
+                <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1 inline shrink-0" />
                 Digital
               </button>
             </div>
           )}
           {showPaperback && book.paperback_price_cents ? (
             <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-baseline gap-1">
+              <span className="inline-flex items-baseline gap-1 min-w-0">
                 <span className="text-sm sm:text-lg font-bold text-brand-400">
                   {formatPrice(book.paperback_price_cents)}
                 </span>
@@ -104,16 +104,16 @@ export function BookCard({ book }: { book: Book }) {
               </span>
               <button
                 onClick={(e) => handleBuy(e, 'paperback')}
-                className="btn-primary text-xs py-1.5 px-2 sm:px-3 shrink-0"
+                className="btn-primary text-xs py-1.5 w-[5.5rem] sm:w-28 text-center shrink-0"
               >
-                <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1 shrink-0" />
+                <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1 inline shrink-0" />
                 Paperback
               </button>
             </div>
           ) : null}
           {showHardback && (
             <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-baseline gap-1">
+              <span className="inline-flex items-baseline gap-1 min-w-0">
                 <span className="text-sm sm:text-lg font-bold text-brand-400">
                   {formatPrice(book.price_cents)}
                 </span>
@@ -121,9 +121,9 @@ export function BookCard({ book }: { book: Book }) {
               </span>
               <button
                 onClick={(e) => handleBuy(e, 'hardback')}
-                className="btn-primary text-xs py-1.5 px-2 sm:px-3 shrink-0"
+                className="btn-primary text-xs py-1.5 w-[5.5rem] sm:w-28 text-center shrink-0"
               >
-                <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1 shrink-0" />
+                <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1 inline shrink-0" />
                 Hardback
               </button>
             </div>
@@ -131,7 +131,7 @@ export function BookCard({ book }: { book: Book }) {
           {/* Fallback: digital-only without digital_price_cents */}
           {showDigital && !showHardback && !showPaperback && !book.digital_price_cents && (
             <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-baseline gap-1">
+              <span className="inline-flex items-baseline gap-1 min-w-0">
                 <span className="text-sm sm:text-lg font-bold text-brand-400">
                   {formatPrice(book.price_cents)}
                 </span>
@@ -144,7 +144,7 @@ export function BookCard({ book }: { book: Book }) {
               href={book.amazon_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-secondary text-xs py-1.5 px-2 sm:px-3 flex items-center justify-center w-full mt-0.5"
+              className="btn-secondary text-xs py-1.5 flex items-center justify-center w-full mt-0.5"
               onClick={(e) => e.stopPropagation()}
             >
               <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 shrink-0" />
