@@ -20,19 +20,6 @@ function formatCurrency(cents: number) {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
-function getDateKey(timestamp: number, period: 'day' | 'week' | 'month') {
-  const d = new Date(timestamp);
-  if (period === 'day') {
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  }
-  if (period === 'week') {
-    const weekStart = new Date(d);
-    weekStart.setDate(d.getDate() - d.getDay());
-    return weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  }
-  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-}
-
 function getDaysAgo(days: number) {
   return Date.now() - days * 24 * 60 * 60 * 1000;
 }
@@ -48,12 +35,10 @@ export default function AdminDashboard() {
     const validOrders = orders.filter((o) => o.status !== 'refunded');
     const totalRevenue = validOrders.reduce((sum, o) => sum + o.total_cents, 0);
 
-    // Time-based filtering
     const last30Days = validOrders.filter((o) => o._creationTime > getDaysAgo(30));
     const prev30Days = validOrders.filter(
       (o) => o._creationTime > getDaysAgo(60) && o._creationTime <= getDaysAgo(30)
     );
-    const last7Days = validOrders.filter((o) => o._creationTime > getDaysAgo(7));
 
     const revenue30 = last30Days.reduce((s, o) => s + o.total_cents, 0);
     const revenuePrev30 = prev30Days.reduce((s, o) => s + o.total_cents, 0);
@@ -97,7 +82,7 @@ export default function AdminDashboard() {
         bookRevenue[key].count += item.quantity;
         if (item.format === 'digital') bookRevenue[key].digital += item.quantity;
         else if (item.format === 'paperback') bookRevenue[key].paperback += item.quantity;
-        else bookRevenue[key].hardback += item.quantity; // 'physical' and 'hardback' both count as hardback
+        else bookRevenue[key].hardback += item.quantity;
       }
     }
     const topBooks = Object.values(bookRevenue).sort((a, b) => b.revenue - a.revenue);
@@ -116,10 +101,7 @@ export default function AdminDashboard() {
       0
     );
 
-    // Unique customers
     const uniqueCustomers = new Set(validOrders.map((o) => o.customer_email)).size;
-
-    // Average order value
     const avgOrderValue = validOrders.length > 0 ? totalRevenue / validOrders.length : 0;
 
     return {
@@ -128,7 +110,6 @@ export default function AdminDashboard() {
       revenueChange,
       orders30,
       ordersChange,
-      last7Days,
       revenueByDay,
       topBooks,
       totalDigital,
@@ -145,111 +126,135 @@ export default function AdminDashboard() {
     : 1;
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-        <p className="text-surface-400 mt-1">Welcome back, Eric.</p>
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-baseline justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+          <p className="text-surface-400 text-sm">Welcome back, Eric.</p>
+        </div>
       </div>
 
-      {/* Main Stats */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-medium text-surface-400">Revenue (30d)</span>
-            <DollarSign className="w-5 h-5 text-yellow-400" />
+      {/* Top Stats Row — 7 metrics in one row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+        <div className="card p-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] font-medium text-surface-400">Revenue (30d)</span>
+            <DollarSign className="w-3.5 h-3.5 text-yellow-400" />
           </div>
-          <div className="text-3xl font-bold text-white">
+          <div className="text-xl font-bold text-white">
             {analytics ? formatCurrency(analytics.revenue30) : '—'}
           </div>
           {analytics && analytics.revenueChange !== 0 && (
-            <div className={`flex items-center gap-1 mt-2 text-xs font-medium ${
+            <div className={`flex items-center gap-0.5 mt-0.5 text-[10px] font-medium ${
               analytics.revenueChange >= 0 ? 'text-green-400' : 'text-red-400'
             }`}>
               {analytics.revenueChange >= 0 ? (
-                <ArrowUpRight className="w-3 h-3" />
+                <ArrowUpRight className="w-2.5 h-2.5" />
               ) : (
-                <ArrowDownRight className="w-3 h-3" />
+                <ArrowDownRight className="w-2.5 h-2.5" />
               )}
-              {Math.abs(analytics.revenueChange).toFixed(0)}% vs prev 30d
+              {Math.abs(analytics.revenueChange).toFixed(0)}%
             </div>
           )}
         </div>
 
-        <div className="card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-medium text-surface-400">Orders (30d)</span>
-            <ShoppingCart className="w-5 h-5 text-green-400" />
+        <div className="card p-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] font-medium text-surface-400">Orders (30d)</span>
+            <ShoppingCart className="w-3.5 h-3.5 text-green-400" />
           </div>
-          <div className="text-3xl font-bold text-white">
+          <div className="text-xl font-bold text-white">
             {analytics ? analytics.orders30 : '—'}
           </div>
           {analytics && analytics.ordersChange !== 0 && (
-            <div className={`flex items-center gap-1 mt-2 text-xs font-medium ${
+            <div className={`flex items-center gap-0.5 mt-0.5 text-[10px] font-medium ${
               analytics.ordersChange >= 0 ? 'text-green-400' : 'text-red-400'
             }`}>
               {analytics.ordersChange >= 0 ? (
-                <ArrowUpRight className="w-3 h-3" />
+                <ArrowUpRight className="w-2.5 h-2.5" />
               ) : (
-                <ArrowDownRight className="w-3 h-3" />
+                <ArrowDownRight className="w-2.5 h-2.5" />
               )}
-              {Math.abs(analytics.ordersChange).toFixed(0)}% vs prev 30d
+              {Math.abs(analytics.ordersChange).toFixed(0)}%
             </div>
           )}
         </div>
 
-        <div className="card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-medium text-surface-400">Avg Order Value</span>
-            <TrendingUp className="w-5 h-5 text-brand-400" />
+        <div className="card p-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] font-medium text-surface-400">Avg Order</span>
+            <TrendingUp className="w-3.5 h-3.5 text-brand-400" />
           </div>
-          <div className="text-3xl font-bold text-white">
+          <div className="text-xl font-bold text-white">
             {analytics ? formatCurrency(analytics.avgOrderValue) : '—'}
-          </div>
-          <div className="text-xs text-surface-500 mt-2">
-            {analytics?.uniqueCustomers || 0} unique customers
           </div>
         </div>
 
-        <div className="card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-medium text-surface-400">Total Revenue</span>
-            <DollarSign className="w-5 h-5 text-yellow-400" />
+        <div className="card p-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] font-medium text-surface-400">Total Revenue</span>
+            <DollarSign className="w-3.5 h-3.5 text-yellow-400" />
           </div>
-          <div className="text-3xl font-bold text-white">
+          <div className="text-xl font-bold text-white">
             {analytics ? formatCurrency(analytics.totalRevenue) : '—'}
           </div>
-          <div className="text-xs text-surface-500 mt-2">
-            {orders?.length || 0} total orders
+          <div className="text-[10px] text-surface-500 mt-0.5">
+            {orders?.length || 0} orders
           </div>
+        </div>
+
+        <div className="card p-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] font-medium text-surface-400">Books</span>
+            <BookOpen className="w-3.5 h-3.5 text-blue-400" />
+          </div>
+          <div className="text-xl font-bold text-white">{books?.length ?? '—'}</div>
+        </div>
+
+        <div className="card p-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] font-medium text-surface-400">Customers</span>
+            <Users className="w-3.5 h-3.5 text-purple-400" />
+          </div>
+          <div className="text-xl font-bold text-white">{analytics?.uniqueCustomers ?? '—'}</div>
+        </div>
+
+        <div className="card p-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] font-medium text-surface-400">Messages</span>
+            <MessageSquare className="w-3.5 h-3.5 text-purple-400" />
+          </div>
+          <div className="text-xl font-bold text-white">{unreadMessages ?? '—'}</div>
+          <div className="text-[10px] text-surface-500 mt-0.5">unread</div>
         </div>
       </div>
 
       {/* Revenue Chart + Format Breakdown */}
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid lg:grid-cols-3 gap-4">
         {/* Revenue Chart */}
-        <div className="lg:col-span-2 card p-6">
-          <h2 className="text-lg font-semibold text-white mb-1">Revenue (Last 14 Days)</h2>
-          <p className="text-xs text-surface-500 mb-6">Daily revenue trend</p>
+        <div className="lg:col-span-2 card p-4">
+          <div className="flex items-baseline justify-between mb-3">
+            <h2 className="text-sm font-semibold text-white">Revenue (Last 14 Days)</h2>
+            <span className="text-[10px] text-surface-500">Daily trend</span>
+          </div>
           {analytics && (
-            <div className="flex items-end gap-1 h-48">
+            <div className="flex items-end gap-1 h-28">
               {analytics.revenueByDay.map((day, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1 group relative">
-                  {/* Tooltip */}
-                  <div className="absolute bottom-full mb-2 hidden group-hover:block z-10">
-                    <div className="bg-surface-800 border border-surface-700 rounded-lg px-3 py-2 text-xs whitespace-nowrap shadow-lg">
+                <div key={i} className="flex-1 flex flex-col items-center gap-0.5 group relative">
+                  <div className="absolute bottom-full mb-1 hidden group-hover:block z-10">
+                    <div className="bg-surface-800 border border-surface-700 rounded px-2 py-1 text-[10px] whitespace-nowrap shadow-lg">
                       <div className="text-white font-medium">{formatCurrency(day.value)}</div>
                       <div className="text-surface-400">{day.label}</div>
                     </div>
                   </div>
-                  {/* Bar */}
                   <div
                     className="w-full rounded-t bg-brand-500/80 hover:bg-brand-400 transition-colors min-h-[2px]"
                     style={{
                       height: `${Math.max((day.value / maxBarValue) * 100, 1)}%`,
                     }}
                   />
-                  {/* Label - show every other on small screens */}
-                  <span className={`text-[9px] text-surface-500 ${i % 2 !== 0 ? 'hidden sm:block' : ''}`}>
+                  <span className={`text-[8px] text-surface-500 ${i % 2 !== 0 ? 'hidden sm:block' : ''}`}>
                     {day.label.split(' ')[1]}
                   </span>
                 </div>
@@ -257,42 +262,40 @@ export default function AdminDashboard() {
             </div>
           )}
           {!analytics && (
-            <div className="h-48 flex items-center justify-center text-surface-500">
+            <div className="h-28 flex items-center justify-center text-surface-500 text-sm">
               Loading...
             </div>
           )}
         </div>
 
         {/* Format Breakdown */}
-        <div className="card p-6">
-          <h2 className="text-lg font-semibold text-white mb-1">Sales by Format</h2>
-          <p className="text-xs text-surface-500 mb-6">Digital · Paperback · Hardback</p>
+        <div className="card p-4">
+          <h2 className="text-sm font-semibold text-white mb-3">Sales by Format</h2>
           {analytics && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-center gap-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-around">
                 <div className="text-center">
-                  <Download className="w-8 h-8 text-brand-400 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-white">{analytics.totalDigital}</div>
-                  <div className="text-xs text-surface-400">Digital</div>
+                  <Download className="w-6 h-6 text-brand-400 mx-auto mb-1" />
+                  <div className="text-xl font-bold text-white">{analytics.totalDigital}</div>
+                  <div className="text-[10px] text-surface-400">Digital</div>
                 </div>
                 <div className="text-center">
-                  <Package className="w-8 h-8 text-green-400 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-white">{analytics.totalPaperback}</div>
-                  <div className="text-xs text-surface-400">Paperback</div>
+                  <Package className="w-6 h-6 text-green-400 mx-auto mb-1" />
+                  <div className="text-xl font-bold text-white">{analytics.totalPaperback}</div>
+                  <div className="text-[10px] text-surface-400">Paperback</div>
                 </div>
                 <div className="text-center">
-                  <Package className="w-8 h-8 text-blue-400 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-white">{analytics.totalHardback}</div>
-                  <div className="text-xs text-surface-400">Hardback</div>
+                  <Package className="w-6 h-6 text-blue-400 mx-auto mb-1" />
+                  <div className="text-xl font-bold text-white">{analytics.totalHardback}</div>
+                  <div className="text-[10px] text-surface-400">Hardback</div>
                 </div>
               </div>
-              {/* Progress bar */}
               {(() => {
                 const total = analytics.totalDigital + analytics.totalPaperback + analytics.totalHardback;
                 if (total === 0) return null;
                 return (
                   <div>
-                    <div className="w-full h-3 rounded-full bg-surface-800 overflow-hidden flex">
+                    <div className="w-full h-2.5 rounded-full bg-surface-800 overflow-hidden flex">
                       <div
                         className="h-full bg-brand-500 transition-all"
                         style={{ width: `${(analytics.totalDigital / total) * 100}%` }}
@@ -306,7 +309,7 @@ export default function AdminDashboard() {
                         style={{ width: `${(analytics.totalHardback / total) * 100}%` }}
                       />
                     </div>
-                    <div className="flex justify-between text-[10px] text-surface-500 mt-1">
+                    <div className="flex justify-between text-[9px] text-surface-500 mt-0.5">
                       <span>{((analytics.totalDigital / total) * 100).toFixed(0)}% Digital</span>
                       <span>{((analytics.totalPaperback / total) * 100).toFixed(0)}% PB</span>
                       <span>{((analytics.totalHardback / total) * 100).toFixed(0)}% HB</span>
@@ -320,73 +323,74 @@ export default function AdminDashboard() {
       </div>
 
       {/* Top Books + Recent Orders */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-2 gap-4">
         {/* Top Books */}
-        <div className="card p-6">
-          <h2 className="text-lg font-semibold text-white mb-1">Top Books</h2>
-          <p className="text-xs text-surface-500 mb-4">By revenue (all time)</p>
+        <div className="card p-4">
+          <div className="flex items-baseline justify-between mb-3">
+            <h2 className="text-sm font-semibold text-white">Top Books</h2>
+            <span className="text-[10px] text-surface-500">by revenue, all time</span>
+          </div>
           {analytics && analytics.topBooks.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {analytics.topBooks.map((book, i) => {
                 const maxRev = analytics.topBooks[0]?.revenue || 1;
                 return (
-                  <div key={i} className="space-y-1.5">
+                  <div key={i} className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-white font-medium truncate mr-3">{book.title}</span>
-                      <span className="text-sm font-semibold text-brand-400 whitespace-nowrap">
+                      <span className="text-xs text-white font-medium truncate mr-2">{book.title}</span>
+                      <span className="text-xs font-semibold text-brand-400 whitespace-nowrap">
                         {formatCurrency(book.revenue)}
                       </span>
                     </div>
-                    <div className="w-full h-2 bg-surface-800 rounded-full overflow-hidden">
+                    <div className="w-full h-1.5 bg-surface-800 rounded-full overflow-hidden">
                       <div
                         className="h-full bg-gradient-to-r from-brand-600 to-brand-400 rounded-full transition-all"
                         style={{ width: `${(book.revenue / maxRev) * 100}%` }}
                       />
                     </div>
-                    <div className="flex gap-3 text-[10px] text-surface-500">
+                    <div className="flex gap-2 text-[9px] text-surface-500">
                       <span>{book.count} sold</span>
                       <span>{book.digital} digital</span>
-                      <span>{book.paperback} paperback</span>
-                      <span>{book.hardback} hardback</span>
+                      <span>{book.paperback} pb</span>
+                      <span>{book.hardback} hb</span>
                     </div>
                   </div>
                 );
               })}
             </div>
           ) : (
-            <div className="text-center py-8 text-surface-400">
-              <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Sales data will appear here.</p>
+            <div className="text-center py-6 text-surface-400">
+              <BookOpen className="w-6 h-6 mx-auto mb-1.5 opacity-50" />
+              <p className="text-xs">Sales data will appear here.</p>
             </div>
           )}
         </div>
 
         {/* Recent Orders */}
-        <div className="card p-6">
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="text-lg font-semibold text-white">Recent Orders</h2>
-            <a href="/admin/orders" className="text-xs text-brand-400 hover:text-brand-300">
+        <div className="card p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-white">Recent Orders</h2>
+            <a href="/admin/orders" className="text-[10px] text-brand-400 hover:text-brand-300">
               View all →
             </a>
           </div>
-          <p className="text-xs text-surface-500 mb-4">Latest 5 orders</p>
           {recentOrders.length === 0 ? (
-            <div className="text-center py-8 text-surface-400">
-              <ShoppingCart className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Orders will appear here once your store is live.</p>
+            <div className="text-center py-6 text-surface-400">
+              <ShoppingCart className="w-6 h-6 mx-auto mb-1.5 opacity-50" />
+              <p className="text-xs">Orders will appear here once your store is live.</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-0">
               {recentOrders.map((order) => (
                 <div
                   key={order._id}
-                  className="flex items-center justify-between py-3 border-b border-surface-800 last:border-0"
+                  className="flex items-center justify-between py-2 border-b border-surface-800 last:border-0"
                 >
                   <div>
-                    <div className="text-sm font-medium text-white">
+                    <div className="text-xs font-medium text-white">
                       {order.customer_name || order.customer_email}
                     </div>
-                    <div className="text-xs text-surface-400">
+                    <div className="text-[10px] text-surface-400">
                       {new Date(order._creationTime).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
@@ -397,12 +401,12 @@ export default function AdminDashboard() {
                       {order.items.length} item{order.items.length !== 1 ? 's' : ''}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-semibold text-white">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-white">
                       {formatCurrency(order.total_cents)}
                     </span>
                     <span
-                      className={`inline-flex px-2 py-0.5 rounded text-xs font-medium capitalize ${
+                      className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium capitalize ${
                         order.status === 'paid'
                           ? 'bg-green-500/10 text-green-400'
                           : order.status === 'shipped'
@@ -419,37 +423,6 @@ export default function AdminDashboard() {
               ))}
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Quick Stats Row */}
-      <div className="grid sm:grid-cols-3 gap-4">
-        <div className="card p-5 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-            <BookOpen className="w-5 h-5 text-blue-400" />
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-white">{books?.length ?? '—'}</div>
-            <div className="text-xs text-surface-400">Active Books</div>
-          </div>
-        </div>
-        <div className="card p-5 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-            <Users className="w-5 h-5 text-purple-400" />
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-white">{analytics?.uniqueCustomers ?? '—'}</div>
-            <div className="text-xs text-surface-400">Unique Customers</div>
-          </div>
-        </div>
-        <div className="card p-5 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-            <MessageSquare className="w-5 h-5 text-purple-400" />
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-white">{unreadMessages ?? '—'}</div>
-            <div className="text-xs text-surface-400">Unread Messages</div>
-          </div>
         </div>
       </div>
     </div>
