@@ -15,6 +15,7 @@ interface Book {
   book_format: string;
   cover_image_url?: string;
   amazon_url?: string;
+  barnes_noble_url?: string;
 }
 
 export function BookDetailActions({ book }: { book: Book }) {
@@ -74,6 +75,17 @@ export function BookDetailActions({ book }: { book: Book }) {
           >
             <ExternalLink className="w-4 h-4 mr-2" />
             View on Amazon
+          </a>
+        )}
+        {book.barnes_noble_url && (
+          <a
+            href={book.barnes_noble_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-secondary text-base py-3 px-8"
+          >
+            <ExternalLink className="w-4 h-4 mr-2" />
+            View on B&N
           </a>
         )}
       </div>

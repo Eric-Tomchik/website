@@ -17,6 +17,7 @@ interface Book {
   book_format: string;
   cover_image_url?: string;
   amazon_url?: string;
+  barnes_noble_url?: string;
   is_featured: boolean;
 }
 
@@ -139,17 +140,33 @@ export function BookCard({ book }: { book: Book }) {
               </span>
             </div>
           )}
-          {book.amazon_url && (
-            <a
-              href={book.amazon_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-secondary text-xs py-1.5 flex items-center justify-center w-full mt-0.5"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 shrink-0" />
-              Amazon
-            </a>
+          {(book.amazon_url || book.barnes_noble_url) && (
+            <div className="flex gap-1.5 mt-0.5">
+              {book.amazon_url && (
+                <a
+                  href={book.amazon_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-secondary text-xs py-1.5 flex items-center justify-center flex-1"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 shrink-0" />
+                  Amazon
+                </a>
+              )}
+              {book.barnes_noble_url && (
+                <a
+                  href={book.barnes_noble_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-secondary text-xs py-1.5 flex items-center justify-center flex-1"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 shrink-0" />
+                  B&N
+                </a>
+              )}
+            </div>
           )}
         </div>
       </div>

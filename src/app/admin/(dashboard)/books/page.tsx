@@ -28,6 +28,7 @@ type Book = {
   book_format: BookFormat;
   cover_image_url?: string;
   amazon_url?: string;
+  barnes_noble_url?: string;
   digital_file_url?: string;
   digital_pdf_storage_id?: string;
   digital_epub_storage_id?: string;
@@ -222,6 +223,7 @@ function BookForm({
     digital_price_cents: book?.digital_price_cents || 0,
     cover_image_url: book?.cover_image_url || '',
     amazon_url: book?.amazon_url || '',
+    barnes_noble_url: book?.barnes_noble_url || '',
     digital_pdf_storage_id: book?.digital_pdf_storage_id || '',
     digital_epub_storage_id: book?.digital_epub_storage_id || '',
     is_featured: book?.is_featured || false,
@@ -279,6 +281,7 @@ function BookForm({
         book_format,
         cover_image_url: form.cover_image_url || undefined,
         amazon_url: form.amazon_url || undefined,
+        barnes_noble_url: form.barnes_noble_url || undefined,
         digital_pdf_storage_id: form.digital_pdf_storage_id || undefined,
         digital_epub_storage_id: form.digital_epub_storage_id || undefined,
         is_featured: form.is_featured,
@@ -499,14 +502,26 @@ function BookForm({
         </div>
       )}
 
-      {/* Amazon URL */}
-      <div>
-        <label className="block text-sm text-surface-300 mb-1">Amazon URL</label>
-        <input
-          value={form.amazon_url}
-          onChange={(e) => setForm({ ...form, amazon_url: e.target.value })}
-          className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
-        />
+      {/* Retailer URLs */}
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm text-surface-300 mb-1">Amazon URL</label>
+          <input
+            value={form.amazon_url}
+            onChange={(e) => setForm({ ...form, amazon_url: e.target.value })}
+            placeholder="https://amazon.com/dp/..."
+            className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm text-surface-300 mb-1">Barnes & Noble URL</label>
+          <input
+            value={form.barnes_noble_url}
+            onChange={(e) => setForm({ ...form, barnes_noble_url: e.target.value })}
+            placeholder="https://barnesandnoble.com/w/..."
+            className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
+          />
+        </div>
       </div>
 
       {/* Flags */}
