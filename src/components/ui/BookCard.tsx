@@ -125,47 +125,44 @@ export function BookCard({ book }: { book: Book }) {
         </div>
 
         {/* Buy buttons */}
-        <div className="flex flex-col sm:flex-row gap-1.5">
-          <div className="flex gap-1 sm:gap-1.5 flex-1">
-            {showDigital && (
-              <button
-                onClick={(e) => handleBuy(e, 'digital')}
-                className="btn-primary flex-1 text-xs sm:text-sm py-1.5 sm:py-2 px-1.5 sm:px-2"
-              >
-                <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" />
-                Digital
-              </button>
-            )}
-            {showPaperback && (
-              <button
-                onClick={(e) => handleBuy(e, 'paperback')}
-                className="btn-primary flex-1 text-xs sm:text-sm py-1.5 sm:py-2 px-1.5 sm:px-2"
-              >
-                <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" />
-                Paperback
-              </button>
-            )}
-            {showHardback && (
-              <button
-                onClick={(e) => handleBuy(e, 'hardback')}
-                className="btn-primary flex-1 text-xs sm:text-sm py-1.5 sm:py-2 px-1.5 sm:px-2"
-              >
-                <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" />
-                Hardback
-              </button>
-            )}
-          </div>
+        <div className="flex flex-wrap gap-1.5">
+          {showDigital && (
+            <button
+              onClick={(e) => handleBuy(e, 'digital')}
+              className="btn-primary text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-3 flex-1 min-w-0"
+            >
+              <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1 shrink-0" />
+              Digital
+            </button>
+          )}
+          {showPaperback && (
+            <button
+              onClick={(e) => handleBuy(e, 'paperback')}
+              className="btn-primary text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-3 flex-1 min-w-0"
+            >
+              <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1 shrink-0" />
+              Paperback
+            </button>
+          )}
+          {showHardback && (
+            <button
+              onClick={(e) => handleBuy(e, 'hardback')}
+              className="btn-primary text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-3 flex-1 min-w-0"
+            >
+              <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1 shrink-0" />
+              Hardback
+            </button>
+          )}
           {book.amazon_url && (
             <a
               href={book.amazon_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-secondary text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-3 flex items-center justify-center"
-              title="View on Amazon"
+              className="btn-secondary text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-3 flex items-center justify-center basis-full"
               onClick={(e) => e.stopPropagation()}
             >
-              <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              <span className="ml-1 sm:hidden">Amazon</span>
+              <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 shrink-0" />
+              Amazon
             </a>
           )}
         </div>
