@@ -67,6 +67,37 @@
   .card {
     @apply glass rounded-xl overflow-hidden glass-hover;
   }
+
+  /* Book description HTML rendering */
+  .prose-book b,
+  .prose-book strong {
+    @apply text-white font-semibold;
+  }
+
+  .prose-book i,
+  .prose-book em {
+    @apply italic text-surface-200;
+  }
+
+  .prose-book u {
+    @apply underline underline-offset-2;
+  }
+
+  .prose-book ul {
+    @apply list-disc list-inside space-y-1 my-2;
+  }
+
+  .prose-book ol {
+    @apply list-decimal list-inside space-y-1 my-2;
+  }
+
+  .prose-book a {
+    @apply text-brand-400 hover:text-brand-300 underline transition-colors;
+  }
+
+  .prose-book h1, .prose-book h2, .prose-book h3 {
+    @apply text-white font-bold mt-4 mb-2;
+  }
 }
 
 /* Checkout dialog animations */

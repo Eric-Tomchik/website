@@ -198,14 +198,16 @@ export default async function BookDetailPage({ params }: Props) {
             {/* Description */}
             <div className="space-y-4">
               <h2 className="text-xl font-bold text-white">About This Book</h2>
-              <div className="text-surface-300 leading-relaxed space-y-4">
-                {(book.long_description || book.description)
-                  .split('\n')
-                  .filter((p: string) => p.trim())
-                  .map((paragraph: string, i: number) => (
-                    <p key={i}>{paragraph}</p>
-                  ))}
-              </div>
+              <div
+                className="text-surface-300 leading-relaxed space-y-4 prose-book"
+                dangerouslySetInnerHTML={{
+                  __html: (book.long_description || book.description)
+                    .split('\n')
+                    .filter((p: string) => p.trim())
+                    .map((paragraph: string) => `<p>${paragraph}</p>`)
+                    .join(''),
+                }}
+              />
             </div>
 
             {/* Book metadata */}
