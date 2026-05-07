@@ -7,19 +7,22 @@ interface BookForCheckout {
   title: string;
   description: string;
   price_cents: number;
+  paperback_price_cents?: number;
   digital_price_cents?: number;
   cover_image_url?: string;
 }
 
+export type CheckoutFormat = 'paperback' | 'hardback' | 'digital';
+
 interface CheckoutState {
   isOpen: boolean;
   book: BookForCheckout | null;
-  format: 'physical' | 'digital';
+  format: CheckoutFormat;
 }
 
 interface CheckoutContextType {
   state: CheckoutState;
-  openCheckout: (book: BookForCheckout, format: 'physical' | 'digital') => void;
+  openCheckout: (book: BookForCheckout, format: CheckoutFormat) => void;
   closeCheckout: () => void;
 }
 
@@ -29,15 +32,15 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<CheckoutState>({
     isOpen: false,
     book: null,
-    format: 'physical',
+    format: 'hardback',
   });
 
-  const openCheckout = useCallback((book: BookForCheckout, format: 'physical' | 'digital') => {
+  const openCheckout = useCallback((book: BookForCheckout, format: CheckoutFormat) => {
     setState({ isOpen: true, book, format });
   }, []);
 
   const closeCheckout = useCallback(() => {
-    setState({ isOpen: false, book: null, format: 'physical' });
+    setState({ isOpen: false, book: null, format: 'hardback' });
   }, []);
 
   return (

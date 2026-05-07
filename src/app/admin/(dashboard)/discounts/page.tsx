@@ -19,7 +19,7 @@ type DiscountCode = {
   expires_at?: number;
   is_active: boolean;
   applicable_book_ids?: string[];
-  applicable_formats?: 'all' | 'digital' | 'physical';
+  applicable_formats?: 'all' | 'digital' | 'physical' | 'paperback' | 'hardback';
 };
 
 function DiscountForm({
@@ -52,7 +52,7 @@ function DiscountForm({
       ? new Date(discount.expires_at).toISOString().slice(0, 16)
       : '',
     is_active: discount?.is_active ?? true,
-    applicable_formats: discount?.applicable_formats || 'all' as 'all' | 'digital' | 'physical',
+    applicable_formats: discount?.applicable_formats || 'all' as 'all' | 'digital' | 'physical' | 'paperback' | 'hardback',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -190,12 +190,13 @@ function DiscountForm({
           <label className="block text-sm text-surface-300 mb-1">Applies To</label>
           <select
             value={form.applicable_formats}
-            onChange={(e) => setForm({ ...form, applicable_formats: e.target.value as 'all' | 'digital' | 'physical' })}
+            onChange={(e) => setForm({ ...form, applicable_formats: e.target.value as 'all' | 'digital' | 'physical' | 'paperback' | 'hardback' })}
             className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
           >
             <option value="all">All Formats</option>
             <option value="digital">Digital Only</option>
-            <option value="physical">Physical Only</option>
+            <option value="paperback">Paperback Only</option>
+            <option value="hardback">Hardback Only</option>
           </select>
         </div>
       </div>

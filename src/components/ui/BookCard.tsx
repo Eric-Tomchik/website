@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { BookOpen, ShoppingCart, ExternalLink } from 'lucide-react';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, hasHardback, hasPaperback, hasDigital } from '@/lib/utils';
 import { useCheckout } from '@/components/checkout/CheckoutContext';
 
 interface Book {
@@ -12,8 +12,9 @@ interface Book {
   slug: string;
   description: string;
   price_cents: number;
+  paperback_price_cents?: number;
   digital_price_cents?: number;
-  book_format: 'physical' | 'digital' | 'both';
+  book_format: string;
   cover_image_url?: string;
   amazon_url?: string;
   is_featured: boolean;
@@ -22,7 +23,7 @@ interface Book {
 export function BookCard({ book }: { book: Book }) {
   const { openCheckout } = useCheckout();
 
-  const handleBuy = (e: React.MouseEvent, format: 'physical' | 'digital') => {
+  const handleBuy = (e: React.MouseEvent, format: 'paperback' | 'hardback' | 'digital') => {
     e.preventDefault();
     e.stopPropagation();
     openCheckout(
@@ -31,12 +32,17 @@ export function BookCard({ book }: { book: Book }) {
         title: book.title,
         description: book.description,
         price_cents: book.price_cents,
+        paperback_price_cents: book.paperback_price_cents,
         digital_price_cents: book.digital_price_cents,
         cover_image_url: book.cover_image_url,
       },
-      format
+      format,
     );
   };
+
+  const showHardback = hasHardback(book.book_format);
+  const showPaperback = hasPaperback(book.book_format);
+  const showDigital = hasDigital(book.book_format);
 
   return (
     <Link href={`/books/${book.slug}`} className="card group flex flex-col cursor-pointer">
@@ -69,40 +75,59 @@ export function BookCard({ book }: { book: Book }) {
         </h3>
         <p className="text-xs sm:text-sm text-surface-400 mb-3 sm:mb-4 line-clamp-2 flex-1 hidden sm:block">{book.description}</p>
 
+        {/* Prices */}
         <div className="flex items-baseline mb-2 sm:mb-3">
           <div className="flex items-baseline gap-1 sm:gap-3 flex-wrap">
-            {book.book_format === 'both' && book.digital_price_cents ? (
+            {showDigital && book.digital_price_cents ? (
+              <span className="inline-flex items-baseline gap-1">
+                <span className="text-sm sm:text-lg font-bold text-brand-400">
+                  {formatPrice(book.digital_price_cents)}
+                </span>
+                <span className="text-[10px] sm:text-xs text-surface-500">Digital</span>
+              </span>
+            ) : null}
+            {showPaperback && book.paperback_price_cents ? (
               <>
+                {showDigital && book.digital_price_cents && (
+                  <span className="text-surface-600 hidden sm:inline">·</span>
+                )}
                 <span className="inline-flex items-baseline gap-1">
                   <span className="text-sm sm:text-lg font-bold text-brand-400">
-                    {formatPrice(book.digital_price_cents)}
+                    {formatPrice(book.paperback_price_cents)}
                   </span>
-                  <span className="text-[10px] sm:text-xs text-surface-500">Digital</span>
+                  <span className="text-[10px] sm:text-xs text-surface-500">Paperback</span>
                 </span>
-                <span className="text-surface-600 hidden sm:inline">·</span>
+              </>
+            ) : null}
+            {showHardback ? (
+              <>
+                {((showDigital && book.digital_price_cents) || (showPaperback && book.paperback_price_cents)) && (
+                  <span className="text-surface-600 hidden sm:inline">·</span>
+                )}
                 <span className="inline-flex items-baseline gap-1">
                   <span className="text-sm sm:text-lg font-bold text-brand-400">
                     {formatPrice(book.price_cents)}
                   </span>
-                  <span className="text-[10px] sm:text-xs text-surface-500">Physical</span>
+                  <span className="text-[10px] sm:text-xs text-surface-500">Hardback</span>
                 </span>
               </>
-            ) : (
-              <>
+            ) : null}
+            {/* Fallback: digital-only without digital_price_cents */}
+            {showDigital && !showHardback && !showPaperback && !book.digital_price_cents && (
+              <span className="inline-flex items-baseline gap-1">
                 <span className="text-base sm:text-xl font-bold text-brand-400">
-                  {formatPrice(book.book_format === 'digital' && book.digital_price_cents ? book.digital_price_cents : book.price_cents)}
+                  {formatPrice(book.price_cents)}
                 </span>
-                <span className="text-[10px] sm:text-xs text-surface-500 capitalize">
-                  {book.book_format}
-                </span>
-              </>
+                <span className="text-[10px] sm:text-xs text-surface-500">Digital</span>
+              </span>
             )}
           </div>
         </div>
 
+        {/* Buy buttons */}
         <div className="flex flex-col sm:flex-row gap-1.5">
           <div className="flex gap-1 sm:gap-1.5 flex-1">
-            {(book.book_format === 'digital' || book.book_format === 'both') && (
+            {showDigital && (
               <button
                 onClick={(e) => handleBuy(e, 'digital')}
                 className="btn-primary flex-1 text-xs sm:text-sm py-1.5 sm:py-2 px-1.5 sm:px-2"
@@ -111,13 +136,22 @@ export function BookCard({ book }: { book: Book }) {
                 Digital
               </button>
             )}
-            {(book.book_format === 'physical' || book.book_format === 'both') && (
+            {showPaperback && (
               <button
-                onClick={(e) => handleBuy(e, 'physical')}
+                onClick={(e) => handleBuy(e, 'paperback')}
                 className="btn-primary flex-1 text-xs sm:text-sm py-1.5 sm:py-2 px-1.5 sm:px-2"
               >
                 <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" />
-                Physical
+                Paperback
+              </button>
+            )}
+            {showHardback && (
+              <button
+                onClick={(e) => handleBuy(e, 'hardback')}
+                className="btn-primary flex-1 text-xs sm:text-sm py-1.5 sm:py-2 px-1.5 sm:px-2"
+              >
+                <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" />
+                Hardback
               </button>
             )}
           </div>

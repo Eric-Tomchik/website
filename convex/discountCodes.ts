@@ -104,7 +104,7 @@ export const create = mutation({
     is_active: v.boolean(),
     applicable_book_ids: v.optional(v.array(v.string())),
     applicable_formats: v.optional(
-      v.union(v.literal("all"), v.literal("digital"), v.literal("physical"))
+      v.union(v.literal("all"), v.literal("digital"), v.literal("physical"), v.literal("paperback"), v.literal("hardback"))
     ),
   },
   handler: async (ctx, args) => {
@@ -129,7 +129,7 @@ export const update = mutation({
     is_active: v.optional(v.boolean()),
     applicable_book_ids: v.optional(v.array(v.string())),
     applicable_formats: v.optional(
-      v.union(v.literal("all"), v.literal("digital"), v.literal("physical"))
+      v.union(v.literal("all"), v.literal("digital"), v.literal("physical"), v.literal("paperback"), v.literal("hardback"))
     ),
   },
   handler: async (ctx, args) => {

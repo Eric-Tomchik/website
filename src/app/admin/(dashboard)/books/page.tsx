@@ -4,7 +4,16 @@ import { useQuery, useMutation } from 'convex/react';
 import { useState } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import { BookOpen, Plus, Pencil, Trash2, Eye, EyeOff } from 'lucide-react';
+import {
+  hasHardback,
+  hasPaperback,
+  hasDigital,
+  toBookFormat,
+  formatLabel,
+  formatPrice,
+} from '@/lib/utils';
 import type { Id } from '../../../../../convex/_generated/dataModel';
+import type { BookFormat } from '@/lib/utils';
 
 type Book = {
   _id: Id<"books">;
@@ -14,8 +23,9 @@ type Book = {
   description: string;
   long_description?: string;
   price_cents: number;
+  paperback_price_cents?: number;
   digital_price_cents?: number;
-  book_format: 'physical' | 'digital' | 'both';
+  book_format: BookFormat;
   cover_image_url?: string;
   amazon_url?: string;
   digital_file_url?: string;
@@ -44,6 +54,25 @@ export default function AdminBooksPage() {
     if (!confirm('Are you sure you want to delete this book?')) return;
     await deleteBook({ id });
   };
+
+  /** Human-readable format summary for the table */
+  function formatSummary(book: Book): string {
+    const parts: string[] = [];
+    if (hasPaperback(book.book_format)) parts.push('Paperback');
+    if (hasHardback(book.book_format)) parts.push('Hardback');
+    if (hasDigital(book.book_format)) parts.push('Digital');
+    return parts.join(', ') || 'None';
+  }
+
+  /** Primary display price for the table */
+  function primaryPrice(book: Book): string {
+    if (hasHardback(book.book_format)) return formatPrice(book.price_cents);
+    if (hasPaperback(book.book_format) && book.paperback_price_cents)
+      return formatPrice(book.paperback_price_cents);
+    if (hasDigital(book.book_format) && book.digital_price_cents)
+      return formatPrice(book.digital_price_cents);
+    return formatPrice(book.price_cents);
+  }
 
   return (
     <div className="space-y-6">
@@ -80,7 +109,7 @@ export default function AdminBooksPage() {
             <thead className="bg-surface-800/50">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-surface-400 uppercase">Title</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-surface-400 uppercase">Format</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-surface-400 uppercase">Formats</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-surface-400 uppercase">Price</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-surface-400 uppercase">Status</th>
                 <th className="px-4 py-3 text-right text-xs font-semibold text-surface-400 uppercase">Actions</th>
@@ -102,9 +131,9 @@ export default function AdminBooksPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm text-surface-300 capitalize">{book.book_format}</td>
+                  <td className="px-4 py-3 text-sm text-surface-300">{formatSummary(book as Book)}</td>
                   <td className="px-4 py-3 text-sm text-surface-300">
-                    ${(book.price_cents / 100).toFixed(2)}
+                    {primaryPrice(book as Book)}
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${
@@ -118,14 +147,14 @@ export default function AdminBooksPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
                       <button
-                        onClick={() => handleToggleActive(book)}
+                        onClick={() => handleToggleActive(book as Book)}
                         className="p-1.5 rounded hover:bg-surface-700 text-surface-400 hover:text-white transition-colors"
                         title={book.is_active ? 'Hide' : 'Show'}
                       >
                         {book.is_active ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                       <button
-                        onClick={() => { setEditingBook(book); setShowForm(true); }}
+                        onClick={() => { setEditingBook(book as Book); setShowForm(true); }}
                         className="p-1.5 rounded hover:bg-surface-700 text-surface-400 hover:text-white transition-colors"
                         title="Edit"
                       >
@@ -150,6 +179,8 @@ export default function AdminBooksPage() {
   );
 }
 
+/* ─── Book Form ─────────────────────────────────────────────────────── */
+
 function BookForm({
   book,
   onSave,
@@ -164,20 +195,31 @@ function BookForm({
   const generateUploadUrl = useMutation(api.downloadTokens.generateUploadUrl);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
-  const [priceDisplay, setPriceDisplay] = useState(
+
+  // ── Price display states (text inputs, no spinners) ──
+  const [hardbackPriceDisplay, setHardbackPriceDisplay] = useState(
     book?.price_cents ? (book.price_cents / 100).toFixed(2) : ''
+  );
+  const [paperbackPriceDisplay, setPaperbackPriceDisplay] = useState(
+    book?.paperback_price_cents ? (book.paperback_price_cents / 100).toFixed(2) : ''
   );
   const [digitalPriceDisplay, setDigitalPriceDisplay] = useState(
     book?.digital_price_cents ? (book.digital_price_cents / 100).toFixed(2) : ''
   );
+
+  // ── Format checkboxes ──
+  const [fmtPaperback, setFmtPaperback] = useState(book ? hasPaperback(book.book_format) : false);
+  const [fmtHardback, setFmtHardback] = useState(book ? hasHardback(book.book_format) : true);
+  const [fmtDigital, setFmtDigital] = useState(book ? hasDigital(book.book_format) : false);
+
   const [form, setForm] = useState({
     title: book?.title || '',
     slug: book?.slug || '',
     description: book?.description || '',
     long_description: book?.long_description || '',
     price_cents: book?.price_cents || 0,
+    paperback_price_cents: book?.paperback_price_cents || 0,
     digital_price_cents: book?.digital_price_cents || 0,
-    book_format: (book?.book_format || 'both') as 'physical' | 'digital' | 'both',
     cover_image_url: book?.cover_image_url || '',
     amazon_url: book?.amazon_url || '',
     digital_pdf_storage_id: book?.digital_pdf_storage_id || '',
@@ -185,6 +227,10 @@ function BookForm({
     is_featured: book?.is_featured || false,
     is_active: book?.is_active ?? true,
   });
+
+  const showDigitalFields = fmtDigital;
+  const showHardbackPrice = fmtHardback;
+  const showPaperbackPrice = fmtPaperback;
 
   const handleFileUpload = async (
     file: File,
@@ -209,20 +255,34 @@ function BookForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Require at least one format
+    if (!fmtPaperback && !fmtHardback && !fmtDigital) {
+      alert('Please select at least one format.');
+      return;
+    }
+
     setSaving(true);
 
     const slug = form.slug || form.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const book_format = toBookFormat(fmtPaperback, fmtHardback, fmtDigital);
 
     try {
       const bookData = {
-        ...form,
+        title: form.title,
         slug,
+        description: form.description,
         long_description: form.long_description || undefined,
+        price_cents: form.price_cents,
+        paperback_price_cents: fmtPaperback ? form.paperback_price_cents || undefined : undefined,
+        digital_price_cents: fmtDigital ? form.digital_price_cents || undefined : undefined,
+        book_format,
         cover_image_url: form.cover_image_url || undefined,
         amazon_url: form.amazon_url || undefined,
-        digital_price_cents: form.digital_price_cents || undefined,
         digital_pdf_storage_id: form.digital_pdf_storage_id || undefined,
         digital_epub_storage_id: form.digital_epub_storage_id || undefined,
+        is_featured: form.is_featured,
+        is_active: form.is_active,
       };
 
       if (book) {
@@ -244,6 +304,7 @@ function BookForm({
         {book ? 'Edit Book' : 'Add New Book'}
       </h2>
 
+      {/* Title & Slug */}
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm text-surface-300 mb-1">Title *</label>
@@ -265,6 +326,7 @@ function BookForm({
         </div>
       </div>
 
+      {/* Descriptions */}
       <div>
         <label className="block text-sm text-surface-300 mb-1">Short Description</label>
         <textarea
@@ -287,43 +349,83 @@ function BookForm({
         />
       </div>
 
-      <div className="grid sm:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm text-surface-300 mb-1">Price ($)</label>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            value={(form.price_cents / 100).toFixed(2)}
-            onChange={(e) => setForm({ ...form, price_cents: Math.round(parseFloat(e.target.value || '0') * 100) })}
-            className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
-          />
-        </div>
-        <div>
-          <label className="block text-sm text-surface-300 mb-1">Format</label>
-          <select
-            value={form.book_format}
-            onChange={(e) => setForm({ ...form, book_format: e.target.value as 'physical' | 'digital' | 'both' })}
-            className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
-          >
-            <option value="digital">Digital Only</option>
-            <option value="physical">Physical Only</option>
-            <option value="both">Both</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm text-surface-300 mb-1">Cover Image URL</label>
-          <input
-            value={form.cover_image_url}
-            onChange={(e) => setForm({ ...form, cover_image_url: e.target.value })}
-            className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
-          />
+      {/* ── Format Checkboxes ── */}
+      <div>
+        <label className="block text-sm text-surface-300 mb-2">Available Formats *</label>
+        <div className="flex flex-wrap gap-4">
+          <label className="flex items-center gap-2 text-sm text-surface-300 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={fmtPaperback}
+              onChange={(e) => setFmtPaperback(e.target.checked)}
+              className="rounded"
+            />
+            Paperback
+          </label>
+          <label className="flex items-center gap-2 text-sm text-surface-300 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={fmtHardback}
+              onChange={(e) => setFmtHardback(e.target.checked)}
+              className="rounded"
+            />
+            Hardback
+          </label>
+          <label className="flex items-center gap-2 text-sm text-surface-300 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={fmtDigital}
+              onChange={(e) => setFmtDigital(e.target.checked)}
+              className="rounded"
+            />
+            Digital
+          </label>
         </div>
       </div>
 
-      {/* Digital price */}
-      {(form.book_format === 'digital' || form.book_format === 'both') && (
-        <div className="grid sm:grid-cols-2 gap-4">
+      {/* ── Pricing (text inputs — no up/down spinners) ── */}
+      <div className="grid sm:grid-cols-3 gap-4">
+        {showHardbackPrice && (
+          <div>
+            <label className="block text-sm text-surface-300 mb-1">Hardback Price ($)</label>
+            <input
+              type="text"
+              inputMode="decimal"
+              placeholder="29.99"
+              value={hardbackPriceDisplay}
+              onChange={(e) => setHardbackPriceDisplay(e.target.value)}
+              onBlur={() => {
+                const val = parseFloat(hardbackPriceDisplay || '0');
+                if (!isNaN(val)) {
+                  setForm((f) => ({ ...f, price_cents: Math.round(val * 100) }));
+                  setHardbackPriceDisplay(val.toFixed(2));
+                }
+              }}
+              className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
+            />
+          </div>
+        )}
+        {showPaperbackPrice && (
+          <div>
+            <label className="block text-sm text-surface-300 mb-1">Paperback Price ($)</label>
+            <input
+              type="text"
+              inputMode="decimal"
+              placeholder="19.99"
+              value={paperbackPriceDisplay}
+              onChange={(e) => setPaperbackPriceDisplay(e.target.value)}
+              onBlur={() => {
+                const val = parseFloat(paperbackPriceDisplay || '0');
+                if (!isNaN(val)) {
+                  setForm((f) => ({ ...f, paperback_price_cents: Math.round(val * 100) }));
+                  setPaperbackPriceDisplay(val.toFixed(2));
+                }
+              }}
+              className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
+            />
+          </div>
+        )}
+        {showDigitalFields && (
           <div>
             <label className="block text-sm text-surface-300 mb-1">Digital Price ($)</label>
             <input
@@ -342,11 +444,21 @@ function BookForm({
               className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
             />
           </div>
-        </div>
-      )}
+        )}
+      </div>
+
+      {/* Cover Image */}
+      <div>
+        <label className="block text-sm text-surface-300 mb-1">Cover Image URL</label>
+        <input
+          value={form.cover_image_url}
+          onChange={(e) => setForm({ ...form, cover_image_url: e.target.value })}
+          className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
+        />
+      </div>
 
       {/* Digital file uploads */}
-      {(form.book_format === 'digital' || form.book_format === 'both') && (
+      {showDigitalFields && (
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm text-surface-300 mb-1">
@@ -387,6 +499,7 @@ function BookForm({
         </div>
       )}
 
+      {/* Amazon URL */}
       <div>
         <label className="block text-sm text-surface-300 mb-1">Amazon URL</label>
         <input
@@ -396,6 +509,7 @@ function BookForm({
         />
       </div>
 
+      {/* Flags */}
       <div className="flex items-center gap-6">
         <label className="flex items-center gap-2 text-sm text-surface-300">
           <input
@@ -417,6 +531,7 @@ function BookForm({
         </label>
       </div>
 
+      {/* Submit */}
       <div className="flex gap-3 pt-2">
         <button type="submit" disabled={saving} className="btn-primary disabled:opacity-50">
           {saving ? 'Saving...' : book ? 'Update Book' : 'Add Book'}

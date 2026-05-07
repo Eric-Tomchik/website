@@ -8,11 +8,20 @@ export default defineSchema({
     description: v.string(),
     long_description: v.optional(v.string()),
     price_cents: v.number(),
+    paperback_price_cents: v.optional(v.number()),
     digital_price_cents: v.optional(v.number()),
     book_format: v.union(
+      // Legacy values (kept for backward compat during migration)
       v.literal("physical"),
+      v.literal("both"),
+      // Current values
+      v.literal("paperback"),
+      v.literal("hardback"),
       v.literal("digital"),
-      v.literal("both")
+      v.literal("paperback_digital"),
+      v.literal("hardback_digital"),
+      v.literal("paperback_hardback"),
+      v.literal("all")
     ),
     cover_image_url: v.optional(v.string()),
     amazon_url: v.optional(v.string()),
@@ -49,7 +58,12 @@ export default defineSchema({
       v.object({
         book_id: v.string(),
         book_title: v.string(),
-        format: v.union(v.literal("physical"), v.literal("digital")),
+        format: v.union(
+          v.literal("physical"),
+          v.literal("paperback"),
+          v.literal("hardback"),
+          v.literal("digital")
+        ),
         quantity: v.number(),
         price_cents: v.optional(v.number()),
       })
@@ -91,7 +105,13 @@ export default defineSchema({
     is_active: v.boolean(),
     applicable_book_ids: v.optional(v.array(v.string())), // empty = all books
     applicable_formats: v.optional(
-      v.union(v.literal("all"), v.literal("digital"), v.literal("physical"))
+      v.union(
+        v.literal("all"),
+        v.literal("digital"),
+        v.literal("physical"),
+        v.literal("paperback"),
+        v.literal("hardback")
+      )
     ),
   })
     .index("by_code", ["code"])

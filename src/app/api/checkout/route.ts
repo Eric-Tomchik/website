@@ -8,7 +8,7 @@ const checkoutSchema = z.object({
   items: z.array(
     z.object({
       book_id: z.string(),
-      format: z.enum(['physical', 'digital']),
+      format: z.enum(['paperback', 'hardback', 'digital']),
       quantity: z.number().int().min(1).max(10),
     })
   ).min(1),
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No matching books found' }, { status: 400 });
     }
 
-    const hasPhysical = items.some((i) => i.format === 'physical');
+    const hasPhysical = items.some((i) => i.format === 'paperback' || i.format === 'hardback');
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://erictomchik.com';
 
     // Calculate total for discount validation
@@ -41,7 +41,9 @@ export async function POST(req: Request) {
       const unitAmount =
         item.format === 'digital' && book.digital_price_cents
           ? book.digital_price_cents
-          : book.price_cents;
+          : item.format === 'paperback' && book.paperback_price_cents
+            ? book.paperback_price_cents
+            : book.price_cents;
       return sum + unitAmount * item.quantity;
     }, 0);
 
@@ -81,17 +83,24 @@ export async function POST(req: Request) {
         imageUrl = `${siteUrl}${imageUrl}`;
       }
 
-      // Use digital price when available for digital purchases
+      // Use the correct price for each format
       const unitAmount =
         item.format === 'digital' && book.digital_price_cents
           ? book.digital_price_cents
-          : book.price_cents;
+          : item.format === 'paperback' && book.paperback_price_cents
+            ? book.paperback_price_cents
+            : book.price_cents;
+
+      const formatName =
+        item.format === 'digital' ? 'Digital'
+        : item.format === 'paperback' ? 'Paperback'
+        : 'Hardback';
 
       return {
         price_data: {
           currency: 'usd',
           product_data: {
-            name: `${book.title} (${item.format === 'digital' ? 'Digital' : 'Hardcover'})`,
+            name: `${book.title} (${formatName})`,
             description: book.description,
             ...(imageUrl ? { images: [imageUrl] } : {}),
           },
