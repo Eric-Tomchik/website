@@ -9,7 +9,8 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "deploy": "CI=1 npx convex deploy --cmd 'bun run build'"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.6.0",
