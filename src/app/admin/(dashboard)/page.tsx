@@ -86,17 +86,18 @@ export default function AdminDashboard() {
     }
 
     // Top books by revenue
-    const bookRevenue: Record<string, { title: string; revenue: number; count: number; digital: number; physical: number }> = {};
+    const bookRevenue: Record<string, { title: string; revenue: number; count: number; digital: number; paperback: number; hardback: number }> = {};
     for (const order of validOrders) {
       for (const item of order.items) {
         const key = item.book_title || item.book_id;
         if (!bookRevenue[key]) {
-          bookRevenue[key] = { title: key, revenue: 0, count: 0, digital: 0, physical: 0 };
+          bookRevenue[key] = { title: key, revenue: 0, count: 0, digital: 0, paperback: 0, hardback: 0 };
         }
         bookRevenue[key].revenue += (item.price_cents || 0) * item.quantity;
         bookRevenue[key].count += item.quantity;
         if (item.format === 'digital') bookRevenue[key].digital += item.quantity;
-        else bookRevenue[key].physical += item.quantity;
+        else if (item.format === 'paperback') bookRevenue[key].paperback += item.quantity;
+        else bookRevenue[key].hardback += item.quantity; // 'physical' and 'hardback' both count as hardback
       }
     }
     const topBooks = Object.values(bookRevenue).sort((a, b) => b.revenue - a.revenue);
@@ -106,8 +107,12 @@ export default function AdminDashboard() {
       (s, o) => s + o.items.filter((i) => i.format === 'digital').reduce((ss, i) => ss + i.quantity, 0),
       0
     );
-    const totalPhysical = validOrders.reduce(
-      (s, o) => s + o.items.filter((i) => i.format === 'physical').reduce((ss, i) => ss + i.quantity, 0),
+    const totalPaperback = validOrders.reduce(
+      (s, o) => s + o.items.filter((i) => i.format === 'paperback').reduce((ss, i) => ss + i.quantity, 0),
+      0
+    );
+    const totalHardback = validOrders.reduce(
+      (s, o) => s + o.items.filter((i) => i.format === 'physical' || i.format === 'hardback').reduce((ss, i) => ss + i.quantity, 0),
       0
     );
 
@@ -127,7 +132,8 @@ export default function AdminDashboard() {
       revenueByDay,
       topBooks,
       totalDigital,
-      totalPhysical,
+      totalPaperback,
+      totalHardback,
       uniqueCustomers,
       avgOrderValue,
     };
@@ -260,44 +266,54 @@ export default function AdminDashboard() {
         {/* Format Breakdown */}
         <div className="card p-6">
           <h2 className="text-lg font-semibold text-white mb-1">Sales by Format</h2>
-          <p className="text-xs text-surface-500 mb-6">Digital vs Physical</p>
+          <p className="text-xs text-surface-500 mb-6">Digital · Paperback · Hardback</p>
           {analytics && (
             <div className="space-y-6">
-              <div className="flex items-center justify-center gap-8">
+              <div className="flex items-center justify-center gap-6">
                 <div className="text-center">
                   <Download className="w-8 h-8 text-brand-400 mx-auto mb-2" />
                   <div className="text-2xl font-bold text-white">{analytics.totalDigital}</div>
                   <div className="text-xs text-surface-400">Digital</div>
                 </div>
                 <div className="text-center">
+                  <Package className="w-8 h-8 text-green-400 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-white">{analytics.totalPaperback}</div>
+                  <div className="text-xs text-surface-400">Paperback</div>
+                </div>
+                <div className="text-center">
                   <Package className="w-8 h-8 text-blue-400 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-white">{analytics.totalPhysical}</div>
-                  <div className="text-xs text-surface-400">Physical</div>
+                  <div className="text-2xl font-bold text-white">{analytics.totalHardback}</div>
+                  <div className="text-xs text-surface-400">Hardback</div>
                 </div>
               </div>
               {/* Progress bar */}
-              {(analytics.totalDigital + analytics.totalPhysical) > 0 && (
-                <div>
-                  <div className="w-full h-3 rounded-full bg-surface-800 overflow-hidden flex">
-                    <div
-                      className="h-full bg-brand-500 rounded-l-full transition-all"
-                      style={{
-                        width: `${(analytics.totalDigital / (analytics.totalDigital + analytics.totalPhysical)) * 100}%`,
-                      }}
-                    />
-                    <div
-                      className="h-full bg-blue-500 rounded-r-full transition-all"
-                      style={{
-                        width: `${(analytics.totalPhysical / (analytics.totalDigital + analytics.totalPhysical)) * 100}%`,
-                      }}
-                    />
+              {(() => {
+                const total = analytics.totalDigital + analytics.totalPaperback + analytics.totalHardback;
+                if (total === 0) return null;
+                return (
+                  <div>
+                    <div className="w-full h-3 rounded-full bg-surface-800 overflow-hidden flex">
+                      <div
+                        className="h-full bg-brand-500 transition-all"
+                        style={{ width: `${(analytics.totalDigital / total) * 100}%` }}
+                      />
+                      <div
+                        className="h-full bg-green-500 transition-all"
+                        style={{ width: `${(analytics.totalPaperback / total) * 100}%` }}
+                      />
+                      <div
+                        className="h-full bg-blue-500 transition-all"
+                        style={{ width: `${(analytics.totalHardback / total) * 100}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[10px] text-surface-500 mt-1">
+                      <span>{((analytics.totalDigital / total) * 100).toFixed(0)}% Digital</span>
+                      <span>{((analytics.totalPaperback / total) * 100).toFixed(0)}% PB</span>
+                      <span>{((analytics.totalHardback / total) * 100).toFixed(0)}% HB</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between text-[10px] text-surface-500 mt-1">
-                    <span>{((analytics.totalDigital / (analytics.totalDigital + analytics.totalPhysical)) * 100).toFixed(0)}% Digital</span>
-                    <span>{((analytics.totalPhysical / (analytics.totalDigital + analytics.totalPhysical)) * 100).toFixed(0)}% Physical</span>
-                  </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
           )}
         </div>
@@ -330,7 +346,8 @@ export default function AdminDashboard() {
                     <div className="flex gap-3 text-[10px] text-surface-500">
                       <span>{book.count} sold</span>
                       <span>{book.digital} digital</span>
-                      <span>{book.physical} physical</span>
+                      <span>{book.paperback} paperback</span>
+                      <span>{book.hardback} hardback</span>
                     </div>
                   </div>
                 );

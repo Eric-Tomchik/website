@@ -8,7 +8,7 @@ interface PayPalButtonProps {
   amountCents: number;
   bookTitle: string;
   bookId: string;
-  format: 'physical' | 'digital';
+  format: 'paperback' | 'hardback' | 'digital';
   onSuccess: () => void;
   onError: (error: string) => void;
   discountCode?: string;
@@ -59,7 +59,7 @@ export function PayPalButton({
             intent: 'CAPTURE',
             purchase_units: [
               {
-                description: `${bookTitle} (${format === 'physical' ? 'Hardcover' : 'Digital'})`,
+                description: `${bookTitle} (${format === 'digital' ? 'Digital' : format === 'paperback' ? 'Paperback' : 'Hardback'})`,
                 amount: {
                   currency_code: 'USD',
                   value: (amountCents / 100).toFixed(2),
@@ -68,7 +68,7 @@ export function PayPalButton({
             ],
             application_context: {
               shipping_preference:
-                format === 'physical' ? 'GET_FROM_FILE' : 'NO_SHIPPING',
+                format === 'digital' ? 'NO_SHIPPING' : 'GET_FROM_FILE',
             },
           } as any);
         }}

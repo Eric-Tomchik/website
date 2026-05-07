@@ -26,7 +26,12 @@ export const create = mutation({
       v.object({
         book_id: v.string(),
         book_title: v.string(),
-        format: v.union(v.literal("physical"), v.literal("digital")),
+        format: v.union(
+          v.literal("physical"),
+          v.literal("paperback"),
+          v.literal("hardback"),
+          v.literal("digital")
+        ),
         quantity: v.number(),
         price_cents: v.optional(v.number()),
       })

@@ -10,7 +10,7 @@ const paypalOrderSchema = z.object({
   payer_name: z.string(),
   book_id: z.string(),
   book_title: z.string(),
-  format: z.enum(['physical', 'digital']),
+  format: z.enum(['paperback', 'hardback', 'digital']),
   quantity: z.number().int().min(1).default(1),
   total_cents: z.number(),
   shipping_address: z

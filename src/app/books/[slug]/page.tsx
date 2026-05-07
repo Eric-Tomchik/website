@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { fetchQuery } from 'convex/nextjs';
 import { api } from '../../../../convex/_generated/api';
 import { BookOpen, ArrowLeft, ShoppingCart, ExternalLink } from 'lucide-react';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, hasHardback, hasPaperback, hasDigital } from '@/lib/utils';
 import { BookDetailActions } from './BookDetailActions';
 
 // Revalidate every 60s — pages are cached and served instantly from edge
@@ -75,17 +75,27 @@ export default async function BookDetailPage({ params }: Props) {
     publisher: { '@type': 'Organization', name: 'ArcLight Press' },
     url: `https://erictomchik.com/books/${book.slug}`,
     offers: [
-      ...(book.book_format === 'physical' || book.book_format === 'both'
+      ...(hasHardback(book.book_format)
         ? [{
             '@type': 'Offer',
             price: (book.price_cents / 100).toFixed(2),
             priceCurrency: 'USD',
             availability: 'https://schema.org/InStock',
             itemCondition: 'https://schema.org/NewCondition',
-            description: 'Hardcover Edition',
+            description: 'Hardback Edition',
           }]
         : []),
-      ...(book.book_format === 'digital' || book.book_format === 'both'
+      ...(hasPaperback(book.book_format) && book.paperback_price_cents
+        ? [{
+            '@type': 'Offer',
+            price: (book.paperback_price_cents / 100).toFixed(2),
+            priceCurrency: 'USD',
+            availability: 'https://schema.org/InStock',
+            itemCondition: 'https://schema.org/NewCondition',
+            description: 'Paperback Edition',
+          }]
+        : []),
+      ...(hasDigital(book.book_format)
         ? [{
             '@type': 'Offer',
             price: ((book.digital_price_cents || book.price_cents) / 100).toFixed(2),
@@ -153,27 +163,27 @@ export default async function BookDetailPage({ params }: Props) {
 
             {/* Price & Format */}
             <div className="flex flex-wrap items-center gap-4">
-              {(book.book_format === 'physical' || book.book_format === 'both') && (
+              {hasHardback(book.book_format) && (
                 <div className="flex items-center gap-2">
                   <span className="text-3xl font-bold text-brand-400">
                     {formatPrice(book.price_cents)}
                   </span>
                   <span className="text-sm text-surface-400 px-3 py-1.5 rounded-lg bg-surface-800 border border-surface-700">
-                    Hardcover
+                    Hardback
                   </span>
                 </div>
               )}
-              {book.book_format === 'both' && book.digital_price_cents && (
+              {hasPaperback(book.book_format) && book.paperback_price_cents && (
                 <div className="flex items-center gap-2">
                   <span className="text-3xl font-bold text-brand-400">
-                    {formatPrice(book.digital_price_cents)}
+                    {formatPrice(book.paperback_price_cents)}
                   </span>
                   <span className="text-sm text-surface-400 px-3 py-1.5 rounded-lg bg-surface-800 border border-surface-700">
-                    Digital
+                    Paperback
                   </span>
                 </div>
               )}
-              {book.book_format === 'digital' && (
+              {hasDigital(book.book_format) && (
                 <div className="flex items-center gap-2">
                   <span className="text-3xl font-bold text-brand-400">
                     {formatPrice(book.digital_price_cents || book.price_cents)}
@@ -229,10 +239,12 @@ export default async function BookDetailPage({ params }: Props) {
                   )}
                   <div>
                     <div className="text-xs text-surface-500">Format</div>
-                    <div className="text-white font-medium capitalize">
-                      {book.book_format === 'both'
-                        ? 'Digital & Physical'
-                        : book.book_format}
+                    <div className="text-white font-medium">
+                      {[
+                        hasHardback(book.book_format) && 'Hardback',
+                        hasPaperback(book.book_format) && 'Paperback',
+                        hasDigital(book.book_format) && 'Digital',
+                      ].filter(Boolean).join(', ')}
                     </div>
                   </div>
                 </div>

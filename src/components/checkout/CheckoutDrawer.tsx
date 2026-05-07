@@ -9,7 +9,7 @@ import {
 import { X, BookOpen, CheckCircle, Loader2, Tag, Check } from 'lucide-react';
 import { useCheckout } from './CheckoutContext';
 import { PayPalButton } from './PayPalButton';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, formatLabel } from '@/lib/utils';
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
@@ -35,7 +35,9 @@ export function CheckoutDrawer() {
   const basePrice = book
     ? format === 'digital' && book.digital_price_cents
       ? book.digital_price_cents
-      : book.price_cents
+      : format === 'paperback' && book.paperback_price_cents
+        ? book.paperback_price_cents
+        : book.price_cents
     : 0;
 
   const [clientSecret, setClientSecret] = useState<string | null>(null);
@@ -202,7 +204,7 @@ export function CheckoutDrawer() {
                 <h3 className="text-2xl font-bold text-white">Thank you for your purchase!</h3>
                 <p className="text-surface-400 max-w-md">
                   Your order has been confirmed. You&apos;ll receive an email confirmation shortly.
-                  {format === 'physical' && ' Your book will be shipped within 1-2 business days.'}
+                  {(format === 'hardback' || format === 'paperback') && ' Your book will be shipped within 1-2 business days.'}
                 </p>
                 <button
                   onClick={closeCheckout}
@@ -237,7 +239,7 @@ export function CheckoutDrawer() {
                   <div className="flex-1 min-w-0">
                     <h4 className="text-base font-bold text-white truncate">{book.title}</h4>
                     <p className="text-sm text-surface-400">
-                      {format === 'physical' ? 'Hardcover' : 'Digital'} Edition
+                      {formatLabel(format)} Edition
                     </p>
                   </div>
 

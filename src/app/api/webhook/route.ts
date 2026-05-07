@@ -109,7 +109,7 @@ export async function POST(req: Request) {
         items: items.map((i: { book_id: string; book_title?: string; title?: string; format: string; quantity: number }) => ({
           book_id: i.book_id,
           book_title: i.book_title || i.title || '',
-          format: i.format as 'physical' | 'digital',
+          format: i.format as 'physical' | 'paperback' | 'hardback' | 'digital',
           quantity: i.quantity,
         })),
         total_cents: session.amount_total || 0,

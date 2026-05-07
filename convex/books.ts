@@ -53,11 +53,18 @@ export const create = mutation({
     description: v.string(),
     long_description: v.optional(v.string()),
     price_cents: v.number(),
+    paperback_price_cents: v.optional(v.number()),
     digital_price_cents: v.optional(v.number()),
     book_format: v.union(
       v.literal("physical"),
+      v.literal("both"),
+      v.literal("paperback"),
+      v.literal("hardback"),
       v.literal("digital"),
-      v.literal("both")
+      v.literal("paperback_digital"),
+      v.literal("hardback_digital"),
+      v.literal("paperback_hardback"),
+      v.literal("all")
     ),
     cover_image_url: v.optional(v.string()),
     amazon_url: v.optional(v.string()),
@@ -83,12 +90,19 @@ export const update = mutation({
     description: v.optional(v.string()),
     long_description: v.optional(v.string()),
     price_cents: v.optional(v.number()),
+    paperback_price_cents: v.optional(v.number()),
     digital_price_cents: v.optional(v.number()),
     book_format: v.optional(
       v.union(
         v.literal("physical"),
+        v.literal("both"),
+        v.literal("paperback"),
+        v.literal("hardback"),
         v.literal("digital"),
-        v.literal("both")
+        v.literal("paperback_digital"),
+        v.literal("hardback_digital"),
+        v.literal("paperback_hardback"),
+        v.literal("all")
       )
     ),
     cover_image_url: v.optional(v.string()),
