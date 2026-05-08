@@ -26,7 +26,6 @@ export function PriceButtons({
   paperbackPriceCents,
   digitalPriceCents,
   coverImageUrl,
-  amazonUrl,
 }: PriceButtonsProps) {
   const { openCheckout } = useCheckout();
 
@@ -46,53 +45,32 @@ export function PriceButtons({
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-wrap gap-3">
       {hasHardback(bookFormat) && (
         <button
           onClick={() => handleBuy('hardback')}
-          className="group flex items-center gap-2 px-4 py-2.5 rounded-xl
-                     bg-surface-800/80 border border-surface-700 hover:border-brand-500/50
-                     hover:bg-brand-600/10 transition-all duration-200 cursor-pointer"
+          className="btn-primary text-base py-3 px-6"
         >
-          <span className="text-2xl sm:text-3xl font-bold text-brand-400 group-hover:text-brand-300 transition-colors">
-            {formatPrice(priceCents)}
-          </span>
-          <span className="text-xs font-semibold text-surface-400 px-2 py-1 rounded-md bg-surface-700/50 flex items-center gap-1.5">
-            <ShoppingCart className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-            Hardback
-          </span>
+          <ShoppingCart className="w-4 h-4 mr-2" />
+          Buy Hardback — {formatPrice(priceCents)}
         </button>
       )}
       {hasPaperback(bookFormat) && paperbackPriceCents && (
         <button
           onClick={() => handleBuy('paperback')}
-          className="group flex items-center gap-2 px-4 py-2.5 rounded-xl
-                     bg-surface-800/80 border border-surface-700 hover:border-brand-500/50
-                     hover:bg-brand-600/10 transition-all duration-200 cursor-pointer"
+          className="btn-primary text-base py-3 px-6"
         >
-          <span className="text-2xl sm:text-3xl font-bold text-brand-400 group-hover:text-brand-300 transition-colors">
-            {formatPrice(paperbackPriceCents)}
-          </span>
-          <span className="text-xs font-semibold text-surface-400 px-2 py-1 rounded-md bg-surface-700/50 flex items-center gap-1.5">
-            <ShoppingCart className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-            Paperback
-          </span>
+          <ShoppingCart className="w-4 h-4 mr-2" />
+          Buy Paperback — {formatPrice(paperbackPriceCents)}
         </button>
       )}
       {hasDigital(bookFormat) && (
         <button
           onClick={() => handleBuy('digital')}
-          className="group flex items-center gap-2 px-4 py-2.5 rounded-xl
-                     bg-surface-800/80 border border-surface-700 hover:border-brand-500/50
-                     hover:bg-brand-600/10 transition-all duration-200 cursor-pointer"
+          className="btn-primary text-base py-3 px-6"
         >
-          <span className="text-2xl sm:text-3xl font-bold text-brand-400 group-hover:text-brand-300 transition-colors">
-            {formatPrice(digitalPriceCents || priceCents)}
-          </span>
-          <span className="text-xs font-semibold text-surface-400 px-2 py-1 rounded-md bg-surface-700/50 flex items-center gap-1.5">
-            <ShoppingCart className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-            Digital
-          </span>
+          <ShoppingCart className="w-4 h-4 mr-2" />
+          Buy Digital — {formatPrice(digitalPriceCents || priceCents)}
         </button>
       )}
     </div>

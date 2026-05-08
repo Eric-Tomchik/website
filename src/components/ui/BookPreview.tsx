@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Eye, X, Download, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, BookOpen } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Eye, X, Download, BookOpen } from 'lucide-react';
 
 interface BookPreviewProps {
   previewUrl: string;
@@ -47,6 +47,21 @@ function PreviewModal({
   bookTitle,
   onClose,
 }: BookPreviewProps & { onClose: () => void }) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Lock body scroll and detect mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);
+    };
+    checkMobile();
+
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
   return (
     <div
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in"
@@ -54,17 +69,17 @@ function PreviewModal({
     >
       <div className="relative w-full h-full max-w-5xl max-h-[92vh] mx-4 my-4 flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3 bg-surface-900/95 backdrop-blur border border-surface-700/50 rounded-t-xl">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-brand-600/20 border border-brand-600/30 flex items-center justify-center">
+        <div className="flex items-center justify-between px-4 sm:px-5 py-3 bg-surface-900/95 backdrop-blur border border-surface-700/50 rounded-t-xl shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-brand-600/20 border border-brand-600/30 flex items-center justify-center shrink-0">
               <BookOpen className="w-4 h-4 text-brand-400" />
             </div>
-            <div>
-              <h3 className="text-sm font-bold text-white leading-tight">{bookTitle}</h3>
+            <div className="min-w-0">
+              <h3 className="text-sm font-bold text-white leading-tight truncate">{bookTitle}</h3>
               <p className="text-xs text-surface-400">Sample Preview</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <a
               href={previewUrl}
               download
@@ -84,14 +99,70 @@ function PreviewModal({
         </div>
 
         {/* PDF Viewer */}
-        <div className="flex-1 bg-surface-800 border-x border-b border-surface-700/50 rounded-b-xl overflow-hidden">
-          <iframe
-            src={`${previewUrl}#toolbar=1&navpanes=0&view=FitH`}
-            className="w-full h-full"
-            title={`Preview of ${bookTitle}`}
-            style={{ border: 'none' }}
-          />
+        <div
+          className="flex-1 bg-surface-800 border-x border-b border-surface-700/50 rounded-b-xl overflow-hidden"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
+          {isMobile ? (
+            /* Mobile: use object tag inside a scrollable container for better touch scrolling */
+            <div
+              className="w-full h-full overflow-auto"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
+              <object
+                data={`${previewUrl}#toolbar=1&navpanes=0&view=FitH`}
+                type="application/pdf"
+                className="w-full h-full"
+                title={`Preview of ${bookTitle}`}
+              >
+                {/* Fallback for browsers that can't render PDF inline */}
+                <div className="flex flex-col items-center justify-center h-full gap-6 p-8 text-center">
+                  <BookOpen className="w-16 h-16 text-surface-500" />
+                  <div>
+                    <p className="text-white font-semibold mb-2">
+                      PDF preview isn&apos;t available in this browser
+                    </p>
+                    <p className="text-surface-400 text-sm mb-6">
+                      Tap below to open the preview in a new tab
+                    </p>
+                  </div>
+                  <a
+                    href={previewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary py-3 px-8"
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    Open Preview
+                  </a>
+                </div>
+              </object>
+            </div>
+          ) : (
+            /* Desktop: iframe works great */
+            <iframe
+              src={`${previewUrl}#toolbar=1&navpanes=0&view=FitH`}
+              className="w-full h-full"
+              title={`Preview of ${bookTitle}`}
+              style={{ border: 'none' }}
+            />
+          )}
         </div>
+
+        {/* Mobile: always show a "Open in new tab" button at the bottom as a safety fallback */}
+        {isMobile && (
+          <div className="shrink-0 flex justify-center py-3">
+            <a
+              href={previewUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm text-brand-400 hover:text-brand-300 transition-colors"
+            >
+              <Eye className="w-4 h-4" />
+              Open in new tab for best viewing
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );
