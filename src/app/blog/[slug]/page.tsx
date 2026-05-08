@@ -4,6 +4,16 @@ import Image from 'next/image';
 import { fetchQuery } from 'convex/nextjs';
 import { api } from '../../../../convex/_generated/api';
 import { ArrowLeft, Clock, Calendar, PenLine } from 'lucide-react';
+import { marked, Renderer } from 'marked';
+
+// Configure marked to open external links in new tab
+const renderer = new Renderer();
+renderer.link = ({ href, text }: { href: string; text: string }) => {
+  const isExternal = href.startsWith('http');
+  const attrs = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
+  return `<a href="${href}"${attrs}>${text}</a>`;
+};
+marked.use({ renderer });
 
 export const revalidate = 60;
 
@@ -160,22 +170,15 @@ export default async function BlogPostPage({ params }: Props) {
         {/* Content */}
         <div className="max-w-3xl mx-auto">
           <div
-            className="prose-book text-surface-300 leading-relaxed space-y-4 text-base"
+            className="blog-content"
             dangerouslySetInnerHTML={{
-              __html: post.content
-                .split('\n')
-                .filter((p: string) => p.trim())
-                .map((paragraph: string) => {
-                  // Support basic markdown-like headings
-                  if (paragraph.startsWith('### '))
-                    return `<h3 class="text-xl font-bold text-white mt-8 mb-3">${paragraph.slice(4)}</h3>`;
-                  if (paragraph.startsWith('## '))
-                    return `<h2 class="text-2xl font-bold text-white mt-10 mb-4">${paragraph.slice(3)}</h2>`;
-                  if (paragraph.startsWith('# '))
-                    return `<h1 class="text-3xl font-bold text-white mt-10 mb-4">${paragraph.slice(2)}</h1>`;
-                  return `<p>${paragraph}</p>`;
-                })
-                .join(''),
+              __html: (() => {
+                // Strip leading h1 since we already render post.title above
+                let content = post.content;
+                const h1Match = content.match(/^# .+\n+/);
+                if (h1Match) content = content.slice(h1Match[0].length);
+                return marked.parse(content, { async: false }) as string;
+              })(),
             }}
           />
 

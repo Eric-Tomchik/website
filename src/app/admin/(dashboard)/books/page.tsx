@@ -106,7 +106,7 @@ export default function AdminBooksPage() {
         </div>
       ) : (
         <div className="card overflow-hidden">
-          <table className="w-full">
+          <div className="overflow-x-auto"><table className="w-full">
             <thead className="bg-surface-800/50">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-surface-400 uppercase">Title</th>
@@ -173,7 +173,7 @@ export default function AdminBooksPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       )}
     </div>

@@ -45,6 +45,7 @@ const config: Config = {
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.5s ease-out',
         'glow': 'glow 2s ease-in-out infinite alternate',
+        'slide-in-left': 'slideInLeft 0.25s ease-out',
       },
       keyframes: {
         fadeIn: {
@@ -58,6 +59,10 @@ const config: Config = {
         glow: {
           '0%': { boxShadow: '0 0 20px rgba(59, 130, 246, 0.1)' },
           '100%': { boxShadow: '0 0 30px rgba(59, 130, 246, 0.3)' },
+        },
+        slideInLeft: {
+          '0%': { opacity: '0', transform: 'translateX(-100%)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
         },
       },
     },

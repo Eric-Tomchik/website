@@ -181,7 +181,7 @@ export default function AIContractGeneratorPage() {
             {/* Document Type */}
             <div>
               <label className="text-xs font-medium text-surface-400 mb-2 block">Document Type</label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {DOC_TYPES.map((t) => (
                   <button
                     key={t.id}

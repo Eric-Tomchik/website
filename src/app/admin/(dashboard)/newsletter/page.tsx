@@ -128,7 +128,7 @@ export default function NewsletterPage() {
 
       {/* Table */}
       <div className="card p-0 overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto"><table className="w-full text-sm">
           <thead>
             <tr className="border-b border-surface-700 bg-surface-900/40">
               <th className="text-left py-3 px-4 text-surface-400 font-semibold">Email</th>
@@ -193,7 +193,7 @@ export default function NewsletterPage() {
               </tr>
             )}
           </tbody>
-        </table>
+        </table></div>
       </div>
 
       {/* Add Modal */}

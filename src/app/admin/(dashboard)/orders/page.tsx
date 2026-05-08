@@ -33,7 +33,7 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: 'Paid', count: orders.filter((o) => o.status === 'paid').length, color: 'text-green-400' },
           { label: 'Shipped', count: orders.filter((o) => o.status === 'shipped').length, color: 'text-blue-400' },

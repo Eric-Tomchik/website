@@ -14,7 +14,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="min-h-screen flex">
       <AdminSidebar />
-      <div className="flex-1 p-8">{children}</div>
+      {/* pt-14 on mobile for the fixed top bar, lg:pt-0 on desktop where sidebar is inline */}
+      <main className="flex-1 pt-14 lg:pt-0 min-w-0">
+        <div className="p-4 sm:p-6 lg:p-8">{children}</div>
+      </main>
     </div>
   );
 }

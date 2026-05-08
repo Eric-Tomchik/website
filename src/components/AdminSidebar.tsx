@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useQuery } from 'convex/react';
@@ -29,6 +30,8 @@ import {
   Zap,
   ScrollText,
   Target,
+  Menu,
+  X,
 } from 'lucide-react';
 
 interface NavItem {
@@ -106,6 +109,8 @@ function useSafeQuery<T>(queryFn: any, fallback: T): T {
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   const unreadMessages = useSafeQuery(api.contacts.unreadCount, 0);
   const newOrders = useSafeQuery(api.orders.newCount, 0);
   const ticketCounts = useSafeQuery(api.tickets.counts, { total: 0, open: 0, in_progress: 0, waiting: 0, resolved: 0 });
@@ -120,19 +125,46 @@ export default function AdminSidebar() {
     notifications: unreadNotifications,
   };
 
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  // Prevent body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileOpen]);
+
   const isActive = (href: string) => {
     if (href === '/admin') return pathname === '/admin';
     return pathname.startsWith(href);
   };
 
-  return (
-    <aside className="w-64 glass border-r border-surface-800/50 flex flex-col overflow-y-auto">
-      <div className="p-6 border-b border-surface-800/50">
-        <h2 className="text-lg font-bold text-white">Admin Panel</h2>
-        <p className="text-xs text-surface-400 mt-1">Eric Tomchik</p>
+  const totalBadges = Object.values(badges).reduce((a, b) => a + b, 0);
+
+  const sidebarContent = (
+    <>
+      <div className="p-5 border-b border-surface-800/50 flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold text-white">Admin Panel</h2>
+          <p className="text-xs text-surface-400 mt-0.5">Eric Tomchik</p>
+        </div>
+        {/* Close button — mobile only */}
+        <button
+          onClick={() => setMobileOpen(false)}
+          className="lg:hidden p-2 -mr-2 rounded-lg text-surface-400 hover:text-white hover:bg-surface-800/60 transition-colors"
+          aria-label="Close sidebar"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
-      <nav className="flex-1 p-3 space-y-4">
+      <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
         {navSections.map((section) => (
           <div key={section.label}>
             <p className="text-xs font-semibold text-surface-500 uppercase tracking-wider px-3 mb-1.5">
@@ -147,6 +179,7 @@ export default function AdminSidebar() {
                   <Link
                     key={item.href}
                     href={item.href}
+                    onClick={() => setMobileOpen(false)}
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
                                transition-all relative ${
                                  active
@@ -188,6 +221,48 @@ export default function AdminSidebar() {
           </button>
         </form>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile top bar */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 glass border-b border-surface-800/50
+                      flex items-center justify-between px-4 backdrop-blur-xl">
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="p-2 -ml-2 rounded-lg text-surface-300 hover:text-white hover:bg-surface-800/60 transition-colors"
+          aria-label="Open menu"
+        >
+          <Menu className="w-5 h-5" />
+          {totalBadges > 0 && (
+            <span className="absolute top-1.5 left-5 w-2 h-2 rounded-full bg-red-500" />
+          )}
+        </button>
+        <h1 className="text-sm font-bold text-white">Admin Panel</h1>
+        <div className="w-9" /> {/* Spacer for centering */}
+      </div>
+
+      {/* Mobile sidebar overlay */}
+      {mobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+          onClick={() => setMobileOpen(false)}
+        >
+          <aside
+            className="absolute left-0 top-0 bottom-0 w-72 max-w-[85vw] glass border-r border-surface-800/50
+                       flex flex-col shadow-2xl animate-slide-in-left"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {sidebarContent}
+          </aside>
+        </div>
+      )}
+
+      {/* Desktop sidebar — hidden on mobile */}
+      <aside className="hidden lg:flex w-64 glass border-r border-surface-800/50 flex-col overflow-y-auto flex-shrink-0">
+        {sidebarContent}
+      </aside>
+    </>
   );
 }

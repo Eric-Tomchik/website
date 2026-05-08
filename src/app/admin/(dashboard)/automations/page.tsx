@@ -140,7 +140,7 @@ export default function AutomationsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="card p-4 flex items-center gap-3">
           <CheckCircle2 className="w-5 h-5 text-green-400" />
           <div>

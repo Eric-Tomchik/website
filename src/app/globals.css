@@ -100,6 +100,91 @@
   .prose-book h1, .prose-book h2, .prose-book h3 {
     @apply text-white font-bold mt-4 mb-2;
   }
+
+  /* Blog content — full markdown rendering */
+  .blog-content {
+    @apply text-surface-300 leading-relaxed text-base;
+  }
+
+  .blog-content h1 {
+    @apply text-3xl font-extrabold text-white mt-10 mb-4;
+  }
+
+  .blog-content h2 {
+    @apply text-2xl font-bold text-white mt-10 mb-4;
+  }
+
+  .blog-content h3 {
+    @apply text-xl font-bold text-white mt-8 mb-3;
+  }
+
+  .blog-content h4 {
+    @apply text-lg font-semibold text-white mt-6 mb-2;
+  }
+
+  .blog-content p {
+    @apply mb-4 leading-relaxed;
+  }
+
+  .blog-content strong,
+  .blog-content b {
+    @apply text-white font-semibold;
+  }
+
+  .blog-content em,
+  .blog-content i {
+    @apply italic text-surface-200;
+  }
+
+  .blog-content a {
+    @apply text-brand-400 hover:text-brand-300 underline underline-offset-2 transition-colors;
+  }
+
+  .blog-content ul {
+    @apply list-disc pl-6 space-y-2 mb-4;
+  }
+
+  .blog-content ol {
+    @apply list-decimal pl-6 space-y-2 mb-4;
+  }
+
+  .blog-content li {
+    @apply leading-relaxed;
+  }
+
+  .blog-content li > ul,
+  .blog-content li > ol {
+    @apply mt-2 mb-0;
+  }
+
+  .blog-content blockquote {
+    @apply border-l-4 border-brand-500/40 pl-4 py-1 my-6 text-surface-300 italic bg-surface-800/30 rounded-r-lg pr-4;
+  }
+
+  .blog-content code {
+    @apply text-sm bg-surface-800 text-brand-300 px-1.5 py-0.5 rounded;
+  }
+
+  .blog-content pre {
+    @apply bg-surface-800 rounded-xl p-4 overflow-x-auto my-6 border border-surface-700;
+  }
+
+  .blog-content pre code {
+    @apply bg-transparent p-0;
+  }
+
+  .blog-content hr {
+    @apply border-surface-700 my-8;
+  }
+
+  .blog-content img {
+    @apply rounded-xl my-6 max-w-full;
+  }
+
+  /* Remove top margin from first heading if it's the post title duplicate */
+  .blog-content > h1:first-child {
+    @apply mt-0;
+  }
 }
 
 /* ── Animations ────────────────────────────────────────── */
@@ -235,6 +320,41 @@ html:not(.dark) .prose-book a {
 }
 html:not(.dark) .prose-book a:hover {
   color: #3b82f6;
+}
+
+html:not(.dark) .blog-content {
+  color: #475569;
+}
+html:not(.dark) .blog-content h1,
+html:not(.dark) .blog-content h2,
+html:not(.dark) .blog-content h3,
+html:not(.dark) .blog-content h4 {
+  color: #0f172a;
+}
+html:not(.dark) .blog-content strong,
+html:not(.dark) .blog-content b {
+  color: #0f172a;
+}
+html:not(.dark) .blog-content em {
+  color: #334155;
+}
+html:not(.dark) .blog-content a {
+  color: #2563eb;
+}
+html:not(.dark) .blog-content a:hover {
+  color: #3b82f6;
+}
+html:not(.dark) .blog-content blockquote {
+  background: rgba(241, 245, 249, 0.5);
+  color: #475569;
+}
+html:not(.dark) .blog-content code {
+  background: #f1f5f9;
+  color: #2563eb;
+}
+html:not(.dark) .blog-content pre {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
 }
 
 /* ── Light mode: surface color overrides ───────────────── */

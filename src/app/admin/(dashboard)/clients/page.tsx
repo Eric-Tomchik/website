@@ -136,7 +136,7 @@ function ClientDetail({ clientId, onBack }: { clientId: Id<'clients'>; onBack: (
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="card p-4 text-center">
           <div className="text-2xl font-bold text-white">{projects.length}</div>
           <div className="text-xs text-surface-400">Projects</div>

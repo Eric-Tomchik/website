@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { fetchQuery } from 'convex/nextjs';
 import { api } from '../../../../convex/_generated/api';
 import { BookOpen, ArrowLeft, ShoppingCart, ExternalLink } from 'lucide-react';
+import { PriceButtons } from './PriceButtons';
 import { formatPrice, hasHardback, hasPaperback, hasDigital } from '@/lib/utils';
 import { BookDetailActions } from './BookDetailActions';
 import { BookPreviewButton } from '@/components/ui/BookPreview';
@@ -163,39 +164,18 @@ export default async function BookDetailPage({ params }: Props) {
               <p className="text-lg text-surface-300">by Eric Tomchik</p>
             </div>
 
-            {/* Price & Format */}
-            <div className="flex flex-wrap items-center gap-4">
-              {hasHardback(book.book_format) && (
-                <div className="flex items-center gap-2">
-                  <span className="text-3xl font-bold text-brand-400">
-                    {formatPrice(book.price_cents)}
-                  </span>
-                  <span className="text-sm text-surface-400 px-3 py-1.5 rounded-lg bg-surface-800 border border-surface-700">
-                    Hardback
-                  </span>
-                </div>
-              )}
-              {hasPaperback(book.book_format) && book.paperback_price_cents && (
-                <div className="flex items-center gap-2">
-                  <span className="text-3xl font-bold text-brand-400">
-                    {formatPrice(book.paperback_price_cents)}
-                  </span>
-                  <span className="text-sm text-surface-400 px-3 py-1.5 rounded-lg bg-surface-800 border border-surface-700">
-                    Paperback
-                  </span>
-                </div>
-              )}
-              {hasDigital(book.book_format) && (
-                <div className="flex items-center gap-2">
-                  <span className="text-3xl font-bold text-brand-400">
-                    {formatPrice(book.digital_price_cents || book.price_cents)}
-                  </span>
-                  <span className="text-sm text-surface-400 px-3 py-1.5 rounded-lg bg-surface-800 border border-surface-700">
-                    Digital
-                  </span>
-                </div>
-              )}
-            </div>
+            {/* Price & Buy CTAs */}
+            <PriceButtons
+              bookId={book._id}
+              bookTitle={book.title}
+              bookDescription={book.description}
+              bookFormat={book.book_format}
+              priceCents={book.price_cents}
+              paperbackPriceCents={book.paperback_price_cents}
+              digitalPriceCents={book.digital_price_cents}
+              coverImageUrl={book.cover_image_url}
+              amazonUrl={book.amazon_url}
+            />
 
             {/* Look Inside Preview */}
             {book.preview_pdf_url && (
