@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { fetchQuery } from 'convex/nextjs';
 import { api } from '../../convex/_generated/api';
 import { BookCard } from '@/components/ui/BookCard';
-import { ArrowRight, BookOpen, Code2, Sparkles, Link2 } from 'lucide-react';
+import { ArrowRight, BookOpen, Code2, Sparkles, Link2, Globe, Coffee } from 'lucide-react';
 
 // Revalidate every 60s — pages are cached and served instantly from edge
 export const revalidate = 60;
@@ -18,12 +18,12 @@ export default async function HomePage() {
       {/* Hero */}
       <section className="relative overflow-hidden py-24 sm:py-32">
         <div className="absolute inset-0 bg-gradient-to-b from-brand-950/20 via-transparent to-transparent" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-brand-600/5 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-brand-600/5 rounded-full blur-3xl animate-hero-glow" />
 
         <div className="section-container relative">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-sm text-brand-400">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-sm text-brand-400 animate-fade-in">
                 <Sparkles className="w-4 h-4" />
                 Author · Web Developer · Creator
               </div>
@@ -33,9 +33,10 @@ export default async function HomePage() {
                 <span className="gradient-text">Eric Tomchik</span>
               </h1>
 
-              <p className="text-lg sm:text-xl text-surface-300 leading-relaxed max-w-xl">
-                I write books that help businesses leverage technology, and I build
-                modern websites that turn visitors into customers.
+              <p className="text-lg sm:text-xl text-surface-300 leading-relaxed max-w-xl animate-slide-up">
+                I write the guides business owners actually need — from
+                cybersecurity to business credit to AI — and I build the
+                websites that grow their companies.
               </p>
 
               <div className="flex flex-wrap gap-4">
@@ -51,9 +52,9 @@ export default async function HomePage() {
             </div>
 
             <div className="hidden lg:flex justify-center">
-              <div className="relative">
-                <div className="absolute -inset-4 bg-gradient-to-r from-brand-500/20 to-brand-700/20 rounded-2xl blur-2xl" />
-                <div className="relative w-80 h-96 rounded-2xl overflow-hidden border-2 border-surface-800 shadow-2xl">
+              <div className="relative group">
+                <div className="absolute -inset-4 bg-gradient-to-r from-brand-500/20 to-brand-700/20 rounded-2xl blur-2xl transition-all duration-700 group-hover:from-brand-500/30 group-hover:to-brand-700/30" />
+                <div className="relative w-80 h-96 rounded-2xl overflow-hidden border-2 border-surface-800 shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
                   <Image
                     src="/images/eric-profile.png"
                     alt="Eric Tomchik — Author and Web Developer"
@@ -69,9 +70,49 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Credibility bar */}
+      <section className="border-t border-b border-surface-800/50 bg-surface-900/30">
+        <div className="section-container py-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+            {[
+              {
+                icon: BookOpen,
+                stat: `${(books || []).length || '4'}+`,
+                label: 'Books Published',
+              },
+              {
+                icon: Globe,
+                stat: '9',
+                label: 'Websites Built',
+              },
+              {
+                icon: Code2,
+                stat: '100%',
+                label: 'Custom Code',
+              },
+              {
+                icon: Coffee,
+                stat: '∞',
+                label: 'Cups of Coffee',
+              },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center gap-3 justify-center">
+                <div className="w-10 h-10 rounded-lg bg-brand-600/10 border border-brand-600/20 flex items-center justify-center flex-shrink-0">
+                  <item.icon className="w-5 h-5 text-brand-400" />
+                </div>
+                <div>
+                  <div className="text-xl font-bold text-white">{item.stat}</div>
+                  <div className="text-xs text-surface-400">{item.label}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Featured books */}
       {displayBooks.length > 0 && (
-        <section className="py-20 border-t border-surface-800/50">
+        <section className="py-20">
           <div className="section-container">
             <div className="flex items-end justify-between mb-10">
               <div>
@@ -121,7 +162,7 @@ export default async function HomePage() {
                 icon: Link2,
                 title: 'Connect',
                 description: 'Find me on social media and get in touch.',
-                href: '/links',
+                href: '/contact',
               },
             ].map((item) => (
               <Link key={item.title} href={item.href} className="card p-8 group">
