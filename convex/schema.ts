@@ -370,6 +370,38 @@ export default defineSchema({
   })
     .index("by_type_period", ["type", "period"]),
 
+  // === Blog ===
+  blog_posts: defineTable({
+    title: v.string(),
+    slug: v.string(),
+    excerpt: v.string(),
+    content: v.string(), // Markdown or HTML
+    cover_image_url: v.optional(v.string()),
+    category: v.union(
+      v.literal("business-credit"),
+      v.literal("web-development"),
+      v.literal("technology"),
+      v.literal("cybersecurity"),
+      v.literal("ai"),
+      v.literal("general")
+    ),
+    tags: v.array(v.string()),
+    is_published: v.boolean(),
+    published_at: v.optional(v.number()),
+    reading_time_minutes: v.optional(v.number()),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_published", ["is_published"])
+    .index("by_category", ["category"]),
+
+  // === Newsletter ===
+  newsletter_subscribers: defineTable({
+    email: v.string(),
+    subscribed_at: v.number(),
+    is_active: v.boolean(),
+  })
+    .index("by_email", ["email"]),
+
   portfolio_projects: defineTable({
     title: v.string(),
     slug: v.string(),

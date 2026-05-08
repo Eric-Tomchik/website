@@ -26,6 +26,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
+      url: `${baseUrl}/resources`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
       url: `${baseUrl}/portfolio`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -36,6 +48,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/faq`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.6,
     },
     {
       url: `${baseUrl}/contact`,
@@ -77,5 +95,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Fail gracefully — sitemap should still work without Convex
   }
 
-  return [...staticPages, ...bookPages];
+  // Dynamic blog post pages
+  let blogPages: MetadataRoute.Sitemap = [];
+  try {
+    const posts = await fetchQuery(api.blogPosts.listPublished, {});
+    blogPages = (posts || []).map((post) => ({
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: post.published_at ? new Date(post.published_at) : new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }));
+  } catch {
+    // Fail gracefully
+  }
+
+  return [...staticPages, ...bookPages, ...blogPages];
 }

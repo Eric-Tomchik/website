@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Facebook, Linkedin, Instagram, Twitter } from 'lucide-react';
+import { NewsletterForm } from './NewsletterForm';
 
 const socialLinks = [
   { icon: Facebook, href: 'https://www.facebook.com/profile.php?id=61589407526718', label: 'Facebook' },
@@ -13,7 +14,8 @@ const footerLinks = [
     title: 'ArcLight Press',
     links: [
       { label: 'All Books', href: '/books' },
-      { label: 'Hardcover Editions', href: '/books?book_format=physical' },
+      { label: 'Resources', href: '/resources' },
+      { label: 'Blog', href: '/blog' },
     ],
   },
   {
@@ -30,13 +32,32 @@ const footerLinks = [
     links: [
       { label: 'About Me', href: '/about' },
       { label: 'Contact', href: '/contact' },
+      { label: 'FAQ', href: '/faq' },
     ],
   },
 ];
 
 export function Footer() {
   return (
-    <footer className="border-t border-surface-800/50 bg-surface-950/80">
+    <footer className="border-t border-surface-800/50 bg-surface-950/80 dark:bg-surface-950/80">
+      {/* Newsletter section */}
+      <div className="border-b border-surface-800/50">
+        <div className="section-container py-10">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="text-center md:text-left">
+              <h3 className="text-lg font-bold text-white dark:text-white">
+                Stay in the loop
+              </h3>
+              <p className="text-sm text-surface-400 mt-1">
+                Get notified when new books drop and receive occasional insights on
+                business credit, tech, and web development.
+              </p>
+            </div>
+            <NewsletterForm />
+          </div>
+        </div>
+      </div>
+
       <div className="section-container py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">

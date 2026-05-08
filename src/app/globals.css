@@ -5,6 +5,7 @@
 /* Font loading handled by next/font/google in layout.tsx — no @import needed */
 
 @layer base {
+  /* ── Dark mode (default) ─────────────────────────────── */
   body {
     @apply bg-surface-950 text-surface-100 antialiased;
   }
@@ -28,6 +29,7 @@
 }
 
 @layer components {
+  /* ── Shared (dark default) ───────────────────────────── */
   .glass {
     @apply bg-surface-900/60 backdrop-blur-xl border border-surface-800/50;
   }
@@ -100,7 +102,7 @@
   }
 }
 
-/* Checkout dialog animations */
+/* ── Animations ────────────────────────────────────────── */
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -111,12 +113,21 @@
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
+@keyframes hero-glow {
+  0%, 100% { opacity: 0.4; transform: translate(-50%, 0) scale(1); }
+  50% { opacity: 0.7; transform: translate(-50%, 0) scale(1.1); }
+}
+
 .animate-fade-in {
-  animation: fade-in 0.2s ease-out;
+  animation: fade-in 0.5s ease-in-out;
 }
 
 .animate-scale-in {
   animation: scale-in 0.3s ease-out;
+}
+
+.animate-hero-glow {
+  animation: hero-glow 6s ease-in-out infinite;
 }
 
 /* Stripe embedded checkout styling */
@@ -126,4 +137,256 @@
 
 .stripe-embed-container iframe {
   border-radius: 0.5rem;
+}
+
+/* ── Light mode overrides ──────────────────────────────── */
+/* Using plain CSS selectors (not nesting) for Tailwind compat */
+
+html:not(.dark) {
+  color-scheme: light;
+}
+
+html:not(.dark) body {
+  background-color: #f8fafc; /* slate-50 */
+  color: #0f172a; /* slate-900 */
+}
+
+html:not(.dark) ::selection {
+  background-color: rgba(191, 219, 254, 0.6);
+  color: #1e3a8a;
+}
+
+html:not(.dark) ::-webkit-scrollbar-track {
+  background-color: #f1f5f9;
+}
+html:not(.dark) ::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+}
+html:not(.dark) ::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+
+/* Glass / card overrides */
+html:not(.dark) .glass {
+  background-color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(226, 232, 240, 0.8);
+}
+
+html:not(.dark) .glass-hover:hover {
+  background-color: rgba(248, 250, 252, 0.95);
+  border-color: rgba(203, 213, 225, 0.8);
+}
+
+html:not(.dark) .card {
+  background-color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(226, 232, 240, 0.8);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+html:not(.dark) .card:hover {
+  background-color: white;
+  border-color: rgba(203, 213, 225, 0.8);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Button overrides */
+html:not(.dark) .btn-secondary {
+  background-color: rgba(241, 245, 249, 0.9);
+  border-color: #e2e8f0;
+  color: #334155;
+}
+html:not(.dark) .btn-secondary:hover {
+  background-color: rgba(226, 232, 240, 0.9);
+  border-color: #cbd5e1;
+}
+
+/* btn-primary stays blue in both modes — no override needed */
+
+/* Gradient text in light mode */
+html:not(.dark) .gradient-text {
+  --tw-gradient-from: #2563eb;
+  --tw-gradient-to: #1d4ed8;
+}
+
+html:not(.dark) .gradient-border {
+  background-image: linear-gradient(white, white),
+                    linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+/* Prose overrides */
+html:not(.dark) .prose-book b,
+html:not(.dark) .prose-book strong {
+  color: #0f172a;
+}
+
+html:not(.dark) .prose-book i,
+html:not(.dark) .prose-book em {
+  color: #334155;
+}
+
+html:not(.dark) .prose-book h1,
+html:not(.dark) .prose-book h2,
+html:not(.dark) .prose-book h3 {
+  color: #0f172a;
+}
+
+html:not(.dark) .prose-book a {
+  color: #2563eb;
+}
+html:not(.dark) .prose-book a:hover {
+  color: #3b82f6;
+}
+
+/* ── Light mode: surface color overrides ───────────────── */
+/* Text colors */
+html:not(.dark) .text-white {
+  color: #0f172a;
+}
+html:not(.dark) .text-surface-100 {
+  color: #1e293b;
+}
+html:not(.dark) .text-surface-200 {
+  color: #334155;
+}
+html:not(.dark) .text-surface-300 {
+  color: #475569;
+}
+html:not(.dark) .text-surface-400 {
+  color: #64748b;
+}
+html:not(.dark) .text-surface-500 {
+  color: #94a3b8;
+}
+
+/* Hover text */
+html:not(.dark) .hover\:text-white:hover {
+  color: #0f172a;
+}
+html:not(.dark) .hover\:text-surface-300:hover {
+  color: #475569;
+}
+
+/* Brand text stays vibrant */
+html:not(.dark) .text-brand-400 {
+  color: #2563eb;
+}
+html:not(.dark) .text-brand-100 {
+  color: #dbeafe;
+}
+html:not(.dark) .text-brand-200 {
+  color: #bfdbfe;
+}
+html:not(.dark) .hover\:text-brand-400:hover {
+  color: #2563eb;
+}
+html:not(.dark) .hover\:text-brand-300:hover {
+  color: #3b82f6;
+}
+
+/* Background overrides */
+html:not(.dark) .bg-surface-950 {
+  background-color: #f8fafc;
+}
+html:not(.dark) .bg-surface-950\/80 {
+  background-color: rgba(248, 250, 252, 0.8);
+}
+html:not(.dark) .bg-surface-900 {
+  background-color: #f1f5f9;
+}
+html:not(.dark) .bg-surface-900\/60 {
+  background-color: rgba(255, 255, 255, 0.85);
+}
+html:not(.dark) .bg-surface-900\/30 {
+  background-color: rgba(241, 245, 249, 0.5);
+}
+html:not(.dark) .bg-surface-800 {
+  background-color: #e2e8f0;
+}
+html:not(.dark) .bg-surface-800\/60 {
+  background-color: rgba(226, 232, 240, 0.6);
+}
+html:not(.dark) .bg-surface-800\/40 {
+  background-color: rgba(226, 232, 240, 0.4);
+}
+
+/* Hover backgrounds */
+html:not(.dark) .hover\:bg-surface-800:hover {
+  background-color: #e2e8f0;
+}
+html:not(.dark) .hover\:bg-surface-800\/60:hover {
+  background-color: rgba(226, 232, 240, 0.6);
+}
+html:not(.dark) .hover\:bg-surface-800\/70:hover {
+  background-color: rgba(226, 232, 240, 0.7);
+}
+html:not(.dark) .hover\:bg-brand-600:hover {
+  background-color: #2563eb;
+}
+
+/* Border overrides */
+html:not(.dark) .border-surface-800\/50 {
+  border-color: rgba(226, 232, 240, 0.7);
+}
+html:not(.dark) .border-surface-800 {
+  border-color: #e2e8f0;
+}
+html:not(.dark) .border-surface-700 {
+  border-color: #cbd5e1;
+}
+html:not(.dark) .border-surface-700\/60 {
+  border-color: rgba(203, 213, 225, 0.6);
+}
+
+/* Brand backgrounds */
+html:not(.dark) .bg-brand-600\/10 {
+  background-color: rgba(37, 99, 235, 0.08);
+}
+html:not(.dark) .bg-brand-600\/20 {
+  background-color: rgba(37, 99, 235, 0.12);
+}
+html:not(.dark) .border-brand-600\/20 {
+  border-color: rgba(37, 99, 235, 0.2);
+}
+html:not(.dark) .border-brand-600\/30 {
+  border-color: rgba(37, 99, 235, 0.25);
+}
+
+/* Gradient overrides */
+html:not(.dark) .from-brand-950\/20 {
+  --tw-gradient-from: rgba(23, 37, 84, 0.05);
+}
+html:not(.dark) .from-brand-500\/20 {
+  --tw-gradient-from: rgba(59, 130, 246, 0.1);
+}
+html:not(.dark) .to-brand-700\/20 {
+  --tw-gradient-to: rgba(29, 78, 216, 0.1);
+}
+html:not(.dark) .from-brand-500\/30 {
+  --tw-gradient-from: rgba(59, 130, 246, 0.15);
+}
+html:not(.dark) .to-brand-700\/30 {
+  --tw-gradient-to: rgba(29, 78, 216, 0.15);
+}
+html:not(.dark) .from-brand-600 {
+  --tw-gradient-from: #2563eb;
+}
+html:not(.dark) .to-brand-700 {
+  --tw-gradient-to: #1d4ed8;
+}
+
+/* Placeholder text */
+html:not(.dark) .placeholder\:text-surface-500::placeholder {
+  color: #94a3b8;
+}
+
+/* Ring / focus */
+html:not(.dark) .focus\:ring-brand-500:focus {
+  --tw-ring-color: rgba(37, 99, 235, 0.5);
+}
+
+/* Announcement banner keeps its gradient — no override needed */
+
+/* Keep social icon hover behavior in footer */
+html:not(.dark) a:hover .text-surface-300 {
+  color: white;
 }

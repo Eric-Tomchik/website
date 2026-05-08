@@ -5,12 +5,14 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { Menu, X, BookOpen, LogIn } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from './ThemeToggle';
 
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/books', label: 'ArcLight Press' },
   { href: '/services', label: 'Services' },
   { href: '/portfolio', label: 'Portfolio' },
+  { href: '/resources', label: 'Resources' },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
 ];
@@ -50,7 +52,7 @@ export function Navbar() {
               />
             </Link>
 
-            <div className="hidden md:flex items-center gap-1">
+            <div className="hidden lg:flex items-center gap-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
@@ -64,7 +66,8 @@ export function Navbar() {
               ))}
             </div>
 
-            <div className="hidden md:flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-2">
+              <ThemeToggle />
               <Link
                 href="/portal"
                 className="px-3 py-2 rounded-lg text-sm font-medium text-surface-400
@@ -85,7 +88,7 @@ export function Navbar() {
 
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 rounded-lg text-surface-300 hover:text-white
+              className="lg:hidden p-2 rounded-lg text-surface-300 hover:text-white
                          hover:bg-surface-800 transition-colors
                          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
               aria-expanded={mobileOpen}
@@ -102,8 +105,8 @@ export function Navbar() {
           role="navigation"
           aria-label="Mobile navigation"
           className={cn(
-            'md:hidden overflow-hidden transition-all duration-300 border-t border-surface-800/50',
-            mobileOpen ? 'max-h-96' : 'max-h-0 border-t-0'
+            'lg:hidden overflow-hidden transition-all duration-300 border-t border-surface-800/50',
+            mobileOpen ? 'max-h-[500px]' : 'max-h-0 border-t-0'
           )}
         >
           <div className="section-container py-4 space-y-1">
@@ -129,6 +132,10 @@ export function Navbar() {
               <LogIn className="w-4 h-4" />
               Client Portal
             </Link>
+            <div className="flex items-center gap-3 px-3 py-2.5">
+              <ThemeToggle />
+              <span className="text-sm text-surface-400">Toggle theme</span>
+            </div>
             <Link
               href="/books"
               onClick={() => setMobileOpen(false)}

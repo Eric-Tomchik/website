@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as blogPosts from "../blogPosts.js";
 import type * as books from "../books.js";
 import type * as clientDocuments from "../clientDocuments.js";
 import type * as clients from "../clients.js";
@@ -15,6 +16,7 @@ import type * as contacts from "../contacts.js";
 import type * as discountCodes from "../discountCodes.js";
 import type * as downloadTokens from "../downloadTokens.js";
 import type * as milestones from "../milestones.js";
+import type * as newsletter from "../newsletter.js";
 import type * as orders from "../orders.js";
 import type * as portfolio from "../portfolio.js";
 import type * as projects from "../projects.js";
@@ -33,6 +35,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  blogPosts: typeof blogPosts;
   books: typeof books;
   clientDocuments: typeof clientDocuments;
   clients: typeof clients;
@@ -40,6 +43,7 @@ declare const fullApi: ApiFromModules<{
   discountCodes: typeof discountCodes;
   downloadTokens: typeof downloadTokens;
   milestones: typeof milestones;
+  newsletter: typeof newsletter;
   orders: typeof orders;
   portfolio: typeof portfolio;
   projects: typeof projects;

@@ -4,6 +4,7 @@ import Script from 'next/script';
 import './globals.css';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { AnnouncementBanner } from '@/components/layout/AnnouncementBanner';
 import ConvexClientProvider from './ConvexClientProvider';
 import { CheckoutProvider } from '@/components/checkout/CheckoutContext';
 import { CheckoutDrawer } from '@/components/checkout/CheckoutDrawer';
@@ -80,10 +81,23 @@ const organizationJsonLd = {
   },
 };
 
+// Inline script to apply theme before paint — prevents flash
+const themeScript = `
+  (function() {
+    try {
+      var theme = localStorage.getItem('theme');
+      if (theme === 'light') {
+        document.documentElement.classList.remove('dark');
+      }
+    } catch(e) {}
+  })();
+`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark">
       <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         {GA_ID && (
           <>
             <Script
@@ -108,6 +122,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <ConvexClientProvider>
           <CheckoutProvider>
+            <AnnouncementBanner />
             <Navbar />
             <main id="main-content" className="flex-1">{children}</main>
             <Footer />
