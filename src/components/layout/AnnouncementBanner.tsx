@@ -31,7 +31,7 @@ export function AnnouncementBanner() {
           <span className="text-brand-100">NEW BOOK</span>
           <span className="hidden sm:inline text-white/60">—</span>
           <Link
-            href="/books"
+            href="/books/credit-without-a-credit-score"
             className="underline underline-offset-2 decoration-brand-300 hover:decoration-white transition-colors"
           >
             Credit Without a Credit Score
@@ -40,7 +40,7 @@ export function AnnouncementBanner() {
             — The step-by-step guide to building business credit with just an EIN
           </span>
           <Link
-            href="/books"
+            href="/books/credit-without-a-credit-score"
             className="ml-2 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-xs font-semibold"
           >
             Get it now →
