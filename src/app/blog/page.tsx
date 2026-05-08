@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { fetchQuery } from 'convex/nextjs';
 import { api } from '../../../convex/_generated/api';
 import { PenLine, ArrowRight, Clock, Tag } from 'lucide-react';
+import { ScrollReveal } from '@/components/ui/ScrollReveal';
 
 export const metadata: Metadata = {
   title: 'Blog',
@@ -65,6 +66,7 @@ export default async function BlogPage() {
 
         {/* Posts grid */}
         {posts.length > 0 ? (
+          <ScrollReveal animation="fade-up">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {posts.map((post) => (
               <Link
@@ -121,6 +123,7 @@ export default async function BlogPage() {
               </Link>
             ))}
           </div>
+          </ScrollReveal>
         ) : (
           /* Empty state */
           <div className="text-center py-20">

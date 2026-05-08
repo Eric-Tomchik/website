@@ -10,6 +10,7 @@ import { ThemeToggle } from './ThemeToggle';
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/books', label: 'ArcLight Press' },
+  { href: '/blog', label: 'Blog' },
   { href: '/services', label: 'Services' },
   { href: '/portfolio', label: 'Portfolio' },
   { href: '/resources', label: 'Resources' },

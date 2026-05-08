@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { fetchQuery } from 'convex/nextjs';
 import { api } from '../../../convex/_generated/api';
 import { ArrowRight, Code2 } from 'lucide-react';
+import { ScrollReveal } from '@/components/ui/ScrollReveal';
 
 export const revalidate = 60;
 
@@ -177,8 +178,8 @@ export default async function PortfolioPage() {
         {/* Project Grid */}
         <div className="space-y-20">
           {projects.map((project, i) => (
+            <ScrollReveal key={project.title} animation={i % 2 === 0 ? 'fade-right' : 'fade-left'}>
             <div
-              key={project.title}
               className={`grid lg:grid-cols-2 gap-8 lg:gap-12 items-center ${
                 i % 2 === 1 ? 'lg:direction-rtl' : ''
               }`}
@@ -229,10 +230,12 @@ export default async function PortfolioPage() {
                 </div>
               </div>
             </div>
+            </ScrollReveal>
           ))}
         </div>
 
         {/* CTA */}
+        <ScrollReveal animation="scale">
         <div className="mt-24 text-center">
           <div className="card p-12 max-w-2xl mx-auto">
             <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
@@ -254,6 +257,7 @@ export default async function PortfolioPage() {
             </div>
           </div>
         </div>
+        </ScrollReveal>
       </div>
     </div>
     </>

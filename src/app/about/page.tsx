@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { BookOpen, Code2, ArrowRight, Coffee, Globe, Facebook, Linkedin, Instagram, Twitter, ExternalLink, Mail } from 'lucide-react';
+import { ScrollReveal } from '@/components/ui/ScrollReveal';
 
 export const metadata: Metadata = {
   title: 'About',
@@ -125,6 +126,7 @@ export default function AboutPage() {
             </div>
 
             {/* Stats */}
+            <ScrollReveal animation="fade-up">
             <div className="grid grid-cols-3 gap-4">
               {[
                 { icon: BookOpen, label: 'Published Books', value: '4' },
@@ -139,7 +141,10 @@ export default function AboutPage() {
               ))}
             </div>
 
+            </ScrollReveal>
+
             {/* Tech Stack */}
+            <ScrollReveal animation="fade-up" delay={100}>
             <div>
               <h2 className="text-xl font-bold text-white mb-4">Tech Stack</h2>
               <div className="flex flex-wrap gap-2">
@@ -159,6 +164,8 @@ export default function AboutPage() {
               </div>
             </div>
 
+            </ScrollReveal>
+
             {/* CTAs */}
             <div className="flex flex-wrap gap-4 pt-4">
               <Link href="/contact" className="btn-primary">
@@ -172,6 +179,7 @@ export default function AboutPage() {
             </div>
 
             {/* Follow Me — Social Links */}
+            <ScrollReveal animation="fade-up">
             <div className="pt-4 border-t border-surface-800">
               <h2 className="text-xl font-bold text-white mb-4">Follow Me</h2>
               <div className="space-y-3">
@@ -202,6 +210,7 @@ export default function AboutPage() {
                 ))}
               </div>
             </div>
+            </ScrollReveal>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { ServiceCard } from '@/components/ui/ServiceCard';
+import { ScrollReveal } from '@/components/ui/ScrollReveal';
 import { Code2, ArrowRight, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import type { ServicePlan } from '@/types';
@@ -100,13 +101,16 @@ export default function ServicesPage() {
         </div>
 
         {/* Service plans */}
+        <ScrollReveal animation="fade-up">
         <div className="grid md:grid-cols-3 gap-8 mb-20">
           {servicePlans.map((plan) => (
             <ServiceCard key={plan.id} plan={plan} />
           ))}
         </div>
+        </ScrollReveal>
 
         {/* Why work with me */}
+        <ScrollReveal animation="fade-up" delay={100}>
         <div className="glass rounded-2xl p-10">
           <h2 className="text-2xl font-bold text-white mb-8 text-center">
             Why Work With Me
@@ -128,7 +132,10 @@ export default function ServicesPage() {
           </div>
         </div>
 
+        </ScrollReveal>
+
         {/* CTA */}
+        <ScrollReveal animation="fade-up">
         <div className="text-center mt-16 space-y-4">
           <p className="text-surface-400">
             Not sure which plan is right for you? Let&apos;s talk about your project.
@@ -138,6 +145,7 @@ export default function ServicesPage() {
             <ArrowRight className="w-4 h-4 ml-2" />
           </Link>
         </div>
+        </ScrollReveal>
       </div>
     </div>
   );

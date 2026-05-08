@@ -16,6 +16,7 @@ const footerLinks = [
       { label: 'All Books', href: '/books' },
       { label: 'Resources', href: '/resources' },
       { label: 'Blog', href: '/blog' },
+      { label: 'Credit Checklist', href: '/credit-checklist' },
     ],
   },
   {

@@ -6,6 +6,8 @@ import { api } from '../../../../convex/_generated/api';
 import { BookOpen, ArrowLeft, ShoppingCart, ExternalLink } from 'lucide-react';
 import { formatPrice, hasHardback, hasPaperback, hasDigital } from '@/lib/utils';
 import { BookDetailActions } from './BookDetailActions';
+import { BookPreviewButton } from '@/components/ui/BookPreview';
+import { ScrollReveal } from '@/components/ui/ScrollReveal';
 
 // Revalidate every 60s — pages are cached and served instantly from edge
 export const revalidate = 60;
@@ -195,7 +197,18 @@ export default async function BookDetailPage({ params }: Props) {
               )}
             </div>
 
+            {/* Look Inside Preview */}
+            {book.preview_pdf_url && (
+              <div className="py-2">
+                <BookPreviewButton
+                  previewUrl={book.preview_pdf_url}
+                  bookTitle={book.title}
+                />
+              </div>
+            )}
+
             {/* Description */}
+            <ScrollReveal animation="fade-up">
             <div className="space-y-4">
               <h2 className="text-xl font-bold text-white">About This Book</h2>
               <div
@@ -209,6 +222,8 @@ export default async function BookDetailPage({ params }: Props) {
                 }}
               />
             </div>
+
+            </ScrollReveal>
 
             {/* Book metadata */}
             {(book.page_count || book.isbn || book.published_date) && (

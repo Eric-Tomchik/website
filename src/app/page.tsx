@@ -3,7 +3,8 @@ import Image from 'next/image';
 import { fetchQuery } from 'convex/nextjs';
 import { api } from '../../convex/_generated/api';
 import { BookCard } from '@/components/ui/BookCard';
-import { ArrowRight, BookOpen, Code2, Sparkles, Link2, Globe, Coffee } from 'lucide-react';
+import { ScrollReveal } from '@/components/ui/ScrollReveal';
+import { ArrowRight, BookOpen, Code2, Sparkles, Link2, Globe, Coffee, ClipboardCheck } from 'lucide-react';
 
 // Revalidate every 60s — pages are cached and served instantly from edge
 export const revalidate = 60;
@@ -71,6 +72,7 @@ export default async function HomePage() {
       </section>
 
       {/* Credibility bar */}
+      <ScrollReveal animation="fade" duration={800}>
       <section className="border-t border-b border-surface-800/50 bg-surface-900/30">
         <div className="section-container py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
@@ -109,9 +111,11 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      </ScrollReveal>
 
       {/* Featured books */}
       {displayBooks.length > 0 && (
+        <ScrollReveal animation="fade-up">
         <section className="py-20">
           <div className="section-container">
             <div className="flex items-end justify-between mb-10">
@@ -139,12 +143,14 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
+        </ScrollReveal>
       )}
 
       {/* Quick links */}
+      <ScrollReveal animation="fade-up" delay={100}>
       <section className="py-20 border-t border-surface-800/50">
         <div className="section-container">
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
                 icon: BookOpen,
@@ -157,6 +163,12 @@ export default async function HomePage() {
                 title: 'Web Services',
                 description: 'Custom websites and apps built with modern tech.',
                 href: '/services',
+              },
+              {
+                icon: ClipboardCheck,
+                title: 'Credit Checklist',
+                description: 'Free tool: Is your business ready to build credit?',
+                href: '/credit-checklist',
               },
               {
                 icon: Link2,
@@ -181,6 +193,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      </ScrollReveal>
     </>
   );
 }

@@ -2,6 +2,8 @@ import { Metadata } from 'next';
 import { fetchQuery } from 'convex/nextjs';
 import { api } from '../../../convex/_generated/api';
 import { BookCard } from '@/components/ui/BookCard';
+import { BookComparisonTable } from '@/components/ui/BookComparisonTable';
+import { ScrollReveal } from '@/components/ui/ScrollReveal';
 import { BookOpen } from 'lucide-react';
 
 // Revalidate every 60s — pages are cached and served instantly from edge
@@ -47,17 +49,24 @@ export default async function BooksPage({
 
         {/* Book grid */}
         {books && books.length > 0 ? (
+          <ScrollReveal animation="fade-up">
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
             {books.map((book) => (
               <BookCard key={book._id} book={book} />
             ))}
           </div>
+          </ScrollReveal>
         ) : (
           <div className="text-center py-20">
             <BookOpen className="w-12 h-12 text-surface-600 mx-auto mb-4" />
             <p className="text-surface-400">No books found. Check back soon!</p>
           </div>
         )}
+
+        {/* Book Comparison Table */}
+        <div className="mt-20">
+          <BookComparisonTable />
+        </div>
       </div>
     </div>
   );

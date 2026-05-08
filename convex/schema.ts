@@ -26,6 +26,7 @@ export default defineSchema({
     cover_image_url: v.optional(v.string()),
     amazon_url: v.optional(v.string()),
     barnes_noble_url: v.optional(v.string()),
+    preview_pdf_url: v.optional(v.string()),
     digital_file_url: v.optional(v.string()),
     digital_pdf_storage_id: v.optional(v.string()),
     digital_epub_storage_id: v.optional(v.string()),
