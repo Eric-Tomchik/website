@@ -8,21 +8,28 @@
  * @module
  */
 
+import type * as analytics from "../analytics.js";
+import type * as auditLog from "../auditLog.js";
 import type * as blogPosts from "../blogPosts.js";
 import type * as books from "../books.js";
 import type * as clientDocuments from "../clientDocuments.js";
 import type * as clients from "../clients.js";
 import type * as contacts from "../contacts.js";
+import type * as contentCalendar from "../contentCalendar.js";
 import type * as discountCodes from "../discountCodes.js";
 import type * as downloadTokens from "../downloadTokens.js";
+import type * as invoices from "../invoices.js";
+import type * as mediaFiles from "../mediaFiles.js";
 import type * as milestones from "../milestones.js";
 import type * as newsletter from "../newsletter.js";
+import type * as notifications from "../notifications.js";
 import type * as orders from "../orders.js";
 import type * as portfolio from "../portfolio.js";
 import type * as projects from "../projects.js";
-import type * as seedDescriptions from "../seedDescriptions.js";
-import type * as seedISBN from "../seedISBN.js";
-import type * as seedPortfolio from "../seedPortfolio.js";
+import type * as rateLimit from "../rateLimit.js";
+import type * as reviews from "../reviews.js";
+import type * as seoKeywords from "../seoKeywords.js";
+import type * as siteSettings from "../siteSettings.js";
 import type * as socialCampaigns from "../socialCampaigns.js";
 import type * as socialPosts from "../socialPosts.js";
 import type * as storage from "../storage.js";
@@ -35,21 +42,28 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  analytics: typeof analytics;
+  auditLog: typeof auditLog;
   blogPosts: typeof blogPosts;
   books: typeof books;
   clientDocuments: typeof clientDocuments;
   clients: typeof clients;
   contacts: typeof contacts;
+  contentCalendar: typeof contentCalendar;
   discountCodes: typeof discountCodes;
   downloadTokens: typeof downloadTokens;
+  invoices: typeof invoices;
+  mediaFiles: typeof mediaFiles;
   milestones: typeof milestones;
   newsletter: typeof newsletter;
+  notifications: typeof notifications;
   orders: typeof orders;
   portfolio: typeof portfolio;
   projects: typeof projects;
-  seedDescriptions: typeof seedDescriptions;
-  seedISBN: typeof seedISBN;
-  seedPortfolio: typeof seedPortfolio;
+  rateLimit: typeof rateLimit;
+  reviews: typeof reviews;
+  seoKeywords: typeof seoKeywords;
+  siteSettings: typeof siteSettings;
   socialCampaigns: typeof socialCampaigns;
   socialPosts: typeof socialPosts;
   storage: typeof storage;

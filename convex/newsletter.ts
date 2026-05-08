@@ -59,3 +59,38 @@ export const listActive = query({
     return subscribers.filter((s) => s.is_active);
   },
 });
+
+export const listAll = query({
+  args: {},
+  handler: async (ctx) => {
+    const subscribers = await ctx.db
+      .query("newsletter_subscribers")
+      .collect();
+    subscribers.sort((a, b) => b.subscribed_at - a.subscribed_at);
+    return subscribers;
+  },
+});
+
+export const stats = query({
+  args: {},
+  handler: async (ctx) => {
+    const all = await ctx.db.query("newsletter_subscribers").collect();
+    const active = all.filter((s) => s.is_active);
+    const last30d = active.filter(
+      (s) => s.subscribed_at > Date.now() - 30 * 24 * 60 * 60 * 1000
+    );
+    return {
+      total: all.length,
+      active: active.length,
+      inactive: all.length - active.length,
+      last30d: last30d.length,
+    };
+  },
+});
+
+export const remove = mutation({
+  args: { id: v.id("newsletter_subscribers") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.id);
+  },
+});

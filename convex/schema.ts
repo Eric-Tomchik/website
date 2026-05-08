@@ -402,6 +402,168 @@ export default defineSchema({
   })
     .index("by_email", ["email"]),
 
+  // === Invoicing ===
+  invoices: defineTable({
+    client_id: v.optional(v.id("clients")),
+    project_id: v.optional(v.id("projects")),
+    invoice_number: v.string(),
+    customer_name: v.string(),
+    customer_email: v.string(),
+    items: v.array(
+      v.object({
+        description: v.string(),
+        quantity: v.number(),
+        unit_price_cents: v.number(),
+      })
+    ),
+    subtotal_cents: v.number(),
+    tax_cents: v.optional(v.number()),
+    discount_cents: v.optional(v.number()),
+    total_cents: v.number(),
+    status: v.union(
+      v.literal("draft"),
+      v.literal("sent"),
+      v.literal("viewed"),
+      v.literal("paid"),
+      v.literal("overdue"),
+      v.literal("cancelled")
+    ),
+    due_date: v.optional(v.string()),
+    paid_at: v.optional(v.number()),
+    sent_at: v.optional(v.number()),
+    notes: v.optional(v.string()),
+    payment_method: v.optional(v.string()),
+  })
+    .index("by_client", ["client_id"])
+    .index("by_status", ["status"])
+    .index("by_invoice_number", ["invoice_number"]),
+
+  // === Notifications ===
+  notifications: defineTable({
+    type: v.union(
+      v.literal("order"),
+      v.literal("ticket"),
+      v.literal("contact"),
+      v.literal("subscriber"),
+      v.literal("invoice"),
+      v.literal("client"),
+      v.literal("system")
+    ),
+    title: v.string(),
+    message: v.string(),
+    link: v.optional(v.string()),
+    is_read: v.boolean(),
+    reference_id: v.optional(v.string()),
+  })
+    .index("by_read", ["is_read"]),
+
+  // === Reviews & Testimonials ===
+  reviews: defineTable({
+    author_name: v.string(),
+    author_title: v.optional(v.string()),
+    author_image_url: v.optional(v.string()),
+    content: v.string(),
+    rating: v.number(), // 1-5
+    source: v.union(
+      v.literal("amazon"),
+      v.literal("google"),
+      v.literal("direct"),
+      v.literal("social"),
+      v.literal("other")
+    ),
+    source_url: v.optional(v.string()),
+    book_id: v.optional(v.string()),
+    project_id: v.optional(v.string()),
+    is_featured: v.boolean(),
+    is_active: v.boolean(),
+  })
+    .index("by_active", ["is_active"])
+    .index("by_featured", ["is_featured"]),
+
+  // === Site Settings ===
+  site_settings: defineTable({
+    key: v.string(),
+    value: v.string(), // JSON-serialized value
+  })
+    .index("by_key", ["key"]),
+
+  // === Audit Log ===
+  audit_log: defineTable({
+    actor: v.union(v.literal("admin"), v.literal("client"), v.literal("system")),
+    actor_name: v.optional(v.string()),
+    action: v.string(),
+    entity_type: v.string(),
+    entity_id: v.optional(v.string()),
+    details: v.optional(v.string()), // JSON extra data
+    ip_address: v.optional(v.string()),
+  }),
+
+  // === Media Library ===
+  media_files: defineTable({
+    name: v.string(),
+    storage_id: v.string(),
+    url: v.optional(v.string()),
+    file_type: v.union(
+      v.literal("image"),
+      v.literal("pdf"),
+      v.literal("document"),
+      v.literal("video"),
+      v.literal("other")
+    ),
+    mime_type: v.string(),
+    file_size_bytes: v.number(),
+    alt_text: v.optional(v.string()),
+    folder: v.optional(v.string()),
+    tags: v.array(v.string()),
+    used_in: v.optional(v.array(v.string())),
+  })
+    .index("by_type", ["file_type"])
+    .index("by_folder", ["folder"]),
+
+  // === SEO ===
+  seo_keywords: defineTable({
+    keyword: v.string(),
+    target_url: v.optional(v.string()),
+    current_position: v.optional(v.number()),
+    previous_position: v.optional(v.number()),
+    search_volume: v.optional(v.number()),
+    difficulty: v.optional(v.number()),
+    status: v.union(
+      v.literal("tracking"),
+      v.literal("targeting"),
+      v.literal("ranking"),
+      v.literal("archived")
+    ),
+    notes: v.optional(v.string()),
+    last_checked: v.optional(v.number()),
+  })
+    .index("by_status", ["status"]),
+
+  content_calendar: defineTable({
+    title: v.string(),
+    content_type: v.union(
+      v.literal("blog"),
+      v.literal("social"),
+      v.literal("email"),
+      v.literal("video")
+    ),
+    target_keyword: v.optional(v.string()),
+    scheduled_date: v.string(),
+    status: v.union(
+      v.literal("idea"),
+      v.literal("writing"),
+      v.literal("review"),
+      v.literal("scheduled"),
+      v.literal("published")
+    ),
+    assigned_to: v.optional(v.string()),
+    blog_post_id: v.optional(v.id("blog_posts")),
+    social_post_id: v.optional(v.id("social_posts")),
+    notes: v.optional(v.string()),
+  })
+    .index("by_date", ["scheduled_date"])
+    .index("by_status", ["status"]),
+
   portfolio_projects: defineTable({
     title: v.string(),
     slug: v.string(),
