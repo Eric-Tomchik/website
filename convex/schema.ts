@@ -402,6 +402,25 @@ export default defineSchema({
   })
     .index("by_email", ["email"]),
 
+  // === Email Broadcasts ===
+  email_broadcasts: defineTable({
+    subject: v.string(),
+    preview_text: v.optional(v.string()),
+    content: v.string(), // HTML content
+    status: v.union(
+      v.literal("draft"),
+      v.literal("sending"),
+      v.literal("sent"),
+      v.literal("failed")
+    ),
+    recipient_count: v.number(),
+    sent_count: v.number(),
+    failed_count: v.number(),
+    sent_at: v.optional(v.number()),
+    error_message: v.optional(v.string()),
+  })
+    .index("by_status", ["status"]),
+
   // === Invoicing ===
   invoices: defineTable({
     client_id: v.optional(v.id("clients")),

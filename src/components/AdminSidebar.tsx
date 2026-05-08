@@ -17,6 +17,7 @@ import {
   Share2,
   Sparkles,
   Mail,
+  Send,
   FileText,
   DollarSign,
   Receipt,
@@ -75,6 +76,7 @@ const navSections: NavSection[] = [
     items: [
       { href: '/admin/blog', label: 'Blog Posts', icon: FileText, badgeKey: null },
       { href: '/admin/newsletter', label: 'Newsletter', icon: Mail, badgeKey: null },
+      { href: '/admin/broadcasts', label: 'Broadcasts', icon: Send, badgeKey: null },
       { href: '/admin/social', label: 'Social Media', icon: Share2, badgeKey: 'scheduled' },
       { href: '/admin/reviews', label: 'Reviews', icon: MessageSquareQuote, badgeKey: null },
       { href: '/admin/media', label: 'Media Library', icon: FolderOpen, badgeKey: null },

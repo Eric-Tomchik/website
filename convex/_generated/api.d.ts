@@ -18,6 +18,7 @@ import type * as contacts from "../contacts.js";
 import type * as contentCalendar from "../contentCalendar.js";
 import type * as discountCodes from "../discountCodes.js";
 import type * as downloadTokens from "../downloadTokens.js";
+import type * as emailBroadcasts from "../emailBroadcasts.js";
 import type * as invoices from "../invoices.js";
 import type * as mediaFiles from "../mediaFiles.js";
 import type * as milestones from "../milestones.js";
@@ -52,6 +53,7 @@ declare const fullApi: ApiFromModules<{
   contentCalendar: typeof contentCalendar;
   discountCodes: typeof discountCodes;
   downloadTokens: typeof downloadTokens;
+  emailBroadcasts: typeof emailBroadcasts;
   invoices: typeof invoices;
   mediaFiles: typeof mediaFiles;
   milestones: typeof milestones;
