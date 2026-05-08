@@ -1,15 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
 import { Mail, CheckCircle2, Loader2 } from 'lucide-react';
 
 export function NewsletterForm() {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
-  const subscribe = useMutation(api.newsletter.subscribe);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,11 +14,22 @@ export function NewsletterForm() {
 
     setStatus('loading');
     try {
-      const result = await subscribe({ email: email.trim() });
-      if (result.alreadySubscribed) {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Something went wrong');
+      }
+
+      if (data.alreadySubscribed) {
         setMessage("You're already subscribed!");
       } else {
-        setMessage('Thanks for subscribing!');
+        setMessage('Thanks for subscribing! Check your inbox for a welcome email 🎉');
       }
       setStatus('success');
       setEmail('');
