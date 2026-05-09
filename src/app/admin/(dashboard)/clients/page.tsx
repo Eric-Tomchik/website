@@ -1,6 +1,5 @@
 'use client';
 
-import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../../../convex/_generated/api';
 import { useState, useRef, useCallback } from 'react';
 import {
@@ -37,19 +36,20 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { Id } from '../../../../../convex/_generated/dataModel';
+import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
 
 // =========== Client Detail View ===========
 function ClientDetail({ clientId, onBack }: { clientId: Id<'clients'>; onBack: () => void }) {
-  const client = useQuery(api.clients.get, { id: clientId });
-  const projects = useQuery(api.projects.list, { clientId }) ?? [];
-  const tickets = useQuery(api.tickets.list, { clientId }) ?? [];
-  const documents = useQuery(api.clientDocuments.list, { clientId }) ?? [];
-  const updateProject = useMutation(api.projects.update);
-  const createProject = useMutation(api.projects.create);
-  const createDoc = useMutation(api.clientDocuments.create);
-  const updateDoc = useMutation(api.clientDocuments.update);
-  const removeDoc = useMutation(api.clientDocuments.remove);
-  const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
+  const client = useAdminQuery(api.clients.get, { id: clientId });
+  const projects = useAdminQuery(api.projects.list, { clientId }) ?? [];
+  const tickets = useAdminQuery(api.tickets.list, { clientId }) ?? [];
+  const documents = useAdminQuery(api.clientDocuments.list, { clientId }) ?? [];
+  const updateProject = useAdminMutation(api.projects.update);
+  const createProject = useAdminMutation(api.projects.create);
+  const createDoc = useAdminMutation(api.clientDocuments.create);
+  const updateDoc = useAdminMutation(api.clientDocuments.update);
+  const removeDoc = useAdminMutation(api.clientDocuments.remove);
+  const generateUploadUrl = useAdminMutation(api.storage.generateUploadUrl);
 
   const [tab, setTab] = useState<'overview' | 'projects' | 'tickets' | 'documents'>('overview');
   const [showNewProject, setShowNewProject] = useState(false);
@@ -731,7 +731,7 @@ function DocumentsTab({
 
 // Helper component to download files from Convex storage
 function DownloadButton({ storageId, name }: { storageId: string; name: string }) {
-  const fileUrl = useQuery(api.storage.getUrl, { storageId: storageId as any });
+  const fileUrl = useAdminQuery(api.storage.getUrl, { storageId: storageId as any });
 
   if (!fileUrl) return (
     <span className="p-2 text-surface-600"><Loader2 className="w-4 h-4 animate-spin" /></span>
@@ -752,10 +752,10 @@ function DownloadButton({ storageId, name }: { storageId: string; name: string }
 
 // =========== Main Clients Page ===========
 export default function AdminClientsPage() {
-  const clients = useQuery(api.clients.list, {}) ?? [];
-  const projects = useQuery(api.projects.list, {}) ?? [];
-  const ticketCounts = useQuery(api.tickets.counts, {});
-  const createClient = useMutation(api.clients.create);
+  const clients = useAdminQuery(api.clients.list, {}) ?? [];
+  const projects = useAdminQuery(api.projects.list, {}) ?? [];
+  const ticketCounts = useAdminQuery(api.tickets.counts, {});
+  const createClient = useAdminMutation(api.clients.create);
 
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<Id<'clients'> | null>(null);

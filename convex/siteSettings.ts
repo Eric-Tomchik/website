@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { assertAdmin } from "./lib/auth";
 
 export const get = query({
   args: { key: v.string() },
@@ -13,7 +14,9 @@ export const get = query({
 });
 
 export const getAll = query({
-  handler: async (ctx) => {
+  args: { adminKey: v.string() },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const settings = await ctx.db.query("site_settings").collect();
     const result: Record<string, unknown> = {};
     for (const s of settings) {
@@ -28,11 +31,10 @@ export const getAll = query({
 });
 
 export const set = mutation({
-  args: {
-    key: v.string(),
-    value: v.string(), // JSON-serialized
-  },
+  args: { adminKey: v.string(), key: v.string(),
+    value: v.string(), // JSON-serialized },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const existing = await ctx.db
       .query("site_settings")
       .withIndex("by_key", (q) => q.eq("key", args.key))
@@ -50,15 +52,14 @@ export const set = mutation({
 });
 
 export const setMany = mutation({
-  args: {
-    settings: v.array(
+  args: { adminKey: v.string(), settings: v.array(
       v.object({
         key: v.string(),
-        value: v.string(),
-      })
+        value: v.string(), })
     ),
   },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     for (const { key, value } of args.settings) {
       const existing = await ctx.db
         .query("site_settings")
@@ -74,8 +75,9 @@ export const setMany = mutation({
 });
 
 export const remove = mutation({
-  args: { key: v.string() },
+  args: { adminKey: v.string(), key: v.string() },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const existing = await ctx.db
       .query("site_settings")
       .withIndex("by_key", (q) => q.eq("key", args.key))

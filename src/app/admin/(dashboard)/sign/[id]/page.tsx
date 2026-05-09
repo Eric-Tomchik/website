@@ -1,18 +1,19 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useQuery, useMutation } from 'convex/react';
+
 import { api } from '../../../../../../convex/_generated/api';
 import { Id } from '../../../../../../convex/_generated/dataModel';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { CheckCircle2, Eraser, PenLine } from 'lucide-react';
+import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
 
 export default function AdminSignPage() {
   const params = useParams();
   const id = params.id as string;
-  const docs = useQuery(api.clientDocuments.list, {});
-  const clients = useQuery(api.clients.list, {});
-  const adminSign = useMutation(api.clientDocuments.adminSign);
+  const docs = useAdminQuery(api.clientDocuments.list, {});
+  const clients = useAdminQuery(api.clients.list, {});
+  const adminSign = useAdminMutation(api.clientDocuments.adminSign);
 
   const [signed, setSigned] = useState(false);
   const [signing, setSigning] = useState(false);

@@ -1,17 +1,17 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
+import { assertAdmin } from "./lib/auth";
 
 // Generate a unique download token for a purchased book
 export const create = mutation({
-  args: {
-    book_id: v.string(),
+  args: { adminKey: v.string(), book_id: v.string(),
     customer_email: v.string(),
     order_id: v.optional(v.string()),
     max_downloads: v.optional(v.number()),
-    expires_hours: v.optional(v.number()),
-  },
+    expires_hours: v.optional(v.number()), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const token =
       crypto.randomUUID().replace(/-/g, "") +
       crypto.randomUUID().replace(/-/g, "");
@@ -119,7 +119,9 @@ export const recordDownload = mutation({
 
 // Generate a file upload URL (for admin to upload digital files)
 export const generateUploadUrl = mutation({
-  handler: async (ctx) => {
+  args: { adminKey: v.string() },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     return await ctx.storage.generateUploadUrl();
   },
 });

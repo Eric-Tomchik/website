@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useQuery } from 'convex/react';
+
 import { api } from '../../convex/_generated/api';
 import {
+import { useAdminQuery } from '@/hooks/useAdminAuth';
   BookOpen,
   Briefcase,
   ShoppingCart,
@@ -102,7 +103,7 @@ const navSections: NavSection[] = [
 
 function useSafeQuery<T>(queryFn: any, fallback: T): T {
   try {
-    const result = useQuery(queryFn);
+    const result = useAdminQuery(queryFn);
     return result ?? fallback;
   } catch {
     return fallback;

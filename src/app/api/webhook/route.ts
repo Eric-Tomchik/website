@@ -99,6 +99,7 @@ export async function POST(req: Request) {
         : undefined;
 
       await convex.mutation(api.orders.create, {
+        adminKey: process.env.CONVEX_AUTH_SECRET!,
         customer_email: session.customer_details?.email || '',
         customer_name: session.customer_details?.name || '',
         stripe_session_id: session.id,
@@ -127,6 +128,7 @@ export async function POST(req: Request) {
           const { token } = await convex.mutation(
             api.downloadTokens.create,
             {
+              adminKey: process.env.CONVEX_AUTH_SECRET!,
               book_id: item.book_id,
               customer_email: session.customer_details?.email || '',
               order_id: session.id,
@@ -159,6 +161,7 @@ export async function POST(req: Request) {
 
       if (paymentIntentId) {
         await convex.mutation(api.orders.updateStatusByPaymentIntent, {
+          adminKey: process.env.CONVEX_AUTH_SECRET!,
           stripe_payment_intent_id: paymentIntentId,
           status: 'refunded',
         });

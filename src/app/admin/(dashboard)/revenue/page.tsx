@@ -1,9 +1,9 @@
 'use client';
 
-import { useQuery } from 'convex/react';
 import { useState, useMemo } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import {
+import { useAdminQuery } from '@/hooks/useAdminAuth';
   DollarSign,
   TrendingUp,
   ShoppingCart,
@@ -17,8 +17,8 @@ import {
 type Period = '7d' | '30d' | '90d' | 'all';
 
 export default function RevenuePage() {
-  const orders = useQuery(api.orders.list) ?? [];
-  const invoiceStats = useQuery(api.invoices.stats);
+  const orders = useAdminQuery(api.orders.list) ?? [];
+  const invoiceStats = useAdminQuery(api.invoices.stats);
   const [period, setPeriod] = useState<Period>('30d');
 
   const periodMs: Record<Period, number> = {

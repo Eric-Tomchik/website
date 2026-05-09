@@ -1,10 +1,10 @@
 'use client';
 
-import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../../../convex/_generated/api';
 import type { Id } from '../../../../../convex/_generated/dataModel';
 import { useState } from 'react';
 import {
+import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
   Settings,
   Plus,
   Pencil,
@@ -46,10 +46,10 @@ const emptyForm: PlanFormData = {
 };
 
 export default function ServicesAdminPage() {
-  const plans = useQuery(api.servicePlans.listAll, {});
-  const createPlan = useMutation(api.servicePlans.create);
-  const updatePlan = useMutation(api.servicePlans.update);
-  const removePlan = useMutation(api.servicePlans.remove);
+  const plans = useAdminQuery(api.servicePlans.listAll, {});
+  const createPlan = useAdminMutation(api.servicePlans.create);
+  const updatePlan = useAdminMutation(api.servicePlans.update);
+  const removePlan = useAdminMutation(api.servicePlans.remove);
 
   const [editing, setEditing] = useState<Id<'service_plans'> | 'new' | null>(null);
   const [form, setForm] = useState<PlanFormData>(emptyForm);

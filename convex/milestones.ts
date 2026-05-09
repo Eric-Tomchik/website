@@ -1,9 +1,12 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { assertAdmin } from "./lib/auth";
 
 export const list = query({
-  args: { projectId: v.id("projects") },
+  args: { adminKey: v.optional(v.string()), projectId: v.id("projects") },
   handler: async (ctx, args) => {
+    // Portal users can view milestones for their projects
+    if (args.adminKey) assertAdmin(args.adminKey);
     const milestones = await ctx.db
       .query("project_milestones")
       .withIndex("by_project", (q) => q.eq("project_id", args.projectId))
@@ -13,21 +16,21 @@ export const list = query({
 });
 
 export const create = mutation({
-  args: {
-    project_id: v.id("projects"),
+  args: { adminKey: v.string(), project_id: v.id("projects"),
     title: v.string(),
     description: v.optional(v.string()),
     due_date: v.optional(v.string()),
-    sort_order: v.optional(v.number()),
-  },
+    sort_order: v.optional(v.number()), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
+    const { adminKey: _adminKey, ...data } = args;
     const existing = await ctx.db
       .query("project_milestones")
       .withIndex("by_project", (q) => q.eq("project_id", args.project_id))
       .collect();
 
     return await ctx.db.insert("project_milestones", {
-      ...args,
+      ...data,
       status: "pending",
       sort_order: args.sort_order ?? existing.length,
     });
@@ -35,8 +38,7 @@ export const create = mutation({
 });
 
 export const update = mutation({
-  args: {
-    id: v.id("project_milestones"),
+  args: { adminKey: v.string(), id: v.id("project_milestones"),
     title: v.optional(v.string()),
     description: v.optional(v.string()),
     status: v.optional(
@@ -48,10 +50,10 @@ export const update = mutation({
     ),
     due_date: v.optional(v.string()),
     completed_date: v.optional(v.string()),
-    sort_order: v.optional(v.number()),
-  },
+    sort_order: v.optional(v.number()), },
   handler: async (ctx, args) => {
-    const { id, ...updates } = args;
+    assertAdmin(args.adminKey);
+    const { id, adminKey: _adminKey, ...updates } = args;
     const filtered: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(updates)) {
       if (value !== undefined) filtered[key] = value;
@@ -64,8 +66,9 @@ export const update = mutation({
 });
 
 export const remove = mutation({
-  args: { id: v.id("project_milestones") },
+  args: { adminKey: v.string(), id: v.id("project_milestones") },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     await ctx.db.delete(args.id);
   },
 });

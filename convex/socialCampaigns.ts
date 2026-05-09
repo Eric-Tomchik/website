@@ -1,18 +1,18 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { assertAdmin } from "./lib/auth";
 
 export const list = query({
-  args: {
-    status: v.optional(
+  args: { adminKey: v.string(), status: v.optional(
       v.union(
         v.literal("planning"),
         v.literal("active"),
         v.literal("paused"),
         v.literal("completed")
       )
-    ),
-  },
+    ), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     if (args.status) {
       return await ctx.db
         .query("social_campaigns")
@@ -24,13 +24,14 @@ export const list = query({
 });
 
 export const get = query({
-  args: { id: v.id("social_campaigns") },
+  args: { adminKey: v.string(), id: v.id("social_campaigns") },
   handler: async (ctx, args) => ctx.db.get(args.id),
 });
 
 export const getWithStats = query({
-  args: { id: v.id("social_campaigns") },
+  args: { adminKey: v.string(), id: v.id("social_campaigns") },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const campaign = await ctx.db.get(args.id);
     if (!campaign) return null;
 
@@ -66,8 +67,7 @@ export const getWithStats = query({
 });
 
 export const create = mutation({
-  args: {
-    name: v.string(),
+  args: { adminKey: v.string(), name: v.string(),
     description: v.optional(v.string()),
     status: v.union(
       v.literal("planning"),
@@ -79,19 +79,19 @@ export const create = mutation({
     end_date: v.optional(v.string()),
     budget_cents: v.optional(v.number()),
     goal: v.optional(v.string()),
-    color: v.optional(v.string()),
-  },
+    color: v.optional(v.string()), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
+    const { adminKey: _adminKey, ...data } = args;
     return await ctx.db.insert("social_campaigns", {
-      ...args,
+      ...data,
       spent_cents: 0,
     });
   },
 });
 
 export const update = mutation({
-  args: {
-    id: v.id("social_campaigns"),
+  args: { adminKey: v.string(), id: v.id("social_campaigns"),
     name: v.optional(v.string()),
     description: v.optional(v.string()),
     status: v.optional(
@@ -107,17 +107,18 @@ export const update = mutation({
     budget_cents: v.optional(v.number()),
     spent_cents: v.optional(v.number()),
     goal: v.optional(v.string()),
-    color: v.optional(v.string()),
-  },
+    color: v.optional(v.string()), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const { id, ...fields } = args;
     await ctx.db.patch(id, fields);
   },
 });
 
 export const remove = mutation({
-  args: { id: v.id("social_campaigns") },
+  args: { adminKey: v.string(), id: v.id("social_campaigns") },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     // Remove campaign reference from posts
     const posts = await ctx.db
       .query("social_posts")

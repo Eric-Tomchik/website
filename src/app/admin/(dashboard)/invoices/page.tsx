@@ -1,10 +1,10 @@
 'use client';
 
-import { useQuery, useMutation } from 'convex/react';
 import { useState } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import type { Id } from '../../../../../convex/_generated/dataModel';
 import {
+import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
   Receipt,
   Plus,
   Pencil,
@@ -37,13 +37,13 @@ const statusStyles: Record<InvoiceStatus, { color: string; icon: typeof Clock }>
 };
 
 export default function InvoicesPage() {
-  const invoices = useQuery(api.invoices.list) ?? [];
-  const stats = useQuery(api.invoices.stats);
-  const nextNum = useQuery(api.invoices.nextInvoiceNumber) ?? 'INV-0001';
-  const clients = useQuery(api.clients.list, {}) ?? [];
-  const create = useMutation(api.invoices.create);
-  const update = useMutation(api.invoices.update);
-  const remove = useMutation(api.invoices.remove);
+  const invoices = useAdminQuery(api.invoices.list) ?? [];
+  const stats = useAdminQuery(api.invoices.stats);
+  const nextNum = useAdminQuery(api.invoices.nextInvoiceNumber) ?? 'INV-0001';
+  const clients = useAdminQuery(api.clients.list, {}) ?? [];
+  const create = useAdminMutation(api.invoices.create);
+  const update = useAdminMutation(api.invoices.update);
+  const remove = useAdminMutation(api.invoices.remove);
 
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);

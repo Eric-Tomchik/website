@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { assertAdmin } from "./lib/auth";
 
 export const listPublished = query({
   args: {
@@ -34,15 +35,15 @@ export const getBySlug = query({
 });
 
 export const listAll = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { adminKey: v.string() },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     return await ctx.db.query("blog_posts").order("desc").collect();
   },
 });
 
 export const create = mutation({
-  args: {
-    title: v.string(),
+  args: { adminKey: v.string(), title: v.string(),
     slug: v.string(),
     excerpt: v.string(),
     content: v.string(),
@@ -57,19 +58,19 @@ export const create = mutation({
     ),
     tags: v.array(v.string()),
     is_published: v.boolean(),
-    reading_time_minutes: v.optional(v.number()),
-  },
+    reading_time_minutes: v.optional(v.number()), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
+    const { adminKey: _adminKey, ...data } = args;
     return await ctx.db.insert("blog_posts", {
-      ...args,
+      ...data,
       published_at: args.is_published ? Date.now() : undefined,
     });
   },
 });
 
 export const update = mutation({
-  args: {
-    id: v.id("blog_posts"),
+  args: { adminKey: v.string(), id: v.id("blog_posts"),
     title: v.optional(v.string()),
     slug: v.optional(v.string()),
     excerpt: v.optional(v.string()),
@@ -87,10 +88,10 @@ export const update = mutation({
     ),
     tags: v.optional(v.array(v.string())),
     is_published: v.optional(v.boolean()),
-    reading_time_minutes: v.optional(v.number()),
-  },
+    reading_time_minutes: v.optional(v.number()), },
   handler: async (ctx, args) => {
-    const { id, ...updates } = args;
+    assertAdmin(args.adminKey);
+    const { id, adminKey: _adminKey, ...updates } = args;
     const existing = await ctx.db.get(id);
     if (!existing) throw new Error("Blog post not found");
 
@@ -105,8 +106,9 @@ export const update = mutation({
 });
 
 export const remove = mutation({
-  args: { id: v.id("blog_posts") },
+  args: { adminKey: v.string(), id: v.id("blog_posts") },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     await ctx.db.delete(args.id);
   },
 });

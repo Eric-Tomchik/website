@@ -1,9 +1,9 @@
 'use client';
 
-import { useQuery, useMutation } from 'convex/react';
 import { useState } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import {
+import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
   ScrollText,
   Search,
   Trash2,
@@ -35,9 +35,9 @@ function timeAgo(ts: number): string {
 }
 
 export default function AuditLogPage() {
-  const logs = useQuery(api.auditLog.list, {}) ?? [];
-  const stats = useQuery(api.auditLog.stats);
-  const clearOld = useMutation(api.auditLog.clearOld);
+  const logs = useAdminQuery(api.auditLog.list, {}) ?? [];
+  const stats = useAdminQuery(api.auditLog.stats);
+  const clearOld = useAdminMutation(api.auditLog.clearOld);
 
   const [search, setSearch] = useState('');
   const [actorFilter, setActorFilter] = useState<ActorFilter>('all');

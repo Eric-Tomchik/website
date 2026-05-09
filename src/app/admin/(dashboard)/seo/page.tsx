@@ -1,10 +1,10 @@
 'use client';
 
-import { useQuery, useMutation } from 'convex/react';
 import { useState, useMemo } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import type { Id } from '../../../../../convex/_generated/dataModel';
 import {
+import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
   Search,
   TrendingUp,
   TrendingDown,
@@ -50,15 +50,15 @@ const contentTypeLabels: Record<ContentType, string> = {
 };
 
 export default function SEOPlannerPage() {
-  const keywords = useQuery(api.seoKeywords.list) ?? [];
-  const kwStats = useQuery(api.seoKeywords.stats);
-  const calendar = useQuery(api.contentCalendar.list) ?? [];
-  const createKW = useMutation(api.seoKeywords.create);
-  const updateKW = useMutation(api.seoKeywords.update);
-  const removeKW = useMutation(api.seoKeywords.remove);
-  const createContent = useMutation(api.contentCalendar.create);
-  const updateContent = useMutation(api.contentCalendar.update);
-  const removeContent = useMutation(api.contentCalendar.remove);
+  const keywords = useAdminQuery(api.seoKeywords.list) ?? [];
+  const kwStats = useAdminQuery(api.seoKeywords.stats);
+  const calendar = useAdminQuery(api.contentCalendar.list) ?? [];
+  const createKW = useAdminMutation(api.seoKeywords.create);
+  const updateKW = useAdminMutation(api.seoKeywords.update);
+  const removeKW = useAdminMutation(api.seoKeywords.remove);
+  const createContent = useAdminMutation(api.contentCalendar.create);
+  const updateContent = useAdminMutation(api.contentCalendar.update);
+  const removeContent = useAdminMutation(api.contentCalendar.remove);
 
   const [tab, setTab] = useState<ActiveTab>('keywords');
   const [search, setSearch] = useState('');

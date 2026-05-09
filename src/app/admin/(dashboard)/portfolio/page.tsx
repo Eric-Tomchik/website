@@ -1,10 +1,10 @@
 'use client';
 
-import { useQuery, useMutation } from 'convex/react';
 import { useState } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import { Briefcase, Plus, Pencil, Trash2, Eye, EyeOff, ExternalLink } from 'lucide-react';
 import type { Id } from '../../../../../convex/_generated/dataModel';
+import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
 
 type Project = {
   _id: Id<"portfolio_projects">;
@@ -24,9 +24,9 @@ type Project = {
 };
 
 export default function AdminPortfolioPage() {
-  const projects = useQuery(api.portfolio.list, {}) ?? [];
-  const updateProject = useMutation(api.portfolio.update);
-  const deleteProject = useMutation(api.portfolio.remove);
+  const projects = useAdminQuery(api.portfolio.list, {}) ?? [];
+  const updateProject = useAdminMutation(api.portfolio.update);
+  const deleteProject = useAdminMutation(api.portfolio.remove);
 
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Project | null>(null);
@@ -132,8 +132,8 @@ function ProjectForm({
   onSave: () => void;
   onCancel: () => void;
 }) {
-  const createProject = useMutation(api.portfolio.create);
-  const updateProject = useMutation(api.portfolio.update);
+  const createProject = useAdminMutation(api.portfolio.create);
+  const updateProject = useAdminMutation(api.portfolio.update);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     title: project?.title || '',

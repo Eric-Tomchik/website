@@ -1,6 +1,5 @@
 'use client';
 
-import { useQuery, useMutation } from 'convex/react';
 import { useState } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import {
@@ -16,6 +15,7 @@ import {
   Reply,
 } from 'lucide-react';
 import type { Id } from '../../../../../convex/_generated/dataModel';
+import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
 
 const serviceLabels: Record<string, string> = {
   starter: 'Starter Site',
@@ -25,10 +25,10 @@ const serviceLabels: Record<string, string> = {
 };
 
 export default function AdminMessagesPage() {
-  const messages = useQuery(api.contacts.list) ?? [];
-  const markRead = useMutation(api.contacts.markRead);
-  const markUnread = useMutation(api.contacts.markUnread);
-  const removeMessage = useMutation(api.contacts.remove);
+  const messages = useAdminQuery(api.contacts.list) ?? [];
+  const markRead = useAdminMutation(api.contacts.markRead);
+  const markUnread = useAdminMutation(api.contacts.markUnread);
+  const removeMessage = useAdminMutation(api.contacts.remove);
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');

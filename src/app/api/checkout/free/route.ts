@@ -129,6 +129,7 @@ export async function POST(req: Request) {
 
     // Create the order at $0
     await convex.mutation(api.orders.create, {
+      adminKey: process.env.CONVEX_AUTH_SECRET!,
       customer_email: data.customer_email,
       customer_name: data.customer_name,
       stripe_session_id: `free_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
@@ -150,6 +151,7 @@ export async function POST(req: Request) {
     if (data.format === 'digital') {
       try {
         const { token } = await convex.mutation(api.downloadTokens.create, {
+          adminKey: process.env.CONVEX_AUTH_SECRET!,
           book_id: data.book_id,
           customer_email: data.customer_email,
           order_id: `free_promo_${data.discount_code}`,

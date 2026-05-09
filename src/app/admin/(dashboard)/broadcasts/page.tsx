@@ -1,10 +1,10 @@
 'use client';
 
-import { useQuery, useMutation } from 'convex/react';
 import { useState } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import type { Id } from '../../../../../convex/_generated/dataModel';
 import {
+import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
   Send,
   Plus,
   Trash2,
@@ -25,12 +25,12 @@ import {
 type View = 'list' | 'compose' | 'preview';
 
 export default function BroadcastsPage() {
-  const broadcasts = useQuery(api.emailBroadcasts.list) ?? [];
-  const stats = useQuery(api.emailBroadcasts.stats) ?? { total: 0, drafts: 0, sent: 0, totalEmailsSent: 0 };
-  const subscriberStats = useQuery(api.newsletter.stats) ?? { total: 0, active: 0, inactive: 0, last30d: 0 };
-  const createBroadcast = useMutation(api.emailBroadcasts.create);
-  const updateBroadcast = useMutation(api.emailBroadcasts.update);
-  const removeBroadcast = useMutation(api.emailBroadcasts.remove);
+  const broadcasts = useAdminQuery(api.emailBroadcasts.list) ?? [];
+  const stats = useAdminQuery(api.emailBroadcasts.stats) ?? { total: 0, drafts: 0, sent: 0, totalEmailsSent: 0 };
+  const subscriberStats = useAdminQuery(api.newsletter.stats) ?? { total: 0, active: 0, inactive: 0, last30d: 0 };
+  const createBroadcast = useAdminMutation(api.emailBroadcasts.create);
+  const updateBroadcast = useAdminMutation(api.emailBroadcasts.update);
+  const removeBroadcast = useAdminMutation(api.emailBroadcasts.remove);
 
   const [view, setView] = useState<View>('list');
   const [editingId, setEditingId] = useState<Id<'email_broadcasts'> | null>(null);

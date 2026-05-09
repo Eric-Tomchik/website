@@ -1,11 +1,11 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { assertAdmin } from "./lib/auth";
 
 // ── Queries ──
 
 export const list = query({
-  args: {
-    status: v.optional(
+  args: { adminKey: v.string(), status: v.optional(
       v.union(
         v.literal("draft"),
         v.literal("scheduled"),
@@ -13,9 +13,9 @@ export const list = query({
         v.literal("failed")
       )
     ),
-    campaignId: v.optional(v.string()),
-  },
+    campaignId: v.optional(v.string()), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     let posts;
     if (args.status) {
       posts = await ctx.db
@@ -41,13 +41,14 @@ export const list = query({
 });
 
 export const get = query({
-  args: { id: v.id("social_posts") },
+  args: { adminKey: v.string(), id: v.id("social_posts") },
   handler: async (ctx, args) => ctx.db.get(args.id),
 });
 
 export const upcoming = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { adminKey: v.string() },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const now = Date.now();
     const posts = await ctx.db
       .query("social_posts")
@@ -60,8 +61,9 @@ export const upcoming = query({
 });
 
 export const counts = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { adminKey: v.string() },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const all = await ctx.db.query("social_posts").collect();
     return {
       draft: all.filter((p) => p.status === "draft").length,
@@ -75,8 +77,7 @@ export const counts = query({
 // ── Mutations ──
 
 export const create = mutation({
-  args: {
-    title: v.optional(v.string()),
+  args: { adminKey: v.string(), title: v.optional(v.string()),
     content: v.string(),
     image_url: v.optional(v.string()),
     image_storage_id: v.optional(v.string()),
@@ -103,19 +104,19 @@ export const create = mutation({
     ),
     campaign_id: v.optional(v.id("social_campaigns")),
     scheduled_at: v.optional(v.number()),
-    notes: v.optional(v.string()),
-  },
+    notes: v.optional(v.string()), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
+    const { adminKey: _adminKey, ...data } = args;
     return await ctx.db.insert("social_posts", {
-      ...args,
+      ...data,
       published_at: args.status === "published" ? Date.now() : undefined,
     });
   },
 });
 
 export const update = mutation({
-  args: {
-    id: v.id("social_posts"),
+  args: { adminKey: v.string(), id: v.id("social_posts"),
     title: v.optional(v.string()),
     content: v.optional(v.string()),
     image_url: v.optional(v.string()),
@@ -157,8 +158,7 @@ export const update = mutation({
         instagram: v.optional(v.string()),
         x: v.optional(v.string()),
         linkedin: v.optional(v.string()),
-        tiktok: v.optional(v.string()),
-      })
+        tiktok: v.optional(v.string()), })
     ),
     metrics: v.optional(
       v.object({
@@ -172,6 +172,7 @@ export const update = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const { id, ...fields } = args;
     const existing = await ctx.db.get(id);
     if (!existing) throw new Error("Post not found");
@@ -187,6 +188,6 @@ export const update = mutation({
 });
 
 export const remove = mutation({
-  args: { id: v.id("social_posts") },
+  args: { adminKey: v.string(), id: v.id("social_posts") },
   handler: async (ctx, args) => ctx.db.delete(args.id),
 });

@@ -112,6 +112,19 @@ export async function POST(req: NextRequest) {
       path: '/',
     });
 
+    // Set a non-httpOnly cookie with the Convex auth secret so the admin
+    // client SDK can pass it to Convex functions for server-side auth.
+    const convexSecret = process.env.CONVEX_AUTH_SECRET;
+    if (convexSecret) {
+      response.cookies.set('admin_ck', convexSecret, {
+        httpOnly: false,       // Readable by client JS
+        secure: true,
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7,
+        path: '/',
+      });
+    }
+
     return response;
   } catch {
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });

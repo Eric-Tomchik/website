@@ -1,28 +1,30 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { assertAdmin } from "./lib/auth";
 
 export const list = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { adminKey: v.string() },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const broadcasts = await ctx.db.query("email_broadcasts").order("desc").collect();
     return broadcasts;
   },
 });
 
 export const get = query({
-  args: { id: v.id("email_broadcasts") },
+  args: { adminKey: v.string(), id: v.id("email_broadcasts") },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     return await ctx.db.get(args.id);
   },
 });
 
 export const create = mutation({
-  args: {
-    subject: v.string(),
+  args: { adminKey: v.string(), subject: v.string(),
     preview_text: v.optional(v.string()),
-    content: v.string(),
-  },
+    content: v.string(), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     return await ctx.db.insert("email_broadcasts", {
       subject: args.subject,
       preview_text: args.preview_text,
@@ -36,14 +38,13 @@ export const create = mutation({
 });
 
 export const update = mutation({
-  args: {
-    id: v.id("email_broadcasts"),
+  args: { adminKey: v.string(), id: v.id("email_broadcasts"),
     subject: v.optional(v.string()),
     preview_text: v.optional(v.string()),
-    content: v.optional(v.string()),
-  },
+    content: v.optional(v.string()), },
   handler: async (ctx, args) => {
-    const { id, ...updates } = args;
+    assertAdmin(args.adminKey);
+    const { id, adminKey: _adminKey, ...updates } = args;
     const existing = await ctx.db.get(id);
     if (!existing || existing.status !== "draft") {
       throw new Error("Can only edit draft broadcasts");
@@ -58,11 +59,10 @@ export const update = mutation({
 });
 
 export const markSending = mutation({
-  args: {
-    id: v.id("email_broadcasts"),
-    recipient_count: v.number(),
-  },
+  args: { adminKey: v.string(), id: v.id("email_broadcasts"),
+    recipient_count: v.number(), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     await ctx.db.patch(args.id, {
       status: "sending",
       recipient_count: args.recipient_count,
@@ -73,12 +73,11 @@ export const markSending = mutation({
 });
 
 export const markSent = mutation({
-  args: {
-    id: v.id("email_broadcasts"),
+  args: { adminKey: v.string(), id: v.id("email_broadcasts"),
     sent_count: v.number(),
-    failed_count: v.number(),
-  },
+    failed_count: v.number(), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     await ctx.db.patch(args.id, {
       status: "sent",
       sent_count: args.sent_count,
@@ -89,11 +88,10 @@ export const markSent = mutation({
 });
 
 export const markFailed = mutation({
-  args: {
-    id: v.id("email_broadcasts"),
-    error_message: v.string(),
-  },
+  args: { adminKey: v.string(), id: v.id("email_broadcasts"),
+    error_message: v.string(), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     await ctx.db.patch(args.id, {
       status: "failed",
       error_message: args.error_message,
@@ -102,15 +100,17 @@ export const markFailed = mutation({
 });
 
 export const remove = mutation({
-  args: { id: v.id("email_broadcasts") },
+  args: { adminKey: v.string(), id: v.id("email_broadcasts") },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     await ctx.db.delete(args.id);
   },
 });
 
 export const stats = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { adminKey: v.string() },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const all = await ctx.db.query("email_broadcasts").collect();
     const sent = all.filter((b) => b.status === "sent");
     const totalSent = sent.reduce((sum, b) => sum + b.sent_count, 0);

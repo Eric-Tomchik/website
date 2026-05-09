@@ -1,8 +1,11 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { assertAdmin } from "./lib/auth";
 
 export const list = query({
-  handler: async (ctx) => {
+  args: { adminKey: v.string() },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const messages = await ctx.db.query("contact_messages").collect();
     messages.sort((a, b) => b._creationTime - a._creationTime);
     return messages;
@@ -18,37 +21,43 @@ export const create = mutation({
     service_interest: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const { adminKey: _adminKey, ...data } = args;
     return await ctx.db.insert("contact_messages", {
-      ...args,
+      ...data,
       is_read: false,
     });
   },
 });
 
 export const markRead = mutation({
-  args: { id: v.id("contact_messages") },
+  args: { adminKey: v.string(), id: v.id("contact_messages") },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     await ctx.db.patch(args.id, { is_read: true });
   },
 });
 
 export const unreadCount = query({
-  handler: async (ctx) => {
+  args: { adminKey: v.string() },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const messages = await ctx.db.query("contact_messages").collect();
     return messages.filter((m) => !m.is_read).length;
   },
 });
 
 export const remove = mutation({
-  args: { id: v.id("contact_messages") },
+  args: { adminKey: v.string(), id: v.id("contact_messages") },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     await ctx.db.delete(args.id);
   },
 });
 
 export const markUnread = mutation({
-  args: { id: v.id("contact_messages") },
+  args: { adminKey: v.string(), id: v.id("contact_messages") },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     await ctx.db.patch(args.id, { is_read: false });
   },
 });

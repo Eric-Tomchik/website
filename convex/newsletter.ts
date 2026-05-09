@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { assertAdmin } from "./lib/auth";
 
 export const subscribe = mutation({
   args: {
@@ -51,8 +52,9 @@ export const unsubscribe = mutation({
 });
 
 export const listActive = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { adminKey: v.string() },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const subscribers = await ctx.db
       .query("newsletter_subscribers")
       .collect();
@@ -61,8 +63,9 @@ export const listActive = query({
 });
 
 export const listAll = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { adminKey: v.string() },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const subscribers = await ctx.db
       .query("newsletter_subscribers")
       .collect();
@@ -72,8 +75,9 @@ export const listAll = query({
 });
 
 export const stats = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { adminKey: v.string() },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const all = await ctx.db.query("newsletter_subscribers").collect();
     const active = all.filter((s) => s.is_active);
     const last30d = active.filter(
@@ -89,8 +93,9 @@ export const stats = query({
 });
 
 export const remove = mutation({
-  args: { id: v.id("newsletter_subscribers") },
+  args: { adminKey: v.string(), id: v.id("newsletter_subscribers") },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     await ctx.db.delete(args.id);
   },
 });

@@ -1,10 +1,10 @@
 'use client';
 
-import { useQuery, useMutation } from 'convex/react';
 import { useState } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import { Tag, Plus, Trash2, Edit2, X, Check, Copy } from 'lucide-react';
 import type { Id } from '../../../../../convex/_generated/dataModel';
+import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
 
 type DiscountCode = {
   _id: Id<"discount_codes">;
@@ -31,8 +31,8 @@ function DiscountForm({
   onSave: () => void;
   onCancel: () => void;
 }) {
-  const createCode = useMutation(api.discountCodes.create);
-  const updateCode = useMutation(api.discountCodes.update);
+  const createCode = useAdminMutation(api.discountCodes.create);
+  const updateCode = useAdminMutation(api.discountCodes.update);
   const [saving, setSaving] = useState(false);
 
   const [form, setForm] = useState({
@@ -234,9 +234,9 @@ function DiscountForm({
 }
 
 export default function AdminDiscountsPage() {
-  const discounts = useQuery(api.discountCodes.list) ?? [];
-  const deleteCode = useMutation(api.discountCodes.remove);
-  const updateCode = useMutation(api.discountCodes.update);
+  const discounts = useAdminQuery(api.discountCodes.list) ?? [];
+  const deleteCode = useAdminMutation(api.discountCodes.remove);
+  const updateCode = useAdminMutation(api.discountCodes.update);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);

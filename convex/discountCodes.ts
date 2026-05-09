@@ -1,8 +1,11 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { assertAdmin } from "./lib/auth";
 
 export const list = query({
-  handler: async (ctx) => {
+  args: { adminKey: v.string() },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const codes = await ctx.db.query("discount_codes").collect();
     codes.sort((a, b) => b._creationTime - a._creationTime);
     return codes;
@@ -93,8 +96,7 @@ export const apply = mutation({
 });
 
 export const create = mutation({
-  args: {
-    code: v.string(),
+  args: { adminKey: v.string(), code: v.string(),
     description: v.optional(v.string()),
     discount_type: v.union(v.literal("percentage"), v.literal("fixed")),
     discount_value: v.number(),
@@ -105,11 +107,12 @@ export const create = mutation({
     applicable_book_ids: v.optional(v.array(v.string())),
     applicable_formats: v.optional(
       v.union(v.literal("all"), v.literal("digital"), v.literal("physical"), v.literal("paperback"), v.literal("hardback"))
-    ),
-  },
+    ), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
+    const { adminKey: _adminKey, ...data } = args;
     return await ctx.db.insert("discount_codes", {
-      ...args,
+      ...data,
       code: args.code.toUpperCase().trim(),
       current_uses: 0,
     });
@@ -117,8 +120,7 @@ export const create = mutation({
 });
 
 export const update = mutation({
-  args: {
-    id: v.id("discount_codes"),
+  args: { adminKey: v.string(), id: v.id("discount_codes"),
     code: v.optional(v.string()),
     description: v.optional(v.string()),
     discount_type: v.optional(v.union(v.literal("percentage"), v.literal("fixed"))),
@@ -130,10 +132,10 @@ export const update = mutation({
     applicable_book_ids: v.optional(v.array(v.string())),
     applicable_formats: v.optional(
       v.union(v.literal("all"), v.literal("digital"), v.literal("physical"), v.literal("paperback"), v.literal("hardback"))
-    ),
-  },
+    ), },
   handler: async (ctx, args) => {
-    const { id, ...updates } = args;
+    assertAdmin(args.adminKey);
+    const { id, adminKey: _adminKey, ...updates } = args;
     const cleanUpdates: Record<string, any> = {};
     for (const [key, value] of Object.entries(updates)) {
       if (value !== undefined) {
@@ -145,8 +147,9 @@ export const update = mutation({
 });
 
 export const remove = mutation({
-  args: { id: v.id("discount_codes") },
+  args: { adminKey: v.string(), id: v.id("discount_codes") },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     await ctx.db.delete(args.id);
   },
 });

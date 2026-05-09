@@ -1,10 +1,10 @@
 'use client';
 
-import { useQuery, useMutation } from 'convex/react';
 import { useState } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import type { Id } from '../../../../../convex/_generated/dataModel';
 import {
+import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
   Star,
   Plus,
   Pencil,
@@ -51,11 +51,11 @@ function StarRating({ rating, onChange }: { rating: number; onChange?: (r: numbe
 }
 
 export default function ReviewsPage() {
-  const reviews = useQuery(api.reviews.list) ?? [];
-  const stats = useQuery(api.reviews.stats);
-  const create = useMutation(api.reviews.create);
-  const updateReview = useMutation(api.reviews.update);
-  const remove = useMutation(api.reviews.remove);
+  const reviews = useAdminQuery(api.reviews.list) ?? [];
+  const stats = useAdminQuery(api.reviews.stats);
+  const create = useAdminMutation(api.reviews.create);
+  const updateReview = useAdminMutation(api.reviews.update);
+  const remove = useAdminMutation(api.reviews.remove);
 
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);

@@ -1,9 +1,11 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { assertAdmin } from "./lib/auth";
 
 export const list = query({
-  args: { limit: v.optional(v.number()) },
+  args: { adminKey: v.string(), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const logs = await ctx.db.query("audit_log").order("desc").collect();
     if (args.limit) return logs.slice(0, args.limit);
     return logs;
@@ -11,22 +13,23 @@ export const list = query({
 });
 
 export const create = mutation({
-  args: {
-    actor: v.union(v.literal("admin"), v.literal("client"), v.literal("system")),
+  args: { adminKey: v.string(), actor: v.union(v.literal("admin"), v.literal("client"), v.literal("system")),
     actor_name: v.optional(v.string()),
     action: v.string(),
     entity_type: v.string(),
     entity_id: v.optional(v.string()),
     details: v.optional(v.string()),
-    ip_address: v.optional(v.string()),
-  },
+    ip_address: v.optional(v.string()), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     return await ctx.db.insert("audit_log", args);
   },
 });
 
 export const stats = query({
-  handler: async (ctx) => {
+  args: { adminKey: v.string() },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const logs = await ctx.db.query("audit_log").order("desc").collect();
     const last24h = logs.filter(
       (l) => l._creationTime > Date.now() - 24 * 60 * 60 * 1000
@@ -59,8 +62,9 @@ export const stats = query({
 });
 
 export const clearOld = mutation({
-  args: { olderThanDays: v.number() },
+  args: { adminKey: v.string(), olderThanDays: v.number() },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const cutoff = Date.now() - args.olderThanDays * 24 * 60 * 60 * 1000;
     const old = await ctx.db.query("audit_log").collect();
     let deleted = 0;
