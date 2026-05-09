@@ -21,9 +21,8 @@ export const create = mutation({
     service_interest: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { adminKey: _adminKey, ...data } = args;
     return await ctx.db.insert("contact_messages", {
-      ...data,
+      ...args,
       is_read: false,
     });
   },
