@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
-import { BookOpen, Code2, ArrowRight, Coffee, Globe, Facebook, Linkedin, Instagram, Twitter, ExternalLink, Mail } from 'lucide-react';
+import { BookOpen, Code2, ArrowRight, Coffee, Globe, Facebook, Linkedin, Instagram, Twitter, ExternalLink, Mail, Award } from 'lucide-react';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
 import { getConvexClient } from '@/lib/convex';
 import { api } from '../../../convex/_generated/api';
@@ -96,8 +96,8 @@ export default async function AboutPage() {
       />
       <div className="section-container">
         <div className="grid lg:grid-cols-2 gap-16 items-start">
-          {/* Image */}
-          <div className="flex justify-center lg:sticky lg:top-24">
+          {/* Image & Certifications */}
+          <div className="flex flex-col items-center lg:sticky lg:top-24 gap-8">
             <div className="relative w-full max-w-md">
               <div className="absolute -inset-1 bg-gradient-to-r from-brand-500 to-brand-700 rounded-2xl blur-lg opacity-30" />
               <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden border-2 border-surface-800">
@@ -109,6 +109,38 @@ export default async function AboutPage() {
                   className="object-cover object-top"
                   priority
                 />
+              </div>
+            </div>
+
+            {/* Certifications */}
+            <div className="w-full max-w-md">
+              <div className="flex items-center gap-2 mb-4">
+                <Award className="w-5 h-5 text-brand-400" />
+                <h2 className="text-lg font-bold text-white">Certifications</h2>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { src: '/images/certs/comptia-cios.png', alt: 'CompTIA CIOS — IT Operations Specialist' },
+                  { src: '/images/certs/comptia-network-plus.png', alt: 'CompTIA Network+ Certified' },
+                  { src: '/images/certs/comptia-a-plus.png', alt: 'CompTIA A+ Certified' },
+                  { src: '/images/certs/ms-azure-fundamentals.png', alt: 'Microsoft Certified: Azure Fundamentals' },
+                  { src: '/images/certs/ms-security-fundamentals.png', alt: 'Microsoft Certified: Security, Compliance, and Identity Fundamentals' },
+                  { src: '/images/certs/linux-essentials.png', alt: 'Linux Professional Institute: Linux Essentials' },
+                ].map((cert) => (
+                  <div
+                    key={cert.alt}
+                    className="card p-3 flex items-center justify-center group hover:border-brand-500/40 transition-all duration-300"
+                    title={cert.alt}
+                  >
+                    <Image
+                      src={cert.src}
+                      alt={cert.alt}
+                      width={80}
+                      height={80}
+                      className="w-full h-auto max-w-[80px]"
+                    />
+                  </div>
+                ))}
               </div>
             </div>
           </div>
