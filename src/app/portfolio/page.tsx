@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { fetchQuery } from 'convex/nextjs';
 import { api } from '../../../convex/_generated/api';
-import { ArrowRight, Code2 } from 'lucide-react';
+import { ArrowRight, Code2, ExternalLink } from 'lucide-react';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
 
 export const revalidate = 60;
@@ -22,6 +22,7 @@ const fallbackProjects = [
     thumbnail_url: '/images/portfolio/boonies-on-the-bayou.png',
     technologies: ['HTML/CSS', 'JavaScript', 'Convex', 'Google Maps API'],
     category: 'Restaurant',
+    live_url: 'https://preview-boonies-on-the-bayou-c3c54177.viktor.space/',
   },
   {
     title: 'Butcher Block Steak House & Bar',
@@ -30,6 +31,7 @@ const fallbackProjects = [
     thumbnail_url: '/images/portfolio/butcher-block.png',
     technologies: ['HTML/CSS', 'JavaScript', 'Convex', 'Responsive Design'],
     category: 'Restaurant',
+    live_url: 'https://preview-butcher-block-site-2206c411.viktor.space/butcherblock.html',
   },
   {
     title: 'Cosmos Café',
@@ -38,6 +40,7 @@ const fallbackProjects = [
     thumbnail_url: '/images/portfolio/cosmos.png',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Restaurant',
+    live_url: 'https://preview-cosmos-bsl-7af4fc1f.viktor.space/cosmos.html',
   },
   {
     title: "Dan B. Murphy's Restaurant & Bar",
@@ -46,6 +49,7 @@ const fallbackProjects = [
     thumbnail_url: '/images/portfolio/dan-b-murphys.png',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Restaurant',
+    live_url: 'https://preview-dan-bs-bsl-79b3a67f.viktor.space/danbs.html',
   },
   {
     title: 'Hen House Cocktail & Wine Bar',
@@ -54,6 +58,7 @@ const fallbackProjects = [
     thumbnail_url: '/images/portfolio/hen-house.png',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Bar & Lounge',
+    live_url: 'https://hen-house-bsl-c6861667.viktor.space/henhouse.html',
   },
   {
     title: "Lemoine's Landing Tiki Bar",
@@ -62,6 +67,7 @@ const fallbackProjects = [
     thumbnail_url: '/images/portfolio/lemoines-landing.png',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Bar & Restaurant',
+    live_url: 'https://preview-lemoines-landing-d7a7aff8.viktor.space/lemoines.html',
   },
   {
     title: "Rickey's on Coleman",
@@ -70,6 +76,7 @@ const fallbackProjects = [
     thumbnail_url: '/images/portfolio/rickeys-on-coleman.png',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'Responsive Design'],
     category: 'Restaurant',
+    live_url: 'https://rickeys-on-coleman-980a4959.viktor.space/',
   },
   {
     title: 'The Ugly Pirate Cafe & Bar',
@@ -78,6 +85,7 @@ const fallbackProjects = [
     thumbnail_url: '/images/portfolio/ugly-pirate.png',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Cafe & Bar',
+    live_url: 'https://ugly-pirate-13a0ae30.viktor.space/',
   },
   {
     title: 'Wicked Pig Kitchen & Bar',
@@ -86,6 +94,7 @@ const fallbackProjects = [
     thumbnail_url: '/images/portfolio/wicked-pig.png',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Restaurant',
+    live_url: 'https://wicked-pig-bsl-d1b371ec.viktor.space/wickedpig.html',
   },
 ];
 
@@ -102,6 +111,7 @@ export default async function PortfolioPage() {
             thumbnail_url: p.thumbnail_url || '',
             technologies: p.technologies,
             category: p.category,
+            live_url: p.live_url || undefined,
           }))
         : fallbackProjects;
   } catch {
@@ -228,6 +238,19 @@ export default async function PortfolioPage() {
                     </span>
                   ))}
                 </div>
+
+                {/* View Site link */}
+                {project.live_url && (
+                  <a
+                    href={project.live_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-brand-400 hover:text-brand-300 font-medium transition-colors group/link"
+                  >
+                    View Site
+                    <ExternalLink className="w-4 h-4 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform" />
+                  </a>
+                )}
               </div>
             </div>
             </ScrollReveal>
