@@ -22,6 +22,7 @@ function ContactContent() {
     subject: '',
     message: '',
     service_interest: serviceInterest,
+    company: '',  // honeypot field — hidden from real users
   });
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
 
@@ -32,7 +33,14 @@ function ContactContent() {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          subject: form.subject,
+          message: form.message,
+          service_interest: form.service_interest,
+          company: form.company,
+        }),
       });
       if (!res.ok) throw new Error('Failed');
       setStatus('sent');
@@ -130,6 +138,19 @@ function ContactContent() {
                       placeholder="you@email.com"
                     />
                   </div>
+                </div>
+
+                {/* Honeypot field — invisible to humans, bots auto-fill it */}
+                <div aria-hidden="true" className="absolute opacity-0 h-0 w-0 overflow-hidden -z-10" tabIndex={-1}>
+                  <label htmlFor="company">Company</label>
+                  <input
+                    id="company"
+                    type="text"
+                    autoComplete="off"
+                    tabIndex={-1}
+                    value={form.company}
+                    onChange={(e) => setForm({ ...form, company: e.target.value })}
+                  />
                 </div>
 
                 <div>
