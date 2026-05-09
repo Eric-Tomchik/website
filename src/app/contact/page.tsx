@@ -44,7 +44,7 @@ function ContactContent() {
       });
       if (!res.ok) throw new Error('Failed');
       setStatus('sent');
-      setForm({ name: '', email: '', subject: '', message: '', service_interest: '' });
+      setForm({ name: '', email: '', subject: '', message: '', service_interest: '', company: '' });
     } catch {
       setStatus('error');
     }
