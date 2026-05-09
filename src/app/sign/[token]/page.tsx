@@ -168,7 +168,7 @@ export default function SignDocumentPage() {
           body: pdfBlob,
         });
         const { storageId } = await uploadRes.json();
-        await saveSignedPdf({ id: doc!._id, signed_storage_id: storageId });
+        await saveSignedPdf({ token, signed_storage_id: storageId });
       } catch (e) {
         console.error('Failed to generate signed PDF:', e);
       }

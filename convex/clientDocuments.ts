@@ -190,11 +190,14 @@ export const adminSign = mutation({
 });
 
 export const saveSignedPdf = mutation({
-  args: { adminKey: v.string(), id: v.id("client_documents"),
-    signed_storage_id: v.string(), },
+  args: { token: v.string(), signed_storage_id: v.string() },
   handler: async (ctx, args) => {
-    assertAdmin(args.adminKey);
-    await ctx.db.patch(args.id, {
+    const doc = await ctx.db
+      .query("client_documents")
+      .withIndex("by_signature_token", (q) => q.eq("signature_token", args.token))
+      .first();
+    if (!doc) throw new Error("Document not found");
+    await ctx.db.patch(doc._id, {
       signed_storage_id: args.signed_storage_id,
     });
     return { success: true };
@@ -202,9 +205,8 @@ export const saveSignedPdf = mutation({
 });
 
 export const decline = mutation({
-  args: { adminKey: v.string(), token: v.string() },
+  args: { token: v.string() },
   handler: async (ctx, args) => {
-    assertAdmin(args.adminKey);
     const doc = await ctx.db
       .query("client_documents")
       .withIndex("by_signature_token", (q) => q.eq("signature_token", args.token))
