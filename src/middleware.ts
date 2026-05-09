@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 
 // ── Portfolio subdomain → Viktor Space proxy (URL masking) ───────────────────
 // Each entry maps a subdomain to its origin base and default page path.
-const SUBDOMAIN_TARGETS: Record<string, { origin: string; defaultPath: string }> = {
+const SUBDOMAIN_TARGETS: Record<string, { origin: string; defaultPath: string; basePath?: string }> = {
   boonies: {
     origin: 'https://boonies-bsl-b04f03d9.viktor.space',
     defaultPath: '/',
@@ -43,6 +43,7 @@ const SUBDOMAIN_TARGETS: Record<string, { origin: string; defaultPath: string }>
   sparkles: {
     origin: 'https://sparklestravelgroup.github.io',
     defaultPath: '/webcommunity/',
+    basePath: '/webcommunity',
   },
 };
 
@@ -57,8 +58,13 @@ export function middleware(request: NextRequest) {
     const sub = subMatch[1].toLowerCase();
     const target = SUBDOMAIN_TARGETS[sub];
     if (target) {
-      // Root path → serve the default page; other paths → proxy as-is
-      const proxyPath = pathname === '/' ? target.defaultPath : pathname;
+      // Root path → serve the default page; other paths → prepend basePath if set
+      const proxyPath =
+        pathname === '/'
+          ? target.defaultPath
+          : target.basePath
+            ? `${target.basePath}${pathname}`
+            : pathname;
       const proxyUrl = new URL(proxyPath, target.origin);
       proxyUrl.search = request.nextUrl.search;
       return NextResponse.rewrite(proxyUrl);
