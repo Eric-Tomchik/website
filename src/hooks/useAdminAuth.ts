@@ -27,11 +27,14 @@ export function useAdminQuery<
   T extends FunctionReference<"query", "public", any, any>,
 >(
   queryRef: T,
-  args: Omit<FunctionArgs<T>, "adminKey">
+  args: Omit<FunctionArgs<T>, "adminKey"> | "skip"
 ): FunctionReturnType<T> | undefined {
   const adminKey = getAdminKey();
   const argsWithKey = useMemo(
-    () => (adminKey ? { ...args, adminKey } : "skip" as const),
+    () => {
+      if (args === "skip") return "skip" as const;
+      return adminKey ? { ...args, adminKey } : "skip" as const;
+    },
     // Serialize args to avoid infinite re-renders from object identity changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [adminKey, JSON.stringify(args)]
