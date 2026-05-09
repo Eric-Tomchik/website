@@ -1,9 +1,9 @@
 {
-  "name": "Eric Tomchik — Author, Web Developer, Creator",
+  "name": "Eric Tomchik \u2014 Author, Web Developer, Creator",
   "short_name": "Eric Tomchik",
   "description": "Author, web developer, and creator. Browse my books, explore my web development services, and view my portfolio.",
   "start_url": "/",
-  "display": "standalone",
+  "display": "minimal-ui",
   "background_color": "#0a0a0f",
   "theme_color": "#00d4ff",
   "icons": [

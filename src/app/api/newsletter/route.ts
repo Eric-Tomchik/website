@@ -61,7 +61,7 @@ export async function POST(req: Request) {
         const resendKey = process.env.RESEND_API_KEY;
         if (resendKey) {
           try {
-            const welcomeHtml = buildWelcomeEmail();
+            const welcomeHtml = buildWelcomeEmail(email);
 
             const resendRes = await fetch('https://api.resend.com/emails', {
               method: 'POST',
@@ -112,7 +112,7 @@ export async function POST(req: Request) {
   }
 }
 
-function buildWelcomeEmail(): string {
+function buildWelcomeEmail(subscriberEmail: string): string {
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -189,7 +189,7 @@ function buildWelcomeEmail(): string {
       </p>
       <p style="color: #64748b; font-size: 11px; margin: 0;">
         You're receiving this because you subscribed at erictomchik.com.<br/>
-        <a href="https://erictomchik.com/unsubscribe?email=${encodeURIComponent(email)}" style="color: #64748b; text-decoration: underline;">Unsubscribe</a>
+        <a href="https://erictomchik.com/unsubscribe?email=${encodeURIComponent(subscriberEmail)}" style="color: #64748b; text-decoration: underline;">Unsubscribe</a>
       </p>
     </div>
 
