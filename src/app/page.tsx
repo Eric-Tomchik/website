@@ -10,9 +10,13 @@ import { ArrowRight, BookOpen, Code2, Sparkles, Link2, Globe, Coffee, ClipboardC
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const books = await fetchQuery(api.books.list, { activeOnly: true });
+  const [books, portfolioProjects] = await Promise.all([
+    fetchQuery(api.books.list, { activeOnly: true }),
+    fetchQuery(api.portfolio.list, { activeOnly: true }),
+  ]);
   const featuredBooks = books?.filter((b) => b.is_featured).slice(0, 4) || [];
   const displayBooks = featuredBooks.length > 0 ? featuredBooks : (books || []).slice(0, 4);
+  const websiteCount = (portfolioProjects || []).length;
 
   return (
     <>
@@ -84,7 +88,7 @@ export default async function HomePage() {
               },
               {
                 icon: Globe,
-                stat: '9',
+                stat: `${websiteCount}`,
                 label: 'Websites Built',
               },
               {

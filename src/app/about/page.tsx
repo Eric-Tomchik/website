@@ -86,8 +86,12 @@ const personJsonLd = {
 
 export default async function AboutPage() {
   const client = getConvexClient();
-  const books = await client.query(api.books.list, {});
+  const [books, portfolioProjects] = await Promise.all([
+    client.query(api.books.list, {}),
+    client.query(api.portfolio.list, { activeOnly: true }),
+  ]);
   const bookCount = books.length.toString();
+  const websiteCount = portfolioProjects.length.toString();
   return (
     <div className="py-16">
       <script
@@ -179,7 +183,7 @@ export default async function AboutPage() {
             <div className="grid grid-cols-3 gap-4">
               {[
                 { icon: BookOpen, label: 'Published Books', value: bookCount },
-                { icon: Globe, label: 'Websites Built', value: '9' },
+                { icon: Globe, label: 'Websites Built', value: websiteCount },
                 { icon: Coffee, label: 'Cups of Coffee', value: '∞' },
               ].map((stat) => (
                 <div key={stat.label} className="card p-4 text-center">
