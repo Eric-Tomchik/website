@@ -3,6 +3,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { BookOpen, Code2, ArrowRight, Coffee, Globe, Facebook, Linkedin, Instagram, Twitter, ExternalLink, Mail } from 'lucide-react';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
+import { getConvexClient } from '@/lib/convex';
+import { api } from '../../../convex/_generated/api';
 
 export const metadata: Metadata = {
   title: 'About',
@@ -70,7 +72,10 @@ const personJsonLd = {
   ],
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const client = getConvexClient();
+  const books = await client.query(api.books.list, {});
+  const bookCount = books.length.toString();
   return (
     <div className="py-16">
       <script
@@ -129,7 +134,7 @@ export default function AboutPage() {
             <ScrollReveal animation="fade-up">
             <div className="grid grid-cols-3 gap-4">
               {[
-                { icon: BookOpen, label: 'Published Books', value: '4' },
+                { icon: BookOpen, label: 'Published Books', value: bookCount },
                 { icon: Globe, label: 'Websites Built', value: '9' },
                 { icon: Coffee, label: 'Cups of Coffee', value: '∞' },
               ].map((stat) => (
