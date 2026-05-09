@@ -65,6 +65,13 @@ export function ScrollReveal({
     const el = ref.current;
     if (!el) return;
 
+    // Respect prefers-reduced-motion — skip animations entirely
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) {
+      setIsVisible(true);
+      return;
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {

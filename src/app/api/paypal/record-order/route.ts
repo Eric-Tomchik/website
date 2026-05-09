@@ -90,6 +90,34 @@ export async function POST(req: Request) {
     const convex = getConvexClient();
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://erictomchik.com';
 
+    // Server-side price verification — prevent client-side manipulation
+    try {
+      const books = await convex.query(api.books.getByIds, {
+        ids: [data.book_id as any],
+      });
+      const book = books?.[0];
+      if (book) {
+        const expectedCents =
+          data.format === 'digital'
+            ? book.digital_price_cents ?? book.price_cents
+            : data.format === 'paperback'
+              ? book.paperback_price_cents ?? book.price_cents
+              : book.price_cents;
+        // Allow 5¢ tolerance for rounding, and account for quantity
+        const expectedTotal = expectedCents * data.quantity;
+        if (Math.abs(data.total_cents - expectedTotal) > 5) {
+          return NextResponse.json(
+            { error: 'Price mismatch — please refresh and try again' },
+            { status: 400 }
+          );
+        }
+      }
+    } catch (err) {
+      console.error('Price verification warning:', err);
+      // Don't block the order if verification fails (e.g., discount codes)
+      // but log it for monitoring
+    }
+
     // Map PayPal shipping address to our format
     const shippingAddress = data.shipping_address
       ? {

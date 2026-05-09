@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyAdminToken } from '@/lib/adminAuth';
 
 const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL!;
 
@@ -6,12 +7,12 @@ const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL!;
  * GET /api/analytics?type=realtime|historical&days=30
  *
  * Reads cached analytics data from Convex (populated by Viktor cron).
- * Protected: requires valid admin session cookie.
+ * Protected: requires valid admin session cookie with HMAC verification.
  */
 export async function GET(req: NextRequest) {
-  // Verify admin session
+  // Verify admin session — check both presence AND HMAC signature
   const session = req.cookies.get('admin_session')?.value;
-  if (!session) {
+  if (!session || !verifyAdminToken(session)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
