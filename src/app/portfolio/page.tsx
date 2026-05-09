@@ -22,7 +22,7 @@ const fallbackProjects = [
     thumbnail_url: '/images/portfolio/boonies-on-the-bayou.png',
     technologies: ['HTML/CSS', 'JavaScript', 'Convex', 'Google Maps API'],
     category: 'Restaurant',
-    live_url: 'https://preview-boonies-on-the-bayou-c3c54177.viktor.space/',
+    live_url: 'https://boonies.erictomchik.com',
   },
   {
     title: 'Butcher Block Steak House & Bar',
@@ -31,7 +31,7 @@ const fallbackProjects = [
     thumbnail_url: '/images/portfolio/butcher-block.png',
     technologies: ['HTML/CSS', 'JavaScript', 'Convex', 'Responsive Design'],
     category: 'Restaurant',
-    live_url: 'https://preview-butcher-block-site-2206c411.viktor.space/butcherblock.html',
+    live_url: 'https://butcherblock.erictomchik.com',
   },
   {
     title: 'Cosmos Café',
@@ -40,7 +40,7 @@ const fallbackProjects = [
     thumbnail_url: '/images/portfolio/cosmos.png',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Restaurant',
-    live_url: 'https://preview-cosmos-bsl-7af4fc1f.viktor.space/cosmos.html',
+    live_url: 'https://cosmos.erictomchik.com',
   },
   {
     title: "Dan B. Murphy's Restaurant & Bar",
@@ -49,7 +49,7 @@ const fallbackProjects = [
     thumbnail_url: '/images/portfolio/dan-b-murphys.png',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Restaurant',
-    live_url: 'https://preview-dan-bs-bsl-79b3a67f.viktor.space/danbs.html',
+    live_url: 'https://danbs.erictomchik.com',
   },
   {
     title: 'Hen House Cocktail & Wine Bar',
@@ -58,7 +58,7 @@ const fallbackProjects = [
     thumbnail_url: '/images/portfolio/hen-house.png',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Bar & Lounge',
-    live_url: 'https://hen-house-bsl-c6861667.viktor.space/henhouse.html',
+    live_url: 'https://henhouse.erictomchik.com',
   },
   {
     title: "Lemoine's Landing Tiki Bar",
@@ -67,7 +67,7 @@ const fallbackProjects = [
     thumbnail_url: '/images/portfolio/lemoines-landing.png',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Bar & Restaurant',
-    live_url: 'https://preview-lemoines-landing-d7a7aff8.viktor.space/lemoines.html',
+    live_url: 'https://lemoines.erictomchik.com',
   },
   {
     title: "Rickey's on Coleman",
@@ -76,7 +76,7 @@ const fallbackProjects = [
     thumbnail_url: '/images/portfolio/rickeys-on-coleman.png',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'Responsive Design'],
     category: 'Restaurant',
-    live_url: 'https://rickeys-on-coleman-980a4959.viktor.space/',
+    live_url: 'https://rickeys.erictomchik.com',
   },
   {
     title: 'The Ugly Pirate Cafe & Bar',
@@ -85,7 +85,7 @@ const fallbackProjects = [
     thumbnail_url: '/images/portfolio/ugly-pirate.png',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Cafe & Bar',
-    live_url: 'https://ugly-pirate-13a0ae30.viktor.space/',
+    live_url: 'https://uglypirate.erictomchik.com',
   },
   {
     title: 'Wicked Pig Kitchen & Bar',
@@ -94,7 +94,7 @@ const fallbackProjects = [
     thumbnail_url: '/images/portfolio/wicked-pig.png',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Restaurant',
-    live_url: 'https://wicked-pig-bsl-d1b371ec.viktor.space/wickedpig.html',
+    live_url: 'https://wickedpig.erictomchik.com',
   },
 ];
 
