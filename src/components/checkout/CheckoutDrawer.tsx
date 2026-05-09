@@ -6,7 +6,7 @@ import {
   EmbeddedCheckoutProvider,
   EmbeddedCheckout,
 } from '@stripe/react-stripe-js';
-import { X, BookOpen, CheckCircle, Loader2, Tag, Check } from 'lucide-react';
+import { X, BookOpen, CheckCircle, Loader2, Tag, Check, Gift, Mail, User } from 'lucide-react';
 import { useCheckout } from './CheckoutContext';
 import { PayPalButton } from './PayPalButton';
 import { formatPrice, formatLabel } from '@/lib/utils';
@@ -52,6 +52,14 @@ export function CheckoutDrawer() {
 
   const discountAmount = appliedDiscount ? calculateDiscount(basePrice, appliedDiscount) : 0;
   const effectivePrice = basePrice - discountAmount;
+  const isFreeCheckout = effectivePrice <= 0 && appliedDiscount !== null;
+
+  // Free checkout state
+  const [freeEmail, setFreeEmail] = useState('');
+  const [freeName, setFreeName] = useState('');
+  const [freeLoading, setFreeLoading] = useState(false);
+  const [freeError, setFreeError] = useState<string | null>(null);
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
 
   // Reset discount when modal closes
   useEffect(() => {
@@ -59,6 +67,11 @@ export function CheckoutDrawer() {
       setPromoInput('');
       setPromoError(null);
       setAppliedDiscount(null);
+      setFreeEmail('');
+      setFreeName('');
+      setFreeError(null);
+      setFreeLoading(false);
+      setDownloadUrl(null);
     }
   }, [isOpen]);
 
@@ -105,12 +118,52 @@ export function CheckoutDrawer() {
     setClientSecret(null);
   };
 
-  // Fetch client secret when dialog opens or discount changes
+  // Handle free checkout submission
+  const handleFreeCheckout = async () => {
+    if (!freeEmail.trim() || !freeName.trim() || !book || !appliedDiscount) return;
+    setFreeLoading(true);
+    setFreeError(null);
+
+    try {
+      const res = await fetch('/api/checkout/free', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          book_id: book._id,
+          book_title: book.title,
+          format,
+          discount_code: appliedDiscount.code,
+          customer_email: freeEmail.trim(),
+          customer_name: freeName.trim(),
+        }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        if (data.download_url) setDownloadUrl(data.download_url);
+        setCompleted(true);
+      } else {
+        setFreeError(data.error || 'Something went wrong');
+      }
+    } catch {
+      setFreeError('Network error. Please try again.');
+    }
+    setFreeLoading(false);
+  };
+
+  // Fetch client secret when dialog opens or discount changes (skip for free checkout)
   useEffect(() => {
     if (!isOpen || !book) {
       setClientSecret(null);
       setError(null);
       setCompleted(false);
+      return;
+    }
+
+    // Don't create a Stripe session for free checkouts
+    if (isFreeCheckout) {
+      setClientSecret(null);
+      setError(null);
       return;
     }
 
@@ -142,7 +195,7 @@ export function CheckoutDrawer() {
 
     createSession();
     return () => { cancelled = true; };
-  }, [isOpen, book, format, appliedDiscount]);
+  }, [isOpen, book, format, appliedDiscount, isFreeCheckout]);
 
   // Lock body scroll when open
   useEffect(() => {
@@ -201,14 +254,27 @@ export function CheckoutDrawer() {
                 <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto">
                   <CheckCircle className="w-8 h-8 text-green-400" />
                 </div>
-                <h3 className="text-2xl font-bold text-white">Thank you for your purchase!</h3>
+                <h3 className="text-2xl font-bold text-white">
+                  {downloadUrl ? 'Your download is ready!' : 'Thank you for your purchase!'}
+                </h3>
                 <p className="text-surface-400 max-w-md">
-                  Your order has been confirmed. You&apos;ll receive an email confirmation shortly.
-                  {(format === 'hardback' || format === 'paperback') && ' Your book will be shipped within 1-2 business days.'}
+                  {downloadUrl
+                    ? 'Click below to download your book. A download link has also been sent to your email.'
+                    : <>Your order has been confirmed. You&apos;ll receive an email confirmation shortly.
+                      {(format === 'hardback' || format === 'paperback') && ' Your book will be shipped within 1-2 business days.'}</>
+                  }
                 </p>
+                {downloadUrl && (
+                  <a
+                    href={downloadUrl}
+                    className="btn-primary mt-2 inline-block"
+                  >
+                    Download Your Book
+                  </a>
+                )}
                 <button
                   onClick={closeCheckout}
-                  className="btn-primary mt-4"
+                  className={`${downloadUrl ? 'btn-secondary' : 'btn-primary'} mt-4`}
                 >
                   Continue Browsing
                 </button>
@@ -315,11 +381,61 @@ export function CheckoutDrawer() {
               </div>
 
               {/* Payment section */}
-              {error ? (
+              {error || freeError ? (
                 <div className="text-center py-8 space-y-3">
-                  <p className="text-red-400">{error}</p>
-                  <button onClick={closeCheckout} className="btn-secondary text-sm">
-                    Close
+                  <p className="text-red-400">{error || freeError}</p>
+                  <button onClick={() => { setError(null); setFreeError(null); }} className="btn-secondary text-sm">
+                    Try Again
+                  </button>
+                </div>
+              ) : isFreeCheckout ? (
+                /* Free checkout — just need email + name */
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/5 border border-green-500/20">
+                    <Gift className="w-5 h-5 text-green-400" />
+                    <span className="text-sm text-green-400 font-medium">
+                      This item is free with your promo code! Just enter your details below.
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500" />
+                      <input
+                        type="text"
+                        value={freeName}
+                        onChange={(e) => setFreeName(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleFreeCheckout(); } }}
+                        placeholder="Your name"
+                        className="w-full pl-10 pr-4 py-3 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500"
+                      />
+                    </div>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500" />
+                      <input
+                        type="email"
+                        value={freeEmail}
+                        onChange={(e) => setFreeEmail(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleFreeCheckout(); } }}
+                        placeholder="Your email (for download link)"
+                        className="w-full pl-10 pr-4 py-3 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500 placeholder:text-surface-500"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleFreeCheckout}
+                    disabled={freeLoading || !freeEmail.trim() || !freeName.trim()}
+                    className="w-full btn-primary text-base py-3 disabled:opacity-50"
+                  >
+                    {freeLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                    ) : (
+                      <>
+                        <Gift className="w-4 h-4 mr-2 inline" />
+                        Get Free Download
+                      </>
+                    )}
                   </button>
                 </div>
               ) : (
