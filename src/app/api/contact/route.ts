@@ -17,6 +17,7 @@ const contactSchema = z.object({
   subject: z.string().min(1).max(200),
   message: z.string().min(1).max(5000),
   service_interest: z.string().optional(),
+  company: z.string().optional(),  // honeypot field
 });
 
 export async function POST(req: Request) {
@@ -43,6 +44,12 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const data = contactSchema.parse(body);
+
+    // Honeypot check — if the hidden "company" field has a value, it's a bot.
+    // Return a fake success so the bot thinks it worked.
+    if (data.company) {
+      return NextResponse.json({ success: true, emailStatus: 'sent' });
+    }
 
     // Save to Convex (backup + admin dashboard) — reuse convex client from rate limit check
     await convex.mutation(api.contacts.create, {
