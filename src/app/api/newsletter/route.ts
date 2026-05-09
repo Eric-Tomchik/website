@@ -189,7 +189,7 @@ function buildWelcomeEmail(): string {
       </p>
       <p style="color: #64748b; font-size: 11px; margin: 0;">
         You're receiving this because you subscribed at erictomchik.com.<br/>
-        <a href="https://erictomchik.com" style="color: #64748b; text-decoration: underline;">Unsubscribe</a>
+        <a href="https://erictomchik.com/unsubscribe?email=${encodeURIComponent(email)}" style="color: #64748b; text-decoration: underline;">Unsubscribe</a>
       </p>
     </div>
 
