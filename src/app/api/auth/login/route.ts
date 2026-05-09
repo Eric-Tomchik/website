@@ -56,7 +56,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (password !== adminPassword) {
+    // Timing-safe comparison to prevent timing attacks
+    const passwordMatch =
+      password.length === adminPassword.length &&
+      crypto.timingSafeEqual(
+        Buffer.from(password),
+        Buffer.from(adminPassword)
+      );
+
+    if (!passwordMatch) {
       return NextResponse.json(
         { error: 'Invalid password' },
         {
