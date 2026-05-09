@@ -384,7 +384,7 @@ function DocumentsTab({
 
       if (uploadFile) {
         // Upload file to Convex storage
-        const url = await generateUploadUrl();
+        const url = await generateUploadUrl({});
         const result = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': uploadFile.type },

@@ -117,7 +117,7 @@ export default function AIContractGeneratorPage() {
 
     try {
       // Upload PDF to Convex storage
-      const uploadUrl = await generateUploadUrl();
+      const uploadUrl = await generateUploadUrl({});
       const uploadRes = await fetch(uploadUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/pdf' },

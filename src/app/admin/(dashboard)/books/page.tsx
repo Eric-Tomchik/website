@@ -240,7 +240,7 @@ function BookForm({
   ) => {
     setUploading(field);
     try {
-      const uploadUrl = await generateUploadUrl();
+      const uploadUrl = await generateUploadUrl({});
       const result = await fetch(uploadUrl, {
         method: 'POST',
         headers: { 'Content-Type': file.type },
