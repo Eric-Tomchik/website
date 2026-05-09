@@ -56,7 +56,8 @@ function buildCsp(nonce: string): string {
     // that can't be nonce-tagged without a custom document setup
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
-    "img-src 'self' data: blob: https://*.convex.cloud https://*.stripe.com https://www.paypal.com https://www.facebook.com",
+    // img-src allows https: broadly — the news reader shows images from many external sources
+    "img-src 'self' data: blob: https:",
     "connect-src 'self' https://*.convex.cloud wss://*.convex.cloud https://api.stripe.com https://www.google-analytics.com https://www.paypal.com https://api.resend.com https://cloudflareinsights.com https://www.facebook.com",
     "frame-src 'self' blob: https://*.convex.cloud https://js.stripe.com https://www.paypal.com",
     "object-src 'none'",
