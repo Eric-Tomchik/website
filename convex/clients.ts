@@ -2,62 +2,19 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import bcrypt from "bcryptjs";
 
-// Password hashing: bcrypt (preferred) with legacy SHA-256 + simpleHash fallback
+// Password hashing: bcrypt only (use sync methods — Convex mutations don't support setTimeout)
 const BCRYPT_ROUNDS = 10;
 
-async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, BCRYPT_ROUNDS);
+function hashPassword(password: string): string {
+  return bcrypt.hashSync(password, BCRYPT_ROUNDS);
 }
 
-async function verifyPassword(
-  password: string,
-  storedHash: string
-): Promise<boolean> {
-  // bcrypt hashes start with $2a$ or $2b$
-  if (storedHash.startsWith("$2")) {
-    return bcrypt.compare(password, storedHash);
+function verifyPassword(password: string, storedHash: string): boolean {
+  if (!storedHash.startsWith("$2")) {
+    // Reject any non-bcrypt hash — legacy formats have been migrated
+    return false;
   }
-  // Legacy SHA-256 format
-  if (storedHash.startsWith("sha256:")) {
-    const parts = storedHash.split(":");
-    if (parts.length !== 3) return false;
-    const salt = parts[1];
-    const computed = await legacySha256Hash(password, salt);
-    return computed === storedHash;
-  }
-  // Legacy simpleHash format
-  return storedHash === legacySimpleHash(password);
-}
-
-// Legacy SHA-256 — kept only for verifying old hashes; new passwords use bcrypt
-async function legacySha256Hash(password: string, salt: string): Promise<string> {
-  const data = new TextEncoder().encode(password + salt);
-  let hash = data;
-  for (let i = 0; i < 1000; i++) {
-    hash = new Uint8Array(await crypto.subtle.digest("SHA-256", hash));
-  }
-  const hashHex = Array.from(hash)
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-  return `sha256:${salt}:${hashHex}`;
-}
-
-// Legacy simpleHash — kept only for verifying old hashes
-function legacySimpleHash(password: string): string {
-  let hash = 0;
-  const str = password + "arclight_salt_2026";
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash + char) | 0;
-  }
-  const h1 = hash.toString(36);
-  let hash2 = 0;
-  const str2 = str + h1;
-  for (let i = 0; i < str2.length; i++) {
-    const char = str2.charCodeAt(i);
-    hash2 = ((hash2 << 5) - hash2 + char) | 0;
-  }
-  return `sh_${h1}_${hash2.toString(36)}`;
+  return bcrypt.compareSync(password, storedHash);
 }
 
 export const list = query({
@@ -110,7 +67,7 @@ export const create = mutation({
     return await ctx.db.insert("clients", {
       ...rest,
       email: args.email.toLowerCase(),
-      password_hash: await hashPassword(password),
+      password_hash: hashPassword(password),
       is_active: true,
     });
   },
@@ -142,7 +99,7 @@ export const resetPassword = mutation({
   args: { id: v.id("clients"), newPassword: v.string() },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, {
-      password_hash: await hashPassword(args.newPassword),
+      password_hash: hashPassword(args.newPassword),
     });
   },
 });
@@ -159,16 +116,9 @@ export const login = mutation({
       throw new Error("Invalid email or password");
     }
 
-    const valid = await verifyPassword(args.password, client.password_hash);
+    const valid = verifyPassword(args.password, client.password_hash);
     if (!valid) {
       throw new Error("Invalid email or password");
-    }
-
-    // Auto-migrate legacy (simpleHash / SHA-256) hashes to bcrypt on login
-    if (!client.password_hash.startsWith("$2")) {
-      await ctx.db.patch(client._id, {
-        password_hash: await hashPassword(args.password),
-      });
     }
 
     // Create session token

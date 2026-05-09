@@ -48,48 +48,61 @@ const SUBDOMAIN_TARGETS: Record<string, { origin: string; defaultPath: string; b
 };
 
 export function middleware(request: NextRequest) {
-  const host = request.headers.get('host') ?? '';
-  const { pathname } = request.nextUrl;
+  try {
+    const host = request.headers.get('host') ?? '';
+    const { pathname } = request.nextUrl;
 
-  // ── Subdomain proxy (portfolio showcase projects) ──────────────────────────
-  // Serves Viktor Space content while keeping the subdomain URL in the browser.
-  const subMatch = host.match(/^([a-z]+)\.erictomchik\.com$/i);
-  if (subMatch) {
-    const sub = subMatch[1].toLowerCase();
-    const target = SUBDOMAIN_TARGETS[sub];
-    if (target) {
-      // Root path → serve the default page; other paths → prepend basePath if set
-      const proxyPath =
-        pathname === '/'
-          ? target.defaultPath
-          : target.basePath
-            ? `${target.basePath}${pathname}`
-            : pathname;
-      const proxyUrl = new URL(proxyPath, target.origin);
-      proxyUrl.search = request.nextUrl.search;
-      return NextResponse.rewrite(proxyUrl);
+    // ── Subdomain proxy (portfolio showcase projects) ──────────────────────────
+    // Serves Viktor Space content while keeping the subdomain URL in the browser.
+    const subMatch = host.match(/^([a-z]+)\.erictomchik\.com$/i);
+    if (subMatch) {
+      const sub = subMatch[1].toLowerCase();
+      const target = SUBDOMAIN_TARGETS[sub];
+      if (target) {
+        try {
+          // Root path → serve the default page; other paths → prepend basePath if set
+          const proxyPath =
+            pathname === '/'
+              ? target.defaultPath
+              : target.basePath
+                ? `${target.basePath}${pathname}`
+                : pathname;
+          const proxyUrl = new URL(proxyPath, target.origin);
+          proxyUrl.search = request.nextUrl.search;
+          return NextResponse.rewrite(proxyUrl);
+        } catch {
+          // If the upstream is unreachable or URL is malformed, return a friendly error
+          return new NextResponse(
+            '<!DOCTYPE html><html><body style="font-family:system-ui;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#0a0f1c;color:#fff"><div style="text-align:center"><h1>Temporarily Unavailable</h1><p>This site is currently down for maintenance. Please try again later.</p></div></body></html>',
+            { status: 503, headers: { 'Content-Type': 'text/html', 'Retry-After': '60' } }
+          );
+        }
+      }
     }
-  }
 
-  // ── Protect admin routes (except login page) ──────────────────────────────
-  if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
-    const adminSession = request.cookies.get('admin_session');
-    if (!adminSession?.value) {
-      return NextResponse.redirect(new URL('/admin/login', request.url));
+    // ── Protect admin routes (except login page) ──────────────────────────────
+    if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
+      const adminSession = request.cookies.get('admin_session');
+      if (!adminSession?.value) {
+        return NextResponse.redirect(new URL('/admin/login', request.url));
+      }
+      // Note: full HMAC verification happens in the layout (Node.js runtime);
+      // middleware provides a fast first-pass check at the edge.
     }
-    // Note: full HMAC verification happens in the layout (Node.js runtime);
-    // middleware provides a fast first-pass check at the edge.
-  }
 
-  // ── Protect portal routes (except login page) ─────────────────────────────
-  if (pathname.startsWith('/portal') && pathname !== '/portal/login') {
-    const portalSession = request.cookies.get('portal_session');
-    if (!portalSession?.value) {
-      return NextResponse.redirect(new URL('/portal/login', request.url));
+    // ── Protect portal routes (except login page) ─────────────────────────────
+    if (pathname.startsWith('/portal') && pathname !== '/portal/login') {
+      const portalSession = request.cookies.get('portal_session');
+      if (!portalSession?.value) {
+        return NextResponse.redirect(new URL('/portal/login', request.url));
+      }
     }
-  }
 
-  return NextResponse.next();
+    return NextResponse.next();
+  } catch {
+    // Catch-all: never let middleware crash the entire request
+    return NextResponse.next();
+  }
 }
 
 export const config = {
