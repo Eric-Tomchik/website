@@ -25,9 +25,9 @@ import {
 type View = 'list' | 'compose' | 'preview';
 
 export default function BroadcastsPage() {
-  const broadcasts = useAdminQuery(api.emailBroadcasts.list) ?? [];
-  const stats = useAdminQuery(api.emailBroadcasts.stats) ?? { total: 0, drafts: 0, sent: 0, totalEmailsSent: 0 };
-  const subscriberStats = useAdminQuery(api.newsletter.stats) ?? { total: 0, active: 0, inactive: 0, last30d: 0 };
+  const broadcasts = useAdminQuery(api.emailBroadcasts.list, {}) ?? [];
+  const stats = useAdminQuery(api.emailBroadcasts.stats, {}) ?? { total: 0, drafts: 0, sent: 0, totalEmailsSent: 0 };
+  const subscriberStats = useAdminQuery(api.newsletter.stats, {}) ?? { total: 0, active: 0, inactive: 0, last30d: 0 };
   const createBroadcast = useAdminMutation(api.emailBroadcasts.create);
   const updateBroadcast = useAdminMutation(api.emailBroadcasts.update);
   const removeBroadcast = useAdminMutation(api.emailBroadcasts.remove);

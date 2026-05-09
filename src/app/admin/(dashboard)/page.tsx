@@ -26,8 +26,8 @@ function getDaysAgo(days: number) {
 
 export default function AdminDashboard() {
   const books = useAdminQuery(api.books.list, {});
-  const orders = useAdminQuery(api.orders.list);
-  const unreadMessages = useAdminQuery(api.contacts.unreadCount);
+  const orders = useAdminQuery(api.orders.list, {});
+  const unreadMessages = useAdminQuery(api.contacts.unreadCount, {});
 
   const analytics = useMemo(() => {
     if (!orders) return null;

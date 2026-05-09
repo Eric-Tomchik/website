@@ -47,7 +47,7 @@ function timeAgo(ts: number): string {
 
 export default function NotificationsPage() {
   const notifications = useAdminQuery(api.notifications.list, {}) ?? [];
-  const unreadCount = useAdminQuery(api.notifications.unreadCount) ?? 0;
+  const unreadCount = useAdminQuery(api.notifications.unreadCount, {}) ?? 0;
   const markRead = useAdminMutation(api.notifications.markRead);
   const markAllRead = useAdminMutation(api.notifications.markAllRead);
   const remove = useAdminMutation(api.notifications.remove);

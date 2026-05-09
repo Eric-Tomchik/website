@@ -48,7 +48,7 @@ function formatFileSize(bytes: number): string {
 
 export default function MediaLibraryPage() {
   const files = useAdminQuery(api.mediaFiles.list, {}) ?? [];
-  const stats = useAdminQuery(api.mediaFiles.stats);
+  const stats = useAdminQuery(api.mediaFiles.stats, {});
   const remove = useAdminMutation(api.mediaFiles.remove);
   const update = useAdminMutation(api.mediaFiles.update);
 

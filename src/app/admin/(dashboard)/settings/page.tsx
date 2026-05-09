@@ -101,7 +101,7 @@ const SETTING_GROUPS: SettingGroup[] = [
 ];
 
 export default function SettingsPage() {
-  const allSettings = useAdminQuery(api.siteSettings.getAll) as Record<string, unknown> | undefined;
+  const allSettings = useAdminQuery(api.siteSettings.getAll, {}) as Record<string, unknown> | undefined;
   const setMany = useAdminMutation(api.siteSettings.setMany);
 
   const [values, setValues] = useState<Record<string, string>>({});

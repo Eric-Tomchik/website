@@ -14,7 +14,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function AdminOrdersPage() {
-  const orders = useAdminQuery(api.orders.list) ?? [];
+  const orders = useAdminQuery(api.orders.list, {}) ?? [];
   const updateStatus = useAdminMutation(api.orders.updateStatus);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 

@@ -37,9 +37,9 @@ const statusStyles: Record<InvoiceStatus, { color: string; icon: typeof Clock }>
 };
 
 export default function InvoicesPage() {
-  const invoices = useAdminQuery(api.invoices.list) ?? [];
-  const stats = useAdminQuery(api.invoices.stats);
-  const nextNum = useAdminQuery(api.invoices.nextInvoiceNumber) ?? 'INV-0001';
+  const invoices = useAdminQuery(api.invoices.list, {}) ?? [];
+  const stats = useAdminQuery(api.invoices.stats, {});
+  const nextNum = useAdminQuery(api.invoices.nextInvoiceNumber, {}) ?? 'INV-0001';
   const clients = useAdminQuery(api.clients.list, {}) ?? [];
   const create = useAdminMutation(api.invoices.create);
   const update = useAdminMutation(api.invoices.update);

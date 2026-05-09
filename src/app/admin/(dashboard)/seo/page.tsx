@@ -50,9 +50,9 @@ const contentTypeLabels: Record<ContentType, string> = {
 };
 
 export default function SEOPlannerPage() {
-  const keywords = useAdminQuery(api.seoKeywords.list) ?? [];
-  const kwStats = useAdminQuery(api.seoKeywords.stats);
-  const calendar = useAdminQuery(api.contentCalendar.list) ?? [];
+  const keywords = useAdminQuery(api.seoKeywords.list, {}) ?? [];
+  const kwStats = useAdminQuery(api.seoKeywords.stats, {});
+  const calendar = useAdminQuery(api.contentCalendar.list, {}) ?? [];
   const createKW = useAdminMutation(api.seoKeywords.create);
   const updateKW = useAdminMutation(api.seoKeywords.update);
   const removeKW = useAdminMutation(api.seoKeywords.remove);

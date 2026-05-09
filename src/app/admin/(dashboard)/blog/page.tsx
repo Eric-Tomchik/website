@@ -57,7 +57,7 @@ const emptyPost = {
 };
 
 export default function BlogAdminPage() {
-  const posts = (useAdminQuery(api.blogPosts.listAll) ?? []) as BlogPost[];
+  const posts = (useAdminQuery(api.blogPosts.listAll, {}) ?? []) as BlogPost[];
   const create = useAdminMutation(api.blogPosts.create);
   const update = useAdminMutation(api.blogPosts.update);
   const remove = useAdminMutation(api.blogPosts.remove);

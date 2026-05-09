@@ -17,8 +17,8 @@ import {
 type Period = '7d' | '30d' | '90d' | 'all';
 
 export default function RevenuePage() {
-  const orders = useAdminQuery(api.orders.list) ?? [];
-  const invoiceStats = useAdminQuery(api.invoices.stats);
+  const orders = useAdminQuery(api.orders.list, {}) ?? [];
+  const invoiceStats = useAdminQuery(api.invoices.stats, {});
   const [period, setPeriod] = useState<Period>('30d');
 
   const periodMs: Record<Period, number> = {

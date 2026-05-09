@@ -25,7 +25,7 @@ const serviceLabels: Record<string, string> = {
 };
 
 export default function AdminMessagesPage() {
-  const messages = useAdminQuery(api.contacts.list) ?? [];
+  const messages = useAdminQuery(api.contacts.list, {}) ?? [];
   const markRead = useAdminMutation(api.contacts.markRead);
   const markUnread = useAdminMutation(api.contacts.markUnread);
   const removeMessage = useAdminMutation(api.contacts.remove);

@@ -51,8 +51,8 @@ function StarRating({ rating, onChange }: { rating: number; onChange?: (r: numbe
 }
 
 export default function ReviewsPage() {
-  const reviews = useAdminQuery(api.reviews.list) ?? [];
-  const stats = useAdminQuery(api.reviews.stats);
+  const reviews = useAdminQuery(api.reviews.list, {}) ?? [];
+  const stats = useAdminQuery(api.reviews.stats, {});
   const create = useAdminMutation(api.reviews.create);
   const updateReview = useAdminMutation(api.reviews.update);
   const remove = useAdminMutation(api.reviews.remove);

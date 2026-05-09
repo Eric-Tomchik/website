@@ -36,7 +36,7 @@ function timeAgo(ts: number): string {
 
 export default function AuditLogPage() {
   const logs = useAdminQuery(api.auditLog.list, {}) ?? [];
-  const stats = useAdminQuery(api.auditLog.stats);
+  const stats = useAdminQuery(api.auditLog.stats, {});
   const clearOld = useAdminMutation(api.auditLog.clearOld);
 
   const [search, setSearch] = useState('');

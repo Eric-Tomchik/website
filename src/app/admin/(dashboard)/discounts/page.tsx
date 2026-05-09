@@ -234,7 +234,7 @@ function DiscountForm({
 }
 
 export default function AdminDiscountsPage() {
-  const discounts = useAdminQuery(api.discountCodes.list) ?? [];
+  const discounts = useAdminQuery(api.discountCodes.list, {}) ?? [];
   const deleteCode = useAdminMutation(api.discountCodes.remove);
   const updateCode = useAdminMutation(api.discountCodes.update);
   const [showForm, setShowForm] = useState(false);

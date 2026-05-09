@@ -66,7 +66,7 @@ export default function SocialMediaPage() {
   const [showCampaignForm, setShowCampaignForm] = useState(false);
 
   const posts = useAdminQuery(api.socialPosts.list, statusFilter === 'all' ? {} : { status: statusFilter as PostStatus });
-  const postCounts = useAdminQuery(api.socialPosts.counts);
+  const postCounts = useAdminQuery(api.socialPosts.counts, {});
   const campaigns = useAdminQuery(api.socialCampaigns.list, {});
 
   const tabs: { id: Tab; label: string; icon: any }[] = [

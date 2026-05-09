@@ -103,7 +103,7 @@ const navSections: NavSection[] = [
 
 function useSafeQuery<T>(queryFn: any, fallback: T): T {
   try {
-    const result = useAdminQuery(queryFn);
+    const result = useAdminQuery(queryFn, {});
     return result ?? fallback;
   } catch {
     return fallback;
