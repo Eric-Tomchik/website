@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { getConvexClient } from '@/lib/convex';
 import { api } from '../../../../../convex/_generated/api';
+import { is2FAEnabled, verifyTOTP } from '@/lib/totp';
 
 function getClientIp(req: Request): string {
   const forwarded = req.headers.get('x-forwarded-for');
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { password } = await req.json();
+    const { password, totp_code } = await req.json();
     const adminPassword = process.env.ADMIN_PASSWORD;
 
     if (!adminPassword) {
@@ -65,13 +66,35 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Password is correct — check if 2FA is required
+    if (is2FAEnabled()) {
+      if (!totp_code) {
+        // Password OK, but need TOTP code — tell the client to show 2FA input
+        return NextResponse.json(
+          { requires_2fa: true },
+          { status: 200 }
+        );
+      }
+
+      // Verify the TOTP code
+      const secret = process.env.ADMIN_TOTP_SECRET!;
+      if (!verifyTOTP(secret, totp_code)) {
+        return NextResponse.json(
+          { error: 'Invalid verification code', requires_2fa: true },
+          {
+            status: 401,
+            headers: { 'X-RateLimit-Remaining': String(rateCheck.remaining) },
+          }
+        );
+      }
+    }
+
+    // All checks passed — issue session token
     const token = signToken(
       { admin: true, ts: Date.now(), jti: crypto.randomUUID() },
       adminPassword
     );
 
-    // Use NextResponse.cookies instead of cookies() from next/headers
-    // for better compatibility with Cloudflare Workers / OpenNext
     const response = NextResponse.json({ success: true });
     response.cookies.set('admin_session', token, {
       httpOnly: true,
