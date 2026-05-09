@@ -34,11 +34,11 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://js.stripe.com https://www.paypal.com",
+              "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://js.stripe.com https://www.paypal.com https://static.cloudflareinsights.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://*.convex.cloud https://*.stripe.com https://www.paypal.com",
-              "connect-src 'self' https://*.convex.cloud wss://*.convex.cloud https://api.stripe.com https://www.google-analytics.com https://www.paypal.com https://api.resend.com",
+              "connect-src 'self' https://*.convex.cloud wss://*.convex.cloud https://api.stripe.com https://www.google-analytics.com https://www.paypal.com https://api.resend.com https://cloudflareinsights.com",
               "frame-src 'self' blob: https://*.convex.cloud https://js.stripe.com https://www.paypal.com",
               "object-src 'none'",
               "base-uri 'self'",
