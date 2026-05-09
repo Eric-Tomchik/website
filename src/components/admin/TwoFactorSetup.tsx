@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ShieldCheck, ShieldAlert, Copy, Check, ExternalLink } from 'lucide-react';
+import { generateQRCodeSVG } from '@/lib/qr';
 
 interface SetupData {
   enabled: boolean;
@@ -82,21 +83,9 @@ export function TwoFactorSetup() {
 
               {setupData.secret && (
                 <>
-                  {/* QR code via external service */}
+                  {/* QR code generated client-side */}
                   {setupData.otpauth_uri && (
-                    <div className="text-center">
-                      <p className="text-xs text-surface-400 mb-2">
-                        Scan this QR code with your authenticator app:
-                      </p>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(setupData.otpauth_uri)}`}
-                        alt="TOTP QR Code"
-                        className="mx-auto rounded-lg"
-                        width={200}
-                        height={200}
-                      />
-                    </div>
+                    <QRCodeDisplay uri={setupData.otpauth_uri} />
                   )}
 
                   {/* Manual secret */}
@@ -150,6 +139,23 @@ export function TwoFactorSetup() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/** Renders a QR code SVG inline (no external requests) */
+function QRCodeDisplay({ uri }: { uri: string }) {
+  const svg = useMemo(() => generateQRCodeSVG(uri, 4, 16), [uri]);
+  return (
+    <div className="text-center">
+      <p className="text-xs text-surface-400 mb-2">
+        Scan this QR code with your authenticator app:
+      </p>
+      <div
+        className="inline-block rounded-lg overflow-hidden"
+        style={{ width: 200, height: 200 }}
+        dangerouslySetInnerHTML={{ __html: svg }}
+      />
     </div>
   );
 }
