@@ -44,7 +44,7 @@ function estimateReadingTime(html: string): number {
 
 /** Sanitize HTML: allow safe tags, strip scripts/iframes/styles */
 function sanitizeHtml(html: string): string {
-  return html
+  let cleaned = html
     // Remove script tags and content
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     // Remove style tags and content
@@ -58,7 +58,32 @@ function sanitizeHtml(html: string): string {
     // Remove javascript: urls
     .replace(/href\s*=\s*["']javascript:[^"']*["']/gi, 'href="#"')
     // Remove form elements
-    .replace(/<\/?(?:form|input|button|select|textarea)[^>]*>/gi, '');
+    .replace(/<\/?(?:form|input|button|select|textarea)[^>]*>/gi, '')
+    // Remove inline styles (let prose classes handle styling)
+    .replace(/\s+style="[^"]*"/gi, '')
+    .replace(/\s+style='[^']*'/gi, '')
+    // Remove WordPress-specific class clutter but keep semantic tags
+    .replace(/\s+class="[^"]*"/gi, '');
+
+  // If content has no block-level HTML tags, treat as plain text and add structure
+  const hasBlockTags = /<(?:p|h[1-6]|div|blockquote|ul|ol|li|figure|pre|table)\b/i.test(cleaned);
+  if (!hasBlockTags) {
+    // Split on double newlines for paragraphs
+    cleaned = cleaned
+      .split(/\n{2,}/)
+      .map((para) => para.trim())
+      .filter(Boolean)
+      .map((para) => `<p>${para.replace(/\n/g, '<br/>')}</p>`)
+      .join('\n');
+  }
+
+  // Remove "The post ... appeared first on ..." boilerplate
+  cleaned = cleaned.replace(
+    /<p>\s*The post\s*<a[^>]*>.*?<\/a>\s*appeared first on\s*<a[^>]*>.*?<\/a>\.\s*<\/p>/gi,
+    ''
+  );
+
+  return cleaned;
 }
 
 export async function generateMetadata({

@@ -17,6 +17,7 @@
     "@paypal/react-paypal-js": "^9.2.0",
     "@stripe/react-stripe-js": "^2.8.0",
     "@stripe/stripe-js": "^4.0.0",
+    "@tailwindcss/typography": "^0.5.19",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.0",
     "convex": "^1.17.0",
