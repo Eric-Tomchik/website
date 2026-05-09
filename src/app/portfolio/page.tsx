@@ -96,6 +96,15 @@ const fallbackProjects = [
     category: 'Restaurant',
     live_url: 'https://wickedpig.erictomchik.com',
   },
+  {
+    title: 'Sparkles Travel Group',
+    description:
+      'Sleek travel agency website with luxury cruise & destination wedding packages, interactive booking forms, community portal, animated hero sections, and modern glassmorphism design.',
+    thumbnail_url: '/images/portfolio/sparkles-travel.png',
+    technologies: ['HTML/CSS', 'JavaScript', 'Font Awesome', 'CSS Animations'],
+    category: 'Travel & Tourism',
+    live_url: 'https://sparkles.erictomchik.com',
+  },
 ];
 
 export default async function PortfolioPage() {

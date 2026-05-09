@@ -5,7 +5,7 @@ import type { NextRequest } from 'next/server';
 // Each entry maps a subdomain to its origin base and default page path.
 const SUBDOMAIN_TARGETS: Record<string, { origin: string; defaultPath: string }> = {
   boonies: {
-    origin: 'https://preview-boonies-on-the-bayou-c3c54177.viktor.space',
+    origin: 'https://boonies-bsl-b04f03d9.viktor.space',
     defaultPath: '/',
   },
   rickeys: {
@@ -39,6 +39,10 @@ const SUBDOMAIN_TARGETS: Record<string, { origin: string; defaultPath: string }>
   lemoines: {
     origin: 'https://preview-lemoines-landing-d7a7aff8.viktor.space',
     defaultPath: '/lemoines.html',
+  },
+  sparkles: {
+    origin: 'https://sparklestravelgroup.github.io',
+    defaultPath: '/webcommunity/',
   },
 };
 
