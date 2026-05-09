@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useMutation } from 'convex/react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import {
   Bell,
@@ -54,6 +54,18 @@ export default function NotificationsPage() {
   const clearAll = useMutation(api.notifications.clearAll);
 
   const [filter, setFilter] = useState<FilterType>('all');
+  const hasAutoMarked = useRef(false);
+
+  // Auto-mark all notifications as read after 2 seconds on the page
+  useEffect(() => {
+    if (unreadCount > 0 && !hasAutoMarked.current) {
+      const timer = setTimeout(() => {
+        markAllRead();
+        hasAutoMarked.current = true;
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [unreadCount, markAllRead]);
 
   const filtered = notifications.filter((n) => {
     if (filter === 'unread') return !n.is_read;
