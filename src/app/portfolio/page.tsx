@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { fetchQuery } from 'convex/nextjs';
 import { api } from '../../../convex/_generated/api';
-import { ArrowRight, Code2, ExternalLink } from 'lucide-react';
+import { ArrowRight, Code2, ExternalLink, Lightbulb } from 'lucide-react';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
 
 export const revalidate = 60;
@@ -10,7 +10,7 @@ export const revalidate = 60;
 export const metadata: Metadata = {
   title: 'Portfolio',
   description:
-    'Web development portfolio by Eric Tomchik — restaurant websites, e-commerce, and custom web applications on the Mississippi Gulf Coast.',
+    'Web development portfolio by Eric Tomchik — showcase projects demonstrating custom restaurant websites, e-commerce, and web applications.',
 };
 
 // Fallback data in case Convex is empty (used during initial seed)
@@ -163,10 +163,14 @@ export default async function PortfolioPage() {
             My <span className="gradient-text">Work</span>
           </h1>
           <p className="text-surface-400 max-w-2xl mx-auto text-lg">
-            Custom-built websites for restaurants, bars, and businesses across the Mississippi Gulf
-            Coast. Each project is hand-coded with modern web technologies, responsive design, and
-            attention to every detail.
+            Showcase projects demonstrating custom-built websites for restaurants, bars, and
+            businesses on the Mississippi Gulf Coast. Each project is hand-coded with modern web
+            technologies, responsive design, and attention to every detail.
           </p>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-600/10 border border-brand-600/20 text-sm text-brand-300">
+            <Lightbulb className="w-4 h-4 flex-shrink-0" />
+            <span>These are personal concept projects — demonstrating what I can build for <strong className="text-brand-200">your</strong> business.</span>
+          </div>
         </div>
 
         {/* Stats */}
@@ -207,9 +211,12 @@ export default async function PortfolioPage() {
                       />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-surface-950/60 via-transparent to-transparent" />
-                    <div className="absolute bottom-4 left-4">
+                    <div className="absolute bottom-4 left-4 flex items-center gap-2">
                       <span className="px-3 py-1 rounded-full bg-brand-600/90 text-white text-xs font-medium backdrop-blur-sm">
                         {project.category}
+                      </span>
+                      <span className="px-3 py-1 rounded-full bg-surface-900/80 text-surface-300 text-xs font-medium backdrop-blur-sm border border-surface-700/50">
+                        Concept Project
                       </span>
                     </div>
                   </div>

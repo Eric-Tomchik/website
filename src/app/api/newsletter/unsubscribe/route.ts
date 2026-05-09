@@ -51,7 +51,7 @@ export async function POST(req: Request) {
     try {
       await convex.mutation(api.auditLog.create, {
         action: 'newsletter_unsubscribe',
-        actor: 'user',
+        actor: 'system',
         entity_type: 'newsletter_subscriber',
         details: `Unsubscribed: ${email}`,
       });
@@ -66,3 +66,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
