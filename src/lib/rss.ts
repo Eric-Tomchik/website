@@ -12,28 +12,40 @@ export interface FeedSource {
 export interface FeedItem {
   title: string;
   link: string;
+  slug: string;
   description: string;
+  fullContent: string;
   pubDate: string;
   source: string;
   category: string;
 }
 
-// Curated feed sources organized by category
+/** Generate a URL-safe slug from an article link */
+export function articleSlug(url: string): string {
+  let hash = 0;
+  for (let i = 0; i < url.length; i++) {
+    hash = ((hash << 5) - hash) + url.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash).toString(36);
+}
+
+// Curated feed sources organized by category (free, no-paywall sources)
 export const FEED_SOURCES: FeedSource[] = [
   // Cybersecurity
   { name: 'Krebs on Security', url: 'https://krebsonsecurity.com/feed/', category: 'cybersecurity' },
   { name: 'The Hacker News', url: 'https://feeds.feedburner.com/TheHackersNews', category: 'cybersecurity' },
+  { name: 'Dark Reading', url: 'https://www.darkreading.com/rss.xml', category: 'cybersecurity' },
 
   // Web Development
   { name: 'CSS-Tricks', url: 'https://css-tricks.com/feed/', category: 'web-development' },
   { name: 'Smashing Magazine', url: 'https://www.smashingmagazine.com/feed/', category: 'web-development' },
+  { name: 'The New Stack', url: 'https://thenewstack.io/feed/', category: 'web-development' },
 
-  // AI
-  { name: 'MIT Tech Review', url: 'https://www.technologyreview.com/feed/', category: 'ai' },
+  // AI & Technology
+  { name: 'Ars Technica', url: 'https://feeds.arstechnica.com/arstechnica/index', category: 'ai' },
   { name: 'The Verge AI', url: 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml', category: 'ai' },
-
-  // Business / Small Business
-  { name: 'SBA Blog', url: 'https://www.sba.gov/blog/feed', category: 'business' },
+  { name: 'OpenAI Blog', url: 'https://openai.com/blog/rss.xml', category: 'ai' },
 ];
 
 function decodeHtmlEntities(str: string): string {
@@ -63,8 +75,20 @@ function extractTag(xml: string, tag: string): string {
   return match ? match[1].trim() : '';
 }
 
-function parseItems(xml: string): Array<{ title: string; link: string; description: string; pubDate: string }> {
-  const items: Array<{ title: string; link: string; description: string; pubDate: string }> = [];
+function parseItems(xml: string): Array<{
+  title: string;
+  link: string;
+  description: string;
+  fullContent: string;
+  pubDate: string;
+}> {
+  const items: Array<{
+    title: string;
+    link: string;
+    description: string;
+    fullContent: string;
+    pubDate: string;
+  }> = [];
 
   // Match both <item> (RSS) and <entry> (Atom) elements
   const itemPattern = /<(?:item|entry)[\s>]([\s\S]*?)<\/(?:item|entry)>/gi;
@@ -81,13 +105,21 @@ function parseItems(xml: string): Array<{ title: string; link: string; descripti
       if (linkHrefMatch) link = linkHrefMatch[1];
     }
 
-    const description = stripHtml(
-      decodeHtmlEntities(
-        extractTag(content, 'description') ||
-        extractTag(content, 'summary') ||
-        extractTag(content, 'content')
-      )
-    ).slice(0, 300);
+    // Get full content (prefer content:encoded > content > summary > description)
+    const rawFullContent =
+      extractTag(content, 'content:encoded') ||
+      extractTag(content, 'content') ||
+      extractTag(content, 'summary') ||
+      extractTag(content, 'description');
+
+    const fullContent = decodeHtmlEntities(rawFullContent);
+
+    // Short description for cards (strip HTML, limit length)
+    const description = stripHtml(decodeHtmlEntities(
+      extractTag(content, 'description') ||
+      extractTag(content, 'summary') ||
+      rawFullContent
+    )).slice(0, 300);
 
     const pubDate = extractTag(content, 'pubDate') ||
       extractTag(content, 'published') ||
@@ -95,7 +127,7 @@ function parseItems(xml: string): Array<{ title: string; link: string; descripti
       extractTag(content, 'dc:date');
 
     if (title && link) {
-      items.push({ title, link, description, pubDate });
+      items.push({ title, link, description, fullContent, pubDate });
     }
   }
 
@@ -116,7 +148,9 @@ async function fetchFeed(source: FeedSource, signal?: AbortSignal): Promise<Feed
     return rawItems.slice(0, 5).map((item) => ({
       title: item.title,
       link: item.link,
+      slug: articleSlug(item.link),
       description: item.description,
+      fullContent: item.fullContent,
       pubDate: item.pubDate,
       source: source.name,
       category: source.category,
