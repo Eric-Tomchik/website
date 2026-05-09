@@ -22,6 +22,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useMemo, useState, useEffect, useCallback } from 'react';
+import { WorldMap } from '@/components/admin/WorldMap';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -287,6 +288,17 @@ function RealtimeSection() {
           </>
         ) : null}
       </div>
+
+      {/* Live World Map */}
+      {data && data.topCountries.length > 0 && (
+        <div className="card p-4 border-green-500/10">
+          <div className="flex items-baseline justify-between mb-2">
+            <h3 className="text-sm font-semibold text-white">Active Users by Location</h3>
+            <span className="text-[10px] text-surface-500">Last 30 minutes</span>
+          </div>
+          <WorldMap countries={data.topCountries} />
+        </div>
+      )}
 
       {/* Detailed breakdowns grid */}
       {data && (
