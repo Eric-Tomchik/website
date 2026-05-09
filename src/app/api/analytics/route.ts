@@ -81,36 +81,130 @@ function getSACredentials(): SACredentials | null {
 const GA4_PROPERTY = process.env.GA4_PROPERTY_ID ?? '536329957';
 
 async function fetchRealtimeFromGA4(token: string) {
-  const res = await fetch(
-    `https://analyticsdata.googleapis.com/v1beta/properties/${GA4_PROPERTY}:runRealtimeReport`,
-    {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+  const gaUrl = `https://analyticsdata.googleapis.com/v1beta/properties/${GA4_PROPERTY}:runRealtimeReport`;
+  const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+  // Fire multiple realtime queries in parallel for a comprehensive dashboard
+  const [pagesRes, sourcesRes, eventsRes, countriesRes, minutesRes] = await Promise.all([
+    // Pages breakdown
+    fetch(gaUrl, {
+      method: 'POST', headers,
       body: JSON.stringify({
         dimensions: [{ name: 'unifiedScreenName' }],
         metrics: [{ name: 'activeUsers' }, { name: 'screenPageViews' }],
       }),
-    },
-  );
-  if (!res.ok) throw new Error(`GA4 realtime: ${res.status} ${await res.text()}`);
-  const data = await res.json();
+    }),
+    // Traffic sources
+    fetch(gaUrl, {
+      method: 'POST', headers,
+      body: JSON.stringify({
+        dimensions: [{ name: 'firstUserSource' }],
+        metrics: [{ name: 'activeUsers' }],
+      }),
+    }),
+    // Events
+    fetch(gaUrl, {
+      method: 'POST', headers,
+      body: JSON.stringify({
+        dimensions: [{ name: 'eventName' }],
+        metrics: [{ name: 'eventCount' }, { name: 'activeUsers' }],
+      }),
+    }),
+    // Countries
+    fetch(gaUrl, {
+      method: 'POST', headers,
+      body: JSON.stringify({
+        dimensions: [{ name: 'country' }],
+        metrics: [{ name: 'activeUsers' }],
+      }),
+    }),
+    // Per-minute breakdown (minutesAgo dimension, last 30 min)
+    fetch(gaUrl, {
+      method: 'POST', headers,
+      body: JSON.stringify({
+        minuteRanges: [{ startMinutesAgo: 29, endMinutesAgo: 0 }],
+        dimensions: [{ name: 'minutesAgo' }],
+        metrics: [{ name: 'activeUsers' }],
+      }),
+    }),
+  ]);
 
+  if (!pagesRes.ok) throw new Error(`GA4 realtime: ${pagesRes.status} ${await pagesRes.text()}`);
+
+  const [pages, sources, events, countries, minutes] = await Promise.all([
+    pagesRes.json(), sourcesRes.json(), eventsRes.json(), countriesRes.json(), minutesRes.json(),
+  ]);
+
+  // Parse pages
   let activeUsers = 0;
   let pageviews = 0;
-  const topPages: { page: string; activeUsers: number }[] = [];
-
-  for (const row of data.rows ?? []) {
+  const topPages: { page: string; activeUsers: number; pageviews: number }[] = [];
+  for (const row of pages.rows ?? []) {
     const page = row.dimensionValues?.[0]?.value ?? '(unknown)';
     const users = parseInt(row.metricValues?.[0]?.value ?? '0');
     const views = parseInt(row.metricValues?.[1]?.value ?? '0');
     activeUsers += users;
     pageviews += views;
-    topPages.push({ page, activeUsers: users });
+    topPages.push({ page, activeUsers: users, pageviews: views });
   }
-
   topPages.sort((a, b) => b.activeUsers - a.activeUsers);
 
-  return { activeUsers, pageviews, topPages: topPages.slice(0, 10), topCountries: [] };
+  // Parse sources
+  const topSources: { source: string; activeUsers: number }[] = [];
+  for (const row of sources.rows ?? []) {
+    topSources.push({
+      source: row.dimensionValues?.[0]?.value ?? '(unknown)',
+      activeUsers: parseInt(row.metricValues?.[0]?.value ?? '0'),
+    });
+  }
+  topSources.sort((a, b) => b.activeUsers - a.activeUsers);
+
+  // Parse events
+  const topEvents: { event: string; count: number; activeUsers: number }[] = [];
+  for (const row of events.rows ?? []) {
+    topEvents.push({
+      event: row.dimensionValues?.[0]?.value ?? '(unknown)',
+      count: parseInt(row.metricValues?.[0]?.value ?? '0'),
+      activeUsers: parseInt(row.metricValues?.[1]?.value ?? '0'),
+    });
+  }
+  topEvents.sort((a, b) => b.count - a.count);
+
+  // Parse countries
+  const topCountries: { country: string; activeUsers: number }[] = [];
+  for (const row of countries.rows ?? []) {
+    topCountries.push({
+      country: row.dimensionValues?.[0]?.value ?? '(unknown)',
+      activeUsers: parseInt(row.metricValues?.[0]?.value ?? '0'),
+    });
+  }
+  topCountries.sort((a, b) => b.activeUsers - a.activeUsers);
+
+  // Parse per-minute data (build array of 30 entries for the last 30 minutes)
+  const minuteMap = new Map<number, number>();
+  for (const row of minutes.rows ?? []) {
+    const minsAgo = parseInt(row.dimensionValues?.[0]?.value ?? '0');
+    const users = parseInt(row.metricValues?.[0]?.value ?? '0');
+    minuteMap.set(minsAgo, users);
+  }
+  const activeUsersPerMinute: number[] = [];
+  for (let i = 29; i >= 0; i--) {
+    activeUsersPerMinute.push(minuteMap.get(i) ?? 0);
+  }
+
+  // Active in last 5 min
+  const activeUsers5min = activeUsersPerMinute.slice(-5).reduce((a, b) => a + b, 0);
+
+  return {
+    activeUsers,
+    activeUsers5min,
+    pageviews,
+    topPages: topPages.slice(0, 10),
+    topSources: topSources.slice(0, 10),
+    topEvents: topEvents.slice(0, 10),
+    topCountries: topCountries.slice(0, 10),
+    activeUsersPerMinute,
+  };
 }
 
 async function fetchHistoricalFromGA4(token: string, days: number) {

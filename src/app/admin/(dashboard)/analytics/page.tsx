@@ -27,9 +27,14 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 
 interface RealtimeData {
   activeUsers: number;
+  activeUsers5min?: number;
   pageviews: number;
-  topPages: { page: string; activeUsers: number }[];
+  topPages: { page: string; activeUsers: number; pageviews?: number }[];
+  topSources?: { source: string; activeUsers: number }[];
+  topEvents?: { event: string; count: number; activeUsers?: number }[];
   topCountries: { country: string; activeUsers: number }[];
+  activeUsersPerMinute?: number[];
+  _source?: string;
 }
 
 interface HistoricalData {
@@ -183,6 +188,29 @@ function SeoScore({ checks }: { checks: { pass: boolean }[] }) {
 
 // ── Real-time Pulse ──────────────────────────────────────────────────────────
 
+function MinuteChart({ values }: { values: number[] }) {
+  const max = Math.max(...values, 1);
+  return (
+    <div className="flex items-end gap-[2px] h-14">
+      {values.map((v, i) => (
+        <div
+          key={i}
+          className="bg-blue-400 rounded-t-sm hover:bg-blue-300 transition-colors relative group"
+          style={{
+            width: `${100 / values.length}%`,
+            height: `${Math.max((v / max) * 100, v > 0 ? 4 : 0)}%`,
+            minHeight: v > 0 ? '3px' : '0',
+          }}
+        >
+          <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-surface-700 text-white text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+            {v} user{v !== 1 ? 's' : ''}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function RealtimeSection() {
   const { data, error, loading, lastUpdated, refresh } = useAnalytics<RealtimeData>(
     'realtime', undefined, 30_000,
@@ -200,60 +228,186 @@ function RealtimeSection() {
   }
 
   return (
-    <div className="card p-4 border-green-500/20 relative overflow-hidden">
-      <div className="absolute top-3 right-3 flex items-center gap-1.5">
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
-        </span>
-        <span className="text-[10px] text-green-400 font-medium">LIVE</span>
-        <button onClick={refresh} className="text-surface-500 hover:text-white transition-colors ml-1" title="Refresh">
-          <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
-        </button>
+    <div className="space-y-3">
+      {/* Main realtime header card */}
+      <div className="card p-4 border-green-500/20 relative overflow-hidden">
+        <div className="absolute top-3 right-3 flex items-center gap-1.5">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
+          </span>
+          <span className="text-[10px] text-green-400 font-medium">
+            {data?._source === 'live' ? 'LIVE' : 'CACHED'}
+          </span>
+          <button onClick={refresh} className="text-surface-500 hover:text-white transition-colors ml-1" title="Refresh">
+            <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
+
+        <h2 className="text-sm font-semibold text-white mb-3">Realtime Overview</h2>
+
+        {loading && !data ? (
+          <div className="flex items-center gap-2 text-surface-500 text-xs py-4 justify-center">
+            <RefreshCw className="w-3 h-3 animate-spin" /> Loading...
+          </div>
+        ) : data ? (
+          <>
+            {/* Active users stats */}
+            <div className="flex items-start gap-8 mb-4">
+              <div>
+                <div className="text-[10px] text-surface-400 uppercase tracking-wider mb-0.5">
+                  Active Users in Last 30 Min
+                </div>
+                <div className="text-4xl font-bold text-green-400">{data.activeUsers}</div>
+              </div>
+              {data.activeUsers5min !== undefined && (
+                <div>
+                  <div className="text-[10px] text-surface-400 uppercase tracking-wider mb-0.5">
+                    Active Users in Last 5 Min
+                  </div>
+                  <div className="text-4xl font-bold text-blue-400">{data.activeUsers5min}</div>
+                </div>
+              )}
+            </div>
+
+            {/* Per-minute chart */}
+            {data.activeUsersPerMinute && data.activeUsersPerMinute.length > 0 && (
+              <div className="mb-2">
+                <div className="text-[10px] text-surface-400 uppercase tracking-wider mb-2">
+                  Active Users Per Minute
+                </div>
+                <MinuteChart values={data.activeUsersPerMinute} />
+                <div className="flex justify-between mt-1 text-[9px] text-surface-500">
+                  <span>-30 min</span>
+                  <span>-15 min</span>
+                  <span>Now</span>
+                </div>
+              </div>
+            )}
+          </>
+        ) : null}
       </div>
 
-      {loading && !data ? (
-        <div className="flex items-center gap-2 text-surface-500 text-xs py-4 justify-center">
-          <RefreshCw className="w-3 h-3 animate-spin" /> Loading...
-        </div>
-      ) : data ? (
-        <div className="grid sm:grid-cols-3 gap-4">
-          <div>
-            <div className="text-3xl font-bold text-green-400">{data.activeUsers}</div>
-            <div className="text-[11px] text-surface-400">active now</div>
-          </div>
-          <div>
-            <h3 className="text-[10px] font-semibold text-surface-400 uppercase tracking-wider mb-1.5">Active Pages</h3>
-            {data.topPages.length === 0 ? (
-              <p className="text-[10px] text-surface-500">None</p>
+      {/* Detailed breakdowns grid */}
+      {data && (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Active by Source */}
+          <div className="card p-3">
+            <h3 className="text-[10px] font-semibold text-surface-400 uppercase tracking-wider mb-2">
+              Active Users by Source
+            </h3>
+            {(data.topSources ?? []).length === 0 ? (
+              <p className="text-[10px] text-surface-500">No data</p>
             ) : (
-              <div className="space-y-0.5">
-                {data.topPages.slice(0, 5).map((p) => (
-                  <div key={p.page} className="flex items-center justify-between text-[11px]">
-                    <span className="text-surface-300 truncate mr-2">{p.page}</span>
-                    <span className="text-green-400 font-mono font-medium">{p.activeUsers}</span>
-                  </div>
-                ))}
+              <div className="space-y-1">
+                {(data.topSources ?? []).slice(0, 6).map((s, i) => {
+                  const maxVal = Math.max(...(data.topSources ?? []).map((x) => x.activeUsers), 1);
+                  return (
+                    <div key={s.source}>
+                      <div className="flex items-center justify-between text-[11px] mb-0.5">
+                        <span className="text-surface-300 truncate mr-2">
+                          #{i + 1} {s.source === '(direct)' ? '(direct)' : s.source}
+                        </span>
+                        <span className="text-green-400 font-mono font-medium">{s.activeUsers}</span>
+                      </div>
+                      <div className="h-1 bg-surface-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-green-400 rounded-full" style={{ width: `${(s.activeUsers / maxVal) * 100}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
-          <div>
-            <h3 className="text-[10px] font-semibold text-surface-400 uppercase tracking-wider mb-1.5">Countries</h3>
+
+          {/* Views by Page */}
+          <div className="card p-3">
+            <h3 className="text-[10px] font-semibold text-surface-400 uppercase tracking-wider mb-2">
+              Views by Page Title
+            </h3>
+            {data.topPages.length === 0 ? (
+              <p className="text-[10px] text-surface-500">No data</p>
+            ) : (
+              <div className="space-y-1">
+                {data.topPages.slice(0, 6).map((p, i) => {
+                  const maxVal = Math.max(...data.topPages.map((x) => x.pageviews ?? x.activeUsers), 1);
+                  return (
+                    <div key={p.page}>
+                      <div className="flex items-center justify-between text-[11px] mb-0.5">
+                        <span className="text-surface-300 truncate mr-2 max-w-[70%]">
+                          #{i + 1} {p.page}
+                        </span>
+                        <span className="text-blue-400 font-mono font-medium">{p.pageviews ?? p.activeUsers}</span>
+                      </div>
+                      <div className="h-1 bg-surface-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-blue-400 rounded-full" style={{ width: `${((p.pageviews ?? p.activeUsers) / maxVal) * 100}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Event Count */}
+          <div className="card p-3">
+            <h3 className="text-[10px] font-semibold text-surface-400 uppercase tracking-wider mb-2">
+              Event Count by Event Name
+            </h3>
+            {(data.topEvents ?? []).length === 0 ? (
+              <p className="text-[10px] text-surface-500">No data</p>
+            ) : (
+              <div className="space-y-1">
+                {(data.topEvents ?? []).slice(0, 6).map((e, i) => {
+                  const maxVal = Math.max(...(data.topEvents ?? []).map((x) => x.count), 1);
+                  return (
+                    <div key={e.event}>
+                      <div className="flex items-center justify-between text-[11px] mb-0.5">
+                        <span className="text-surface-300 truncate mr-2">
+                          #{i + 1} {e.event}
+                        </span>
+                        <span className="text-yellow-400 font-mono font-medium">{e.count}</span>
+                      </div>
+                      <div className="h-1 bg-surface-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${(e.count / maxVal) * 100}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Countries */}
+          <div className="card p-3">
+            <h3 className="text-[10px] font-semibold text-surface-400 uppercase tracking-wider mb-2">
+              Active Users by Country
+            </h3>
             {data.topCountries.length === 0 ? (
               <p className="text-[10px] text-surface-500">No data</p>
             ) : (
-              <div className="space-y-0.5">
-                {data.topCountries.slice(0, 5).map((c) => (
-                  <div key={c.country} className="flex items-center justify-between text-[11px]">
-                    <span className="text-surface-300">{c.country}</span>
-                    <span className="text-green-400 font-mono font-medium">{c.activeUsers}</span>
-                  </div>
-                ))}
+              <div className="space-y-1">
+                {data.topCountries.slice(0, 6).map((c, i) => {
+                  const maxVal = Math.max(...data.topCountries.map((x) => x.activeUsers), 1);
+                  return (
+                    <div key={c.country}>
+                      <div className="flex items-center justify-between text-[11px] mb-0.5">
+                        <span className="text-surface-300">
+                          #{i + 1} {c.country}
+                        </span>
+                        <span className="text-purple-400 font-mono font-medium">{c.activeUsers}</span>
+                      </div>
+                      <div className="h-1 bg-surface-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-purple-400 rounded-full" style={{ width: `${(c.activeUsers / maxVal) * 100}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
