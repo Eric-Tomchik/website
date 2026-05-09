@@ -61,6 +61,33 @@ export const create = mutation({
   },
 });
 
+export const update = mutation({
+  args: {
+    id: v.id("orders"),
+    total_cents: v.optional(v.number()),
+    status: v.optional(
+      v.union(
+        v.literal("pending"),
+        v.literal("paid"),
+        v.literal("shipped"),
+        v.literal("delivered"),
+        v.literal("fulfilled"),
+        v.literal("refunded")
+      )
+    ),
+  },
+  handler: async (ctx, args) => {
+    const { id, ...updates } = args;
+    const cleanUpdates: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(updates)) {
+      if (value !== undefined) cleanUpdates[key] = value;
+    }
+    if (Object.keys(cleanUpdates).length > 0) {
+      await ctx.db.patch(id, cleanUpdates);
+    }
+  },
+});
+
 export const updateStatus = mutation({
   args: {
     id: v.id("orders"),
