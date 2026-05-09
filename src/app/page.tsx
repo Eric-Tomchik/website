@@ -61,7 +61,7 @@ export default async function HomePage() {
                 <div className="absolute -inset-4 bg-gradient-to-r from-brand-500/20 to-brand-700/20 rounded-2xl blur-2xl transition-all duration-700 group-hover:from-brand-500/30 group-hover:to-brand-700/30" />
                 <div className="relative w-80 h-96 rounded-2xl overflow-hidden border-2 border-surface-800 shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
                   <Image
-                    src="/images/eric-profile.png"
+                    src="/images/eric-profile.webp"
                     alt="Eric Tomchik — Author and Web Developer"
                     fill
                     sizes="320px"

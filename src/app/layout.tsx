@@ -39,7 +39,7 @@ export const metadata: Metadata = {
       'Author, web developer, and creator. Browse my books, explore my web development services, and view my portfolio.',
     images: [
       {
-        url: '/og-image.png',
+        url: '/og-image.webp',
         width: 1200,
         height: 630,
         alt: 'Eric Tomchik — Author, Web Developer, Creator',
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Eric Tomchik',
     description: 'Author, Web Developer, Creator',
-    images: ['/og-image.png'],
+    images: ['/og-image.webp'],
   },
   alternates: {
     types: {
@@ -75,7 +75,7 @@ const organizationJsonLd = {
   '@type': 'Organization',
   name: 'Eric Tomchik',
   url: 'https://erictomchik.com',
-  logo: 'https://erictomchik.com/et-monogram.png',
+  logo: 'https://erictomchik.com/et-monogram.webp',
   sameAs: [
     'https://www.linkedin.com/in/eric-tomchik-jr/',
     'https://www.facebook.com/profile.php?id=122097131439313584',
