@@ -15,6 +15,9 @@ export const metadata: Metadata = {
   title: 'Links — Eric Tomchik',
   description:
     "All of Eric Tomchik's important links in one place — books, portfolio, blog, services, and social media.",
+  alternates: {
+    canonical: 'https://erictomchik.com/links',
+  },
 };
 
 const links = [

@@ -3,6 +3,9 @@ import { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Privacy Policy',
   description: 'Privacy policy for erictomchik.com — how we collect, use, and protect your information.',
+  alternates: {
+    canonical: 'https://erictomchik.com/privacy',
+  },
 };
 
 export default function PrivacyPage() {

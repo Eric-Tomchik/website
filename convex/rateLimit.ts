@@ -1,4 +1,4 @@
-import { mutation } from "./_generated/server";
+import { mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
 /**
@@ -64,7 +64,7 @@ export const check = mutation({
 /**
  * Clean up expired rate limit entries (call periodically or via cron).
  */
-export const cleanup = mutation({
+export const cleanup = internalMutation({
   args: {},
   handler: async (ctx) => {
     const now = Date.now();

@@ -12,6 +12,9 @@ export const metadata: Metadata = {
       'Answers to common questions about books, web development services, and ArcLight Press.',
     url: 'https://erictomchik.com/faq',
   },
+  alternates: {
+    canonical: 'https://erictomchik.com/faq',
+  },
 };
 
 interface FAQItem {

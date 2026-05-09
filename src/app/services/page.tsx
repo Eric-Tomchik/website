@@ -21,6 +21,9 @@ export const metadata: Metadata = {
     description: 'Custom websites, e-commerce, and web applications. Starting at $1,000.',
     images: ['/og-image.webp'],
   },
+  alternates: {
+    canonical: 'https://erictomchik.com/services',
+  },
 };
 
 export const revalidate = 3600; // ISR: revalidate every hour

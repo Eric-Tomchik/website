@@ -26,6 +26,9 @@ export const metadata: Metadata = {
     url: 'https://erictomchik.com/resources/cybersecurity',
     type: 'website',
   },
+  alternates: {
+    canonical: 'https://erictomchik.com/resources/cybersecurity',
+  },
 };
 
 const LAST_UPDATED = 'May 2026';

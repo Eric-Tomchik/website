@@ -91,10 +91,21 @@ export function PortalAuthProvider({ children }: { children: ReactNode }) {
   }, [token, validatedClient]);
 
   const login = useCallback(async (email: string, password: string) => {
-    const result = await loginMutation({ email, password });
-    await setTokenCookie(result.token);
-    setTokenState(result.token);
-  }, [loginMutation]);
+    // Route through API for server-side rate limiting
+    const res = await fetch('/api/portal/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Login failed');
+    }
+
+    await setTokenCookie(data.token);
+    setTokenState(data.token);
+  }, []);
 
   const logout = useCallback(async () => {
     if (token) {

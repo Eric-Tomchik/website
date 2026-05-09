@@ -53,6 +53,7 @@ export const metadata: Metadata = {
     images: ['/og-image.webp'],
   },
   alternates: {
+    canonical: 'https://erictomchik.com',
     types: {
       'application/rss+xml': '/feed',
     },
