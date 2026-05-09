@@ -88,6 +88,14 @@ export function BookDetailActions({ book }: { book: Book }) {
                 href={book.amazon_url}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => {
+                  if (typeof window !== 'undefined' && (window as any).gtag) {
+                    (window as any).gtag('event', 'amazon_click', {
+                      book_title: book.title,
+                      outbound_url: book.amazon_url,
+                    });
+                  }
+                }}
                 className="inline-flex items-center justify-center px-8 py-3 rounded-lg text-base font-medium
                            bg-[#FF9900] hover:bg-[#FFa31a] text-black
                            transition-all duration-200 shadow-lg shadow-[#FF9900]/20
