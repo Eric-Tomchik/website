@@ -16,13 +16,13 @@ export const metadata: Metadata = {
     title: 'ArcLight Press — Books by Eric Tomchik',
     description: 'Browse and purchase books on business credit, cybersecurity, AI, POS systems, and more.',
     url: 'https://erictomchik.com/books',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ArcLight Press Books' }],
+    images: [{ url: '/og-image.webp', width: 1200, height: 630, alt: 'ArcLight Press Books' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'ArcLight Press — Books by Eric Tomchik',
     description: 'Browse and purchase books on business credit, cybersecurity, AI, POS systems, and more.',
-    images: ['/og-image.png'],
+    images: ['/og-image.webp'],
   },
 };
 
@@ -44,7 +44,7 @@ export default async function BooksPage({
         <div className="text-center space-y-6 mb-12">
           <div className="flex justify-center">
             <img
-              src="/arclight-press-logo.png"
+              src="/arclight-press-logo.webp"
               alt="ArcLight Press"
               className="h-32 sm:h-40 w-auto"
             />

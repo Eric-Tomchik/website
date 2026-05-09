@@ -19,7 +19,7 @@ const fallbackProjects = [
     title: 'Boonies on the Bayou',
     description:
       'Full-featured restaurant website with real-time menu management powered by Convex, online reservations, interactive Google Maps integration, image gallery, and live events calendar. Bay St. Louis, MS.',
-    thumbnail_url: '/images/portfolio/boonies-on-the-bayou.png',
+    thumbnail_url: '/images/portfolio/boonies-on-the-bayou.webp',
     technologies: ['HTML/CSS', 'JavaScript', 'Convex', 'Google Maps API'],
     category: 'Restaurant',
     live_url: 'https://boonies.erictomchik.com',
@@ -28,7 +28,7 @@ const fallbackProjects = [
     title: 'Butcher Block Steak House & Bar',
     description:
       'Multi-location steakhouse site with Convex-powered dynamic menus, table reservation system, private events booking, catering request forms, and location-specific content for four Gulf Coast restaurants.',
-    thumbnail_url: '/images/portfolio/butcher-block.png',
+    thumbnail_url: '/images/portfolio/butcher-block.webp',
     technologies: ['HTML/CSS', 'JavaScript', 'Convex', 'Responsive Design'],
     category: 'Restaurant',
     live_url: 'https://butcherblock.erictomchik.com',
@@ -37,7 +37,7 @@ const fallbackProjects = [
     title: 'Cosmos Café',
     description:
       'Immersive space-themed café website for The Pearl Hotel in Bay St. Louis. Features an animated menu system, photo gallery with lightbox, embedded maps, and bold cosmic visual design.',
-    thumbnail_url: '/images/portfolio/cosmos.png',
+    thumbnail_url: '/images/portfolio/cosmos.webp',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Restaurant',
     live_url: 'https://cosmos.erictomchik.com',
@@ -46,7 +46,7 @@ const fallbackProjects = [
     title: "Dan B. Murphy's Restaurant & Bar",
     description:
       'Three-floor restaurant and entertainment venue website featuring interactive menus, photo galleries of harbor views, live music event calendar, and responsive design showcasing decades of history.',
-    thumbnail_url: '/images/portfolio/dan-b-murphys.png',
+    thumbnail_url: '/images/portfolio/dan-b-murphys.webp',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Restaurant',
     live_url: 'https://danbs.erictomchik.com',
@@ -55,7 +55,7 @@ const fallbackProjects = [
     title: 'Hen House Cocktail & Wine Bar',
     description:
       'Upscale cocktail bar website with elegant dark design, curated drink menus with detailed descriptions, artisan small plates showcase, event listings, and an immersive gallery of the venue.',
-    thumbnail_url: '/images/portfolio/hen-house.png',
+    thumbnail_url: '/images/portfolio/hen-house.webp',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Bar & Lounge',
     live_url: 'https://henhouse.erictomchik.com',
@@ -64,7 +64,7 @@ const fallbackProjects = [
     title: "Lemoine's Landing Tiki Bar",
     description:
       'Tropical-themed waterfront bar website with vibrant visual design, food and drink menus, photo gallery of harbor views, embedded maps, and event information for the Bay St. Louis hotspot.',
-    thumbnail_url: '/images/portfolio/lemoines-landing.png',
+    thumbnail_url: '/images/portfolio/lemoines-landing.webp',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Bar & Restaurant',
     live_url: 'https://lemoines.erictomchik.com',
@@ -73,7 +73,7 @@ const fallbackProjects = [
     title: "Rickey's on Coleman",
     description:
       "Redesigned website for Waveland's beloved 25-year legacy seafood restaurant. Features comprehensive Cajun/seafood menus, press coverage showcase, customer review integration, and location mapping.",
-    thumbnail_url: '/images/portfolio/rickeys-on-coleman.png',
+    thumbnail_url: '/images/portfolio/rickeys-on-coleman.webp',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'Responsive Design'],
     category: 'Restaurant',
     live_url: 'https://rickeys.erictomchik.com',
@@ -82,7 +82,7 @@ const fallbackProjects = [
     title: 'The Ugly Pirate Cafe & Bar',
     description:
       "Personality-packed website for a legendary Bay St. Louis pirate-themed café and bar. Features extensive press/article showcase, full pizza and menu system, events calendar, contact forms, and fun pirate branding.",
-    thumbnail_url: '/images/portfolio/ugly-pirate.png',
+    thumbnail_url: '/images/portfolio/ugly-pirate.webp',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Cafe & Bar',
     live_url: 'https://uglypirate.erictomchik.com',
@@ -91,7 +91,7 @@ const fallbackProjects = [
     title: 'Wicked Pig Kitchen & Bar',
     description:
       'Modern bistro website with rich photography, comprehensive food and cocktail menus, photo gallery, patio and venue showcase, event listings, and smooth scroll animations throughout.',
-    thumbnail_url: '/images/portfolio/wicked-pig.png',
+    thumbnail_url: '/images/portfolio/wicked-pig.webp',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Restaurant',
     live_url: 'https://wickedpig.erictomchik.com',

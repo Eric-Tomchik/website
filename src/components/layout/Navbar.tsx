@@ -38,14 +38,14 @@ export function Navbar() {
           <nav className="flex items-center justify-between h-16" aria-label="Main navigation">
             <Link href="/" className="flex items-center gap-2 group">
               <Image
-                src="/et-monogram.png"
+                src="/et-monogram.webp"
                 alt="Eric Tomchik logo"
                 width={36}
                 height={36}
                 className="rounded-lg group-hover:brightness-110 transition-all"
               />
               <Image
-                src="/et-wordmark.png"
+                src="/et-wordmark.webp"
                 alt="Eric Tomchik"
                 width={140}
                 height={28}

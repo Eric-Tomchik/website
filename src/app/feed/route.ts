@@ -64,7 +64,7 @@ export async function GET() {
     <lastBuildDate>${lastBuildDate}</lastBuildDate>
     <atom:link href="${siteUrl}/feed" rel="self" type="application/rss+xml" />
     <image>
-      <url>${siteUrl}/et-monogram.png</url>
+      <url>${siteUrl}/et-monogram.webp</url>
       <title>Eric Tomchik — Blog</title>
       <link>${siteUrl}</link>
     </image>

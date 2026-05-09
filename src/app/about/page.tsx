@@ -13,13 +13,13 @@ export const metadata: Metadata = {
     title: 'About Eric Tomchik — Author & Web Developer',
     description: 'Published author, web developer, and creator. 6+ books through ArcLight Press and custom web development services.',
     url: 'https://erictomchik.com/about',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'About Eric Tomchik' }],
+    images: [{ url: '/og-image.webp', width: 1200, height: 630, alt: 'About Eric Tomchik' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'About Eric Tomchik — Author & Web Developer',
     description: 'Published author with 6+ books. Custom web development services.',
-    images: ['/og-image.png'],
+    images: ['/og-image.webp'],
   },
 };
 
@@ -69,7 +69,7 @@ const personJsonLd = {
   '@type': 'Person',
   name: 'Eric Tomchik',
   url: 'https://erictomchik.com',
-  image: 'https://erictomchik.com/images/eric-profile.png',
+  image: 'https://erictomchik.com/images/eric-profile.webp',
   jobTitle: 'Author & Web Developer',
   worksFor: {
     '@type': 'Organization',
@@ -106,7 +106,7 @@ export default async function AboutPage() {
               <div className="absolute -inset-1 bg-gradient-to-r from-brand-500 to-brand-700 rounded-2xl blur-lg opacity-30" />
               <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden border-2 border-surface-800">
                 <Image
-                  src="/images/eric-profile.png"
+                  src="/images/eric-profile.webp"
                   alt="Eric Tomchik — Author and Web Developer, wearing a suit and cap"
                   fill
                   sizes="(max-width: 768px) 100vw, 448px"
