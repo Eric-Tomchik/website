@@ -12,7 +12,9 @@ import {
   Bell,
   Shield,
   RefreshCw,
+  ShieldCheck,
 } from 'lucide-react';
+import { TwoFactorSetup } from '@/components/admin/TwoFactorSetup';
 
 interface SettingGroup {
   id: string;
@@ -107,6 +109,14 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [activeGroup, setActiveGroup] = useState('general');
 
+  // Security group (handled separately with custom rendering)
+  const SECURITY_GROUP = {
+    id: 'security',
+    label: 'Security',
+    icon: ShieldCheck,
+    color: 'text-green-400',
+  };
+
   // Sync from Convex
   useEffect(() => {
     if (allSettings) {
@@ -142,7 +152,7 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 3000);
   };
 
-  const group = SETTING_GROUPS.find((g) => g.id === activeGroup)!;
+  const group = SETTING_GROUPS.find((g) => g.id === activeGroup) ?? SETTING_GROUPS[0];
 
   return (
     <div className="space-y-8">
@@ -180,10 +190,31 @@ export default function SettingsPage() {
               {g.label}
             </button>
           ))}
+          <button
+            onClick={() => setActiveGroup('security')}
+            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left ${
+              activeGroup === 'security'
+                ? 'bg-brand-500/20 text-brand-400 border border-brand-500/30'
+                : 'text-surface-400 hover:text-white hover:bg-surface-800'
+            }`}
+          >
+            <SECURITY_GROUP.icon className={`w-4 h-4 ${activeGroup === 'security' ? SECURITY_GROUP.color : ''}`} />
+            {SECURITY_GROUP.label}
+          </button>
         </div>
 
         {/* Settings Form */}
         <div className="flex-1 card p-6 space-y-5">
+          {activeGroup === 'security' ? (
+            <>
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-green-400" />
+                Security
+              </h2>
+              <TwoFactorSetup />
+            </>
+          ) : (
+          <>
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
             <group.icon className={`w-5 h-5 ${group.color}`} />
             {group.label}
@@ -227,6 +258,8 @@ export default function SettingsPage() {
               </div>
             ))}
           </div>
+          </>
+          )}
         </div>
       </div>
     </div>
