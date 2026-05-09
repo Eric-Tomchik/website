@@ -1,7 +1,24 @@
+'use client';
+
 import Link from 'next/link';
 import { Home, BookOpen, Briefcase, Mail, ArrowLeft } from 'lucide-react';
+import { useEffect } from 'react';
 
 export default function NotFound() {
+  // Log the exact 404 URL to GA4 so we can see what paths are being hit
+  useEffect(() => {
+    const path = window.location.pathname + window.location.search;
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'page_not_found', {
+        page_path: path,
+        page_location: window.location.href,
+        page_referrer: document.referrer || '(none)',
+      });
+    }
+    // Also log to console for debugging
+    console.warn(`[404] Page not found: ${path} (referrer: ${document.referrer || 'none'})`);
+  }, []);
+
   return (
     <section className="relative min-h-[70vh] flex items-center justify-center py-16">
       {/* Background gradient */}
