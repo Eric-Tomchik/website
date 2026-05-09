@@ -3,7 +3,8 @@ import { ServiceCard } from '@/components/ui/ServiceCard';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
 import { Code2, ArrowRight, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
-import type { ServicePlan } from '@/types';
+import { getConvexClient } from '@/lib/convex';
+import { api } from '../../../convex/_generated/api';
 
 export const metadata: Metadata = {
   title: 'Web Development Services',
@@ -12,76 +13,25 @@ export const metadata: Metadata = {
 
 export const revalidate = 3600; // ISR: revalidate every hour
 
-const servicePlans: ServicePlan[] = [
-  {
-    id: '1',
-    name: 'Starter Site',
-    slug: 'starter',
-    description: 'Perfect for personal brands and small businesses that need a professional online presence.',
-    features: [
-      'Up to 5 pages',
-      'Mobile responsive design',
-      'Contact form',
-      'SEO optimization',
-      'Social media integration',
-      '1 round of revisions',
-      '30-day post-launch support',
-    ],
-    price_cents: 150000,
-    price_type: 'starting_at',
-    is_popular: false,
-    is_active: true,
-    sort_order: 0,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    name: 'Business Pro',
-    slug: 'business-pro',
-    description: 'For growing businesses that need a feature-rich website with advanced functionality.',
-    features: [
-      'Up to 15 pages',
-      'Custom design & branding',
-      'CMS / Blog integration',
-      'E-commerce (up to 50 products)',
-      'Analytics & tracking setup',
-      'Email integration',
-      '3 rounds of revisions',
-      '60-day post-launch support',
-    ],
-    price_cents: 350000,
-    price_type: 'starting_at',
-    is_popular: true,
-    is_active: true,
-    sort_order: 1,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    name: 'Custom Application',
-    slug: 'custom-app',
-    description: 'Full-stack web applications built to your exact specifications with ongoing support.',
-    features: [
-      'Unlimited pages',
-      'Custom full-stack development',
-      'Database design & integration',
-      'User authentication & roles',
-      'Third-party API integrations',
-      'Payment processing',
-      'Unlimited revisions during build',
-      '90-day post-launch support',
-      'Hosting setup & deployment',
-    ],
-    price_cents: 750000,
-    price_type: 'starting_at',
-    is_popular: false,
-    is_active: true,
-    sort_order: 2,
-    created_at: new Date().toISOString(),
-  },
-];
+export default async function ServicesPage() {
+  const client = getConvexClient();
+  const plans = await client.query(api.servicePlans.listActive, {});
 
-export default function ServicesPage() {
+  // Map Convex docs to ServicePlan type
+  const servicePlans = plans.map((p) => ({
+    id: p._id,
+    name: p.name,
+    slug: p.slug,
+    description: p.description,
+    features: p.features,
+    price_cents: p.price_cents,
+    price_type: p.price_type,
+    is_popular: p.is_popular,
+    is_active: p.is_active,
+    sort_order: p.sort_order,
+    created_at: new Date(p._creationTime).toISOString(),
+  }));
+
   return (
     <div className="py-16">
       <div className="section-container">

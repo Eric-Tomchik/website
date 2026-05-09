@@ -30,6 +30,7 @@ import type * as projects from "../projects.js";
 import type * as rateLimit from "../rateLimit.js";
 import type * as reviews from "../reviews.js";
 import type * as seoKeywords from "../seoKeywords.js";
+import type * as servicePlans from "../servicePlans.js";
 import type * as siteSettings from "../siteSettings.js";
 import type * as socialCampaigns from "../socialCampaigns.js";
 import type * as socialPosts from "../socialPosts.js";
@@ -65,6 +66,7 @@ declare const fullApi: ApiFromModules<{
   rateLimit: typeof rateLimit;
   reviews: typeof reviews;
   seoKeywords: typeof seoKeywords;
+  servicePlans: typeof servicePlans;
   siteSettings: typeof siteSettings;
   socialCampaigns: typeof socialCampaigns;
   socialPosts: typeof socialPosts;

@@ -32,6 +32,7 @@ import {
   Target,
   Menu,
   X,
+  Wrench,
 } from 'lucide-react';
 
 interface NavItem {
@@ -89,6 +90,7 @@ const navSections: NavSection[] = [
   {
     label: 'System',
     items: [
+      { href: '/admin/services', label: 'Services', icon: Wrench, badgeKey: null },
       { href: '/admin/portfolio', label: 'Portfolio', icon: Briefcase, badgeKey: null },
       { href: '/admin/analytics', label: 'Analytics', icon: BarChart3, badgeKey: null },
       { href: '/admin/automations', label: 'Automations', icon: Zap, badgeKey: null },

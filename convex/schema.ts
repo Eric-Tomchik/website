@@ -584,6 +584,26 @@ export default defineSchema({
     .index("by_date", ["scheduled_date"])
     .index("by_status", ["status"]),
 
+  // === Service Plans ===
+  service_plans: defineTable({
+    name: v.string(),
+    slug: v.string(),
+    description: v.string(),
+    features: v.array(v.string()),
+    price_cents: v.number(),
+    price_type: v.union(
+      v.literal("fixed"),
+      v.literal("starting_at"),
+      v.literal("hourly"),
+      v.literal("monthly")
+    ),
+    is_popular: v.boolean(),
+    is_active: v.boolean(),
+    sort_order: v.number(),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_active", ["is_active"]),
+
   portfolio_projects: defineTable({
     title: v.string(),
     slug: v.string(),
