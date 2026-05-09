@@ -8,7 +8,19 @@ import { api } from '../../../convex/_generated/api';
 
 export const metadata: Metadata = {
   title: 'About',
-  description: 'Learn about Eric Tomchik — author, web developer, and creator. Follow me on social media.',
+  description: 'Learn about Eric Tomchik — published author, web developer, and creator. 6+ books through ArcLight Press, custom web development services, and tech insights.',
+  openGraph: {
+    title: 'About Eric Tomchik — Author & Web Developer',
+    description: 'Published author, web developer, and creator. 6+ books through ArcLight Press and custom web development services.',
+    url: 'https://erictomchik.com/about',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'About Eric Tomchik' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'About Eric Tomchik — Author & Web Developer',
+    description: 'Published author with 6+ books. Custom web development services.',
+    images: ['/og-image.png'],
+  },
 };
 
 export const revalidate = 3600; // ISR: revalidate every hour
@@ -16,7 +28,7 @@ export const revalidate = 3600; // ISR: revalidate every hour
 const socialLinks = [
   {
     platform: 'Facebook',
-    url: 'https://www.facebook.com/profile.php?id=61589407526718',
+    url: 'https://www.facebook.com/profile.php?id=122097131439313584',
     icon: Facebook,
     color: 'hover:bg-[#1877F2]/20 hover:border-[#1877F2]/40',
     description: 'Follow for updates and behind-the-scenes content',

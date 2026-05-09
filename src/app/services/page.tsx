@@ -8,7 +8,19 @@ import { api } from '../../../convex/_generated/api';
 
 export const metadata: Metadata = {
   title: 'Web Development Services',
-  description: 'Professional web development services by Eric Tomchik. Custom websites, e-commerce, and web applications.',
+  description: 'Professional web development services by Eric Tomchik. Custom websites, e-commerce, and web applications built with React, Next.js, and modern tech.',
+  openGraph: {
+    title: 'Web Development Services — Eric Tomchik',
+    description: 'Custom websites, e-commerce, and web applications built with React, Next.js, and modern tech. Starting at $1,000.',
+    url: 'https://erictomchik.com/services',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Eric Tomchik Web Development Services' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Web Development Services — Eric Tomchik',
+    description: 'Custom websites, e-commerce, and web applications. Starting at $1,000.',
+    images: ['/og-image.png'],
+  },
 };
 
 export const revalidate = 3600; // ISR: revalidate every hour

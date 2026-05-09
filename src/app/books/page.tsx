@@ -11,7 +11,19 @@ export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: 'ArcLight Press — Books',
-  description: 'Browse and purchase books from ArcLight Press by Eric Tomchik. Available in hardcover.',
+  description: 'Browse and purchase books from ArcLight Press by Eric Tomchik. Business credit, cybersecurity, AI, POS systems, and more.',
+  openGraph: {
+    title: 'ArcLight Press — Books by Eric Tomchik',
+    description: 'Browse and purchase books on business credit, cybersecurity, AI, POS systems, and more.',
+    url: 'https://erictomchik.com/books',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ArcLight Press Books' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ArcLight Press — Books by Eric Tomchik',
+    description: 'Browse and purchase books on business credit, cybersecurity, AI, POS systems, and more.',
+    images: ['/og-image.png'],
+  },
 };
 
 export default async function BooksPage({

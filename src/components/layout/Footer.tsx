@@ -3,7 +3,7 @@ import { Facebook, Linkedin, Instagram, Twitter } from 'lucide-react';
 import { NewsletterForm } from './NewsletterForm';
 
 const socialLinks = [
-  { icon: Facebook, href: 'https://www.facebook.com/profile.php?id=61589407526718', label: 'Facebook' },
+  { icon: Facebook, href: 'https://www.facebook.com/profile.php?id=122097131439313584', label: 'Facebook' },
   { icon: Linkedin, href: 'https://www.linkedin.com/in/eric-tomchik-jr/', label: 'LinkedIn' },
   { icon: Instagram, href: 'https://www.instagram.com/cyb3ron3/', label: 'Instagram' },
   { icon: Twitter, href: 'https://x.com/EricTomchikJr', label: 'X (Twitter)' },
