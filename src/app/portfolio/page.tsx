@@ -111,7 +111,7 @@ export default async function PortfolioPage() {
             thumbnail_url: p.thumbnail_url || '',
             technologies: p.technologies,
             category: p.category,
-            live_url: p.live_url || undefined,
+            live_url: p.live_url || '',
           }))
         : fallbackProjects;
   } catch {
