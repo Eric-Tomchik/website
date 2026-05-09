@@ -32,7 +32,8 @@ export const getAll = query({
 
 export const set = mutation({
   args: { adminKey: v.string(), key: v.string(),
-    value: v.string(), // JSON-serialized },
+    value: v.string(), // JSON-serialized
+  },
   handler: async (ctx, args) => {
     assertAdmin(args.adminKey);
     const existing = await ctx.db

@@ -32,7 +32,8 @@ export const get = query({
 export const update = mutation({
   args: { adminKey: v.string(), type: v.union(v.literal("realtime"), v.literal("historical")),
     period: v.optional(v.string()),
-    data: v.string(), // JSON string },
+    data: v.string(), // JSON string
+  },
   handler: async (ctx, args) => {
     assertAdmin(args.adminKey);
     const period = args.period ?? (args.type === "realtime" ? "realtime" : "30");
