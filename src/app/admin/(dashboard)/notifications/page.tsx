@@ -60,7 +60,7 @@ export default function NotificationsPage() {
   useEffect(() => {
     if (unreadCount > 0 && !hasAutoMarked.current) {
       const timer = setTimeout(() => {
-        markAllRead();
+        markAllRead({});
         hasAutoMarked.current = true;
       }, 2000);
       return () => clearTimeout(timer);
@@ -90,13 +90,13 @@ export default function NotificationsPage() {
         </div>
         <div className="flex gap-2">
           {unreadCount > 0 && (
-            <button onClick={() => markAllRead()} className="btn-secondary text-sm flex items-center gap-2">
+            <button onClick={() => markAllRead({})} className="btn-secondary text-sm flex items-center gap-2">
               <CheckCheck className="w-4 h-4" /> Mark All Read
             </button>
           )}
           {notifications.length > 0 && (
             <button
-              onClick={() => { if (confirm('Clear all notifications?')) clearAll(); }}
+              onClick={() => { if (confirm('Clear all notifications?')) clearAll({}); }}
               className="btn-secondary text-sm flex items-center gap-2 text-red-400 hover:text-red-300"
             >
               <Trash2 className="w-4 h-4" /> Clear All
