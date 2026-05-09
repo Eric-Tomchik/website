@@ -1,12 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { PenLine, Newspaper, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
+import { PenLine, Newspaper, ExternalLink, ArrowRight } from 'lucide-react';
 
 interface NewsItem {
   title: string;
   link: string;
+  slug: string;
   description: string;
+  fullContent: string;
   pubDate: string;
   source: string;
   category: string;
@@ -15,7 +18,7 @@ interface NewsItem {
 const categoryLabels: Record<string, string> = {
   cybersecurity: 'Cybersecurity',
   'web-development': 'Web Development',
-  ai: 'AI',
+  ai: 'AI & Technology',
   business: 'Business',
   technology: 'Technology',
 };
@@ -120,15 +123,13 @@ export function BlogTabs({
             </div>
           )}
 
-          {/* News items */}
+          {/* News items — link to on-site reader */}
           {filteredNews.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredNews.map((item, i) => (
-                <a
-                  key={`${item.link}-${i}`}
-                  href={item.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  key={`${item.slug}-${i}`}
+                  href={`/news/${item.slug}`}
                   className="card group flex flex-col p-5 hover:border-brand-600/30 transition-colors"
                 >
                   <div className="flex items-center gap-2 mb-3">
@@ -159,10 +160,10 @@ export function BlogTabs({
                       </span>
                     )}
                     <span className="text-brand-400 text-xs font-medium flex items-center gap-1 ml-auto">
-                      Read <ExternalLink className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                      Read <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                     </span>
                   </div>
-                </a>
+                </Link>
               ))}
             </div>
           ) : (
