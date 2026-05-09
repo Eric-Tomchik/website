@@ -52,7 +52,7 @@ export default async function ServicesPage() {
 
         {/* Service plans */}
         <ScrollReveal animation="fade-up">
-        <div className="grid md:grid-cols-3 gap-8 mb-20">
+        <div className="grid md:grid-cols-3 gap-6 pt-4 mb-20 overflow-visible">
           {servicePlans.map((plan) => (
             <ServiceCard key={plan.id} plan={plan} />
           ))}
