@@ -12,6 +12,9 @@ export const metadata: Metadata = {
     description: 'Find out if your business is ready to build credit — in under 2 minutes.',
     url: 'https://erictomchik.com/credit-checklist',
   },
+  alternates: {
+    canonical: 'https://erictomchik.com/credit-checklist',
+  },
 };
 
 export default function CreditChecklistPage() {

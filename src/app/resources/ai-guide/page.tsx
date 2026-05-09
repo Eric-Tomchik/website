@@ -23,6 +23,9 @@ export const metadata: Metadata = {
     url: 'https://erictomchik.com/resources/ai-guide',
     type: 'website',
   },
+  alternates: {
+    canonical: 'https://erictomchik.com/resources/ai-guide',
+  },
 };
 
 const LAST_UPDATED = 'May 2026';

@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   title: 'Portfolio',
   description:
     'Web development portfolio by Eric Tomchik — showcase projects demonstrating custom restaurant websites, e-commerce, and web applications.',
+  alternates: {
+    canonical: 'https://erictomchik.com/portfolio',
+  },
 };
 
 // Fallback data in case Convex is empty (used during initial seed)

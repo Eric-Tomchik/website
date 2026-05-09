@@ -25,6 +25,9 @@ export const metadata: Metadata = {
     url: 'https://erictomchik.com/resources/credit-score',
     type: 'website',
   },
+  alternates: {
+    canonical: 'https://erictomchik.com/resources/credit-score',
+  },
 };
 
 /* ------------------------------------------------------------------ */

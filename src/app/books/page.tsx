@@ -24,6 +24,9 @@ export const metadata: Metadata = {
     description: 'Browse and purchase books on business credit, cybersecurity, AI, POS systems, and more.',
     images: ['/og-image.webp'],
   },
+  alternates: {
+    canonical: 'https://erictomchik.com/books',
+  },
 };
 
 export default async function BooksPage({

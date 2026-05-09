@@ -3,6 +3,9 @@ import { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Terms of Service',
   description: 'Terms of service for erictomchik.com — usage terms, policies, and conditions.',
+  alternates: {
+    canonical: 'https://erictomchik.com/terms',
+  },
 };
 
 export default function TermsPage() {

@@ -18,6 +18,9 @@ export const metadata: Metadata = {
       'Insights on business credit, web development, cybersecurity, AI, and technology.',
     url: 'https://erictomchik.com/blog',
   },
+  alternates: {
+    canonical: 'https://erictomchik.com/blog',
+  },
 };
 
 export const revalidate = 3600; // revalidate hourly (was 60s, news feeds don't change that fast)

@@ -21,6 +21,9 @@ export const metadata: Metadata = {
     description: 'Published author with 6+ books. Custom web development services.',
     images: ['/og-image.webp'],
   },
+  alternates: {
+    canonical: 'https://erictomchik.com/about',
+  },
 };
 
 export const revalidate = 3600; // ISR: revalidate every hour

@@ -18,6 +18,9 @@ export const metadata: Metadata = {
     url: 'https://erictomchik.com/resources',
     type: 'website',
   },
+  alternates: {
+    canonical: 'https://erictomchik.com/resources',
+  },
 };
 
 export default function ResourcesPage() {
