@@ -52,6 +52,11 @@ export const metadata: Metadata = {
     description: 'Author, Web Developer, Creator',
     images: ['/og-image.png'],
   },
+  alternates: {
+    types: {
+      'application/rss+xml': '/feed',
+    },
+  },
   robots: { index: true, follow: true },
   icons: {
     icon: [

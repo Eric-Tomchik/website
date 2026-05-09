@@ -3,6 +3,14 @@ import { getConvexClient } from '@/lib/convex';
 import { api } from '../../../../../convex/_generated/api';
 import { z } from 'zod';
 
+function getClientIp(req: Request): string {
+  const forwarded = req.headers.get('x-forwarded-for');
+  if (forwarded) return forwarded.split(',')[0].trim();
+  const real = req.headers.get('x-real-ip');
+  if (real) return real;
+  return 'unknown';
+}
+
 const freeCheckoutSchema = z.object({
   book_id: z.string(),
   book_title: z.string(),
@@ -70,10 +78,29 @@ async function sendDownloadEmail(
 
 export async function POST(req: Request) {
   try {
+    // Rate limit: 5 attempts per minute per IP (distributed via Convex)
+    const ip = getClientIp(req);
+    const convex = getConvexClient();
+    const rateCheck = await convex.mutation(api.rateLimit.check, {
+      key: `free_checkout:${ip}`,
+      maxAttempts: 5,
+      windowMs: 60_000,
+    });
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Too many attempts. Please try again later.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(Math.ceil((rateCheck.resetAt - Date.now()) / 1000)),
+          },
+        }
+      );
+    }
+
     const body = await req.json();
     const data = freeCheckoutSchema.parse(body);
 
-    const convex = getConvexClient();
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://erictomchik.com';
 
     // Atomically validate AND apply the discount code
