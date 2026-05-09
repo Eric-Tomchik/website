@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { ShieldCheck, ShieldAlert, Copy, Check, ExternalLink } from 'lucide-react';
-import { generateQRCodeSVG } from '@/lib/qr';
 
 interface SetupData {
   enabled: boolean;
@@ -83,7 +82,7 @@ export function TwoFactorSetup() {
 
               {setupData.secret && (
                 <>
-                  {/* QR code generated client-side */}
+                  {/* QR code generated client-side via canvas */}
                   {setupData.otpauth_uri && (
                     <QRCodeDisplay uri={setupData.otpauth_uri} />
                   )}
@@ -143,19 +142,47 @@ export function TwoFactorSetup() {
   );
 }
 
-/** Renders a QR code SVG inline (no external requests) */
+/** Renders a QR code using the qrcode library (browser canvas) */
 function QRCodeDisplay({ uri }: { uri: string }) {
-  const svg = useMemo(() => generateQRCodeSVG(uri, 4, 16), [uri]);
+  const [dataUrl, setDataUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    import('qrcode').then((QRCode) => {
+      QRCode.toDataURL(uri, {
+        width: 200,
+        margin: 2,
+        color: { dark: '#000000', light: '#ffffff' },
+        errorCorrectionLevel: 'M',
+      }).then((url: string) => {
+        if (!cancelled) setDataUrl(url);
+      });
+    }).catch(() => {
+      // Fallback: show manual-only message
+      if (!cancelled) setDataUrl('error');
+    });
+    return () => { cancelled = true; };
+  }, [uri]);
+
+  if (dataUrl === 'error') return null;
+
   return (
     <div className="text-center">
       <p className="text-xs text-surface-400 mb-2">
         Scan this QR code with your authenticator app:
       </p>
-      <div
-        className="inline-block rounded-lg overflow-hidden"
-        style={{ width: 200, height: 200 }}
-        dangerouslySetInnerHTML={{ __html: svg }}
-      />
+      {dataUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={dataUrl}
+          alt="TOTP QR Code"
+          className="mx-auto rounded-lg"
+          width={200}
+          height={200}
+        />
+      ) : (
+        <div className="w-[200px] h-[200px] mx-auto rounded-lg bg-surface-700 animate-pulse" />
+      )}
     </div>
   );
 }
