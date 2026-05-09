@@ -100,9 +100,14 @@ function formatNumber(n: number): string {
   return n.toLocaleString();
 }
 
-function formatDate(yyyymmdd: string): string {
-  const m = yyyymmdd.slice(4, 6);
-  const d = yyyymmdd.slice(6, 8);
+function formatDate(dateStr: string): string {
+  // Supports both YYYYMMDD and YYYY-MM-DD formats
+  if (dateStr.includes('-')) {
+    const [, m, d] = dateStr.split('-');
+    return `${m}/${d}`;
+  }
+  const m = dateStr.slice(4, 6);
+  const d = dateStr.slice(6, 8);
   return `${m}/${d}`;
 }
 
@@ -379,7 +384,7 @@ export default function AdminAnalyticsPage() {
                     <span className="text-[11px] font-medium text-surface-400">Bounce</span>
                     <Zap className="w-3.5 h-3.5 text-yellow-400" />
                   </div>
-                  <div className="text-xl font-bold text-white">{(historical.bounceRate * 100).toFixed(1)}%</div>
+                  <div className="text-xl font-bold text-white">{historical.bounceRate < 1 ? (historical.bounceRate * 100).toFixed(1) : historical.bounceRate.toFixed(1)}%</div>
                   <div className="text-[10px] text-surface-500">Avg: {formatDuration(historical.avgSessionDuration)}</div>
                 </div>
               </div>

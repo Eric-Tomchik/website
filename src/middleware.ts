@@ -83,5 +83,9 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|images|previews|icons|manifest.json).*)'],
+  // NOTE: Do NOT exclude /images, /previews, /icons, or /assets here — they
+  // must pass through middleware so subdomain proxying can serve portfolio-site
+  // images & scripts. The overhead for main-domain requests is negligible
+  // (middleware falls through to NextResponse.next()).
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|manifest.json).*)'],
 };
