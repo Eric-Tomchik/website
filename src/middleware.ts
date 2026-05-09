@@ -47,20 +47,45 @@ const SUBDOMAIN_TARGETS: Record<string, { origin: string; defaultPath: string; b
   },
 };
 
+// ── CSP with per-request nonce ──────────────────────────────────────────────
+function buildCsp(nonce: string): string {
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://www.google-analytics.com https://js.stripe.com https://www.paypal.com https://static.cloudflareinsights.com https://connect.facebook.net`,
+    // style-src keeps 'unsafe-inline' — Next.js and Tailwind inject inline styles
+    // that can't be nonce-tagged without a custom document setup
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: blob: https://*.convex.cloud https://*.stripe.com https://www.paypal.com https://www.facebook.com",
+    "connect-src 'self' https://*.convex.cloud wss://*.convex.cloud https://api.stripe.com https://www.google-analytics.com https://www.paypal.com https://api.resend.com https://cloudflareinsights.com https://www.facebook.com",
+    "frame-src 'self' blob: https://*.convex.cloud https://js.stripe.com https://www.paypal.com",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "upgrade-insecure-requests",
+  ].join('; ');
+}
+
+function generateNonce(): string {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  // Base64-encode without padding
+  const binStr = Array.from(bytes, (b) => String.fromCharCode(b)).join('');
+  return btoa(binStr).replace(/=+$/, '');
+}
+
 export function middleware(request: NextRequest) {
   try {
     const host = request.headers.get('host') ?? '';
     const { pathname } = request.nextUrl;
 
     // ── Subdomain proxy (portfolio showcase projects) ──────────────────────────
-    // Serves Viktor Space content while keeping the subdomain URL in the browser.
     const subMatch = host.match(/^([a-z]+)\.erictomchik\.com$/i);
     if (subMatch) {
       const sub = subMatch[1].toLowerCase();
       const target = SUBDOMAIN_TARGETS[sub];
       if (target) {
         try {
-          // Root path → serve the default page; other paths → prepend basePath if set
           const proxyPath =
             pathname === '/'
               ? target.defaultPath
@@ -71,7 +96,6 @@ export function middleware(request: NextRequest) {
           proxyUrl.search = request.nextUrl.search;
           return NextResponse.rewrite(proxyUrl);
         } catch {
-          // If the upstream is unreachable or URL is malformed, return a friendly error
           return new NextResponse(
             '<!DOCTYPE html><html><body style="font-family:system-ui;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#0a0f1c;color:#fff"><div style="text-align:center"><h1>Temporarily Unavailable</h1><p>This site is currently down for maintenance. Please try again later.</p></div></body></html>',
             { status: 503, headers: { 'Content-Type': 'text/html', 'Retry-After': '60' } }
@@ -80,14 +104,20 @@ export function middleware(request: NextRequest) {
       }
     }
 
+    // ── Generate CSP nonce ────────────────────────────────────────────────────
+    const nonce = generateNonce();
+    const csp = buildCsp(nonce);
+
+    // Pass nonce to server components via request header
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-nonce', nonce);
+
     // ── Protect admin routes (except login page) ──────────────────────────────
     if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
       const adminSession = request.cookies.get('admin_session');
       if (!adminSession?.value) {
         return NextResponse.redirect(new URL('/admin/login', request.url));
       }
-      // Note: full HMAC verification happens in the layout (Node.js runtime);
-      // middleware provides a fast first-pass check at the edge.
     }
 
     // ── Protect portal routes (except login page) ─────────────────────────────
@@ -98,17 +128,19 @@ export function middleware(request: NextRequest) {
       }
     }
 
-    return NextResponse.next();
+    const response = NextResponse.next({
+      request: { headers: requestHeaders },
+    });
+
+    // Set CSP header on the response
+    response.headers.set('Content-Security-Policy', csp);
+
+    return response;
   } catch {
-    // Catch-all: never let middleware crash the entire request
     return NextResponse.next();
   }
 }
 
 export const config = {
-  // NOTE: Do NOT exclude /images, /previews, /icons, or /assets here — they
-  // must pass through middleware so subdomain proxying can serve portfolio-site
-  // images & scripts. The overhead for main-domain requests is negligible
-  // (middleware falls through to NextResponse.next()).
   matcher: ['/((?!_next/static|_next/image|favicon.ico|manifest.json).*)'],
 };
