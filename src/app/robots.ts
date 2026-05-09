@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/admin', '/portal', '/api', '/download'],
+      disallow: ['/admin', '/portal', '/api', '/download', '/sign'],
     },
     sitemap: 'https://erictomchik.com/sitemap.xml',
   };
