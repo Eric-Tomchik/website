@@ -1,9 +1,9 @@
 'use client';
 
-import { useQuery, useMutation } from 'convex/react';
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import {
+import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
   Bell,
   BellOff,
   Check,
@@ -46,12 +46,12 @@ function timeAgo(ts: number): string {
 }
 
 export default function NotificationsPage() {
-  const notifications = useQuery(api.notifications.list, {}) ?? [];
-  const unreadCount = useQuery(api.notifications.unreadCount) ?? 0;
-  const markRead = useMutation(api.notifications.markRead);
-  const markAllRead = useMutation(api.notifications.markAllRead);
-  const remove = useMutation(api.notifications.remove);
-  const clearAll = useMutation(api.notifications.clearAll);
+  const notifications = useAdminQuery(api.notifications.list, {}) ?? [];
+  const unreadCount = useAdminQuery(api.notifications.unreadCount) ?? 0;
+  const markRead = useAdminMutation(api.notifications.markRead);
+  const markAllRead = useAdminMutation(api.notifications.markAllRead);
+  const remove = useAdminMutation(api.notifications.remove);
+  const clearAll = useAdminMutation(api.notifications.clearAll);
 
   const [filter, setFilter] = useState<FilterType>('all');
   const hasAutoMarked = useRef(false);

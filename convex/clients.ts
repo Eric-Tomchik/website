@@ -1,6 +1,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import bcrypt from "bcryptjs";
+import { assertAdmin } from "./lib/auth";
 
 // Password hashing: bcrypt only (use sync methods — Convex mutations don't support setTimeout)
 const BCRYPT_ROUNDS = 10;
@@ -18,8 +19,9 @@ function verifyPassword(password: string, storedHash: string): boolean {
 }
 
 export const list = query({
-  args: { activeOnly: v.optional(v.boolean()) },
+  args: { adminKey: v.string(), activeOnly: v.optional(v.boolean()) },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     if (args.activeOnly) {
       return await ctx.db
         .query("clients")
@@ -31,15 +33,17 @@ export const list = query({
 });
 
 export const get = query({
-  args: { id: v.id("clients") },
+  args: { adminKey: v.string(), id: v.id("clients") },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     return await ctx.db.get(args.id);
   },
 });
 
 export const getByEmail = query({
-  args: { email: v.string() },
+  args: { adminKey: v.string(), email: v.string() },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     return await ctx.db
       .query("clients")
       .withIndex("by_email", (q) => q.eq("email", args.email.toLowerCase()))
@@ -48,15 +52,14 @@ export const getByEmail = query({
 });
 
 export const create = mutation({
-  args: {
-    name: v.string(),
+  args: { adminKey: v.string(), name: v.string(),
     email: v.string(),
     phone: v.optional(v.string()),
     company: v.optional(v.string()),
     password: v.string(),
-    notes: v.optional(v.string()),
-  },
+    notes: v.optional(v.string()), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const existing = await ctx.db
       .query("clients")
       .withIndex("by_email", (q) => q.eq("email", args.email.toLowerCase()))
@@ -74,17 +77,16 @@ export const create = mutation({
 });
 
 export const update = mutation({
-  args: {
-    id: v.id("clients"),
+  args: { adminKey: v.string(), id: v.id("clients"),
     name: v.optional(v.string()),
     email: v.optional(v.string()),
     phone: v.optional(v.string()),
     company: v.optional(v.string()),
     notes: v.optional(v.string()),
-    is_active: v.optional(v.boolean()),
-  },
+    is_active: v.optional(v.boolean()), },
   handler: async (ctx, args) => {
-    const { id, ...updates } = args;
+    assertAdmin(args.adminKey);
+    const { id, adminKey: _adminKey, ...updates } = args;
     const filtered: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(updates)) {
       if (value !== undefined) {
@@ -96,8 +98,9 @@ export const update = mutation({
 });
 
 export const resetPassword = mutation({
-  args: { id: v.id("clients"), newPassword: v.string() },
+  args: { adminKey: v.string(), id: v.id("clients"), newPassword: v.string() },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     await ctx.db.patch(args.id, {
       password_hash: hashPassword(args.newPassword),
     });
@@ -185,8 +188,9 @@ export const logout = mutation({
 });
 
 export const remove = mutation({
-  args: { id: v.id("clients") },
+  args: { adminKey: v.string(), id: v.id("clients") },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     await ctx.db.delete(args.id);
   },
 });

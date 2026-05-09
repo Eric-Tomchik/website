@@ -1,15 +1,15 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { assertAdmin } from "./lib/auth";
 
 /**
  * Get cached analytics data by type and period.
  */
 export const get = query({
-  args: {
-    type: v.union(v.literal("realtime"), v.literal("historical")),
-    period: v.optional(v.string()),
-  },
+  args: { adminKey: v.string(), type: v.union(v.literal("realtime"), v.literal("historical")),
+    period: v.optional(v.string()), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const cached = await ctx.db
       .query("analytics_cache")
       .withIndex("by_type_period", (q) =>
@@ -30,12 +30,11 @@ export const get = query({
  * Update cached analytics data (called by Viktor cron).
  */
 export const update = mutation({
-  args: {
-    type: v.union(v.literal("realtime"), v.literal("historical")),
+  args: { adminKey: v.string(), type: v.union(v.literal("realtime"), v.literal("historical")),
     period: v.optional(v.string()),
-    data: v.string(), // JSON string
-  },
+    data: v.string(), // JSON string },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const period = args.period ?? (args.type === "realtime" ? "realtime" : "30");
 
     const existing = await ctx.db

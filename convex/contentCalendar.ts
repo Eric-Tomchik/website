@@ -1,18 +1,20 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { assertAdmin } from "./lib/auth";
 
 export const list = query({
-  handler: async (ctx) => {
+  args: { adminKey: v.string() },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     return await ctx.db.query("content_calendar").order("desc").collect();
   },
 });
 
 export const listByDateRange = query({
-  args: {
-    startDate: v.string(),
-    endDate: v.string(),
-  },
+  args: { adminKey: v.string(), startDate: v.string(),
+    endDate: v.string(), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const items = await ctx.db
       .query("content_calendar")
       .withIndex("by_date")
@@ -24,8 +26,7 @@ export const listByDateRange = query({
 });
 
 export const create = mutation({
-  args: {
-    title: v.string(),
+  args: { adminKey: v.string(), title: v.string(),
     content_type: v.union(
       v.literal("blog"),
       v.literal("social"),
@@ -44,16 +45,15 @@ export const create = mutation({
     assigned_to: v.optional(v.string()),
     blog_post_id: v.optional(v.id("blog_posts")),
     social_post_id: v.optional(v.id("social_posts")),
-    notes: v.optional(v.string()),
-  },
+    notes: v.optional(v.string()), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     return await ctx.db.insert("content_calendar", args);
   },
 });
 
 export const update = mutation({
-  args: {
-    id: v.id("content_calendar"),
+  args: { adminKey: v.string(), id: v.id("content_calendar"),
     title: v.optional(v.string()),
     content_type: v.optional(
       v.union(
@@ -75,17 +75,18 @@ export const update = mutation({
       )
     ),
     assigned_to: v.optional(v.string()),
-    notes: v.optional(v.string()),
-  },
+    notes: v.optional(v.string()), },
   handler: async (ctx, args) => {
-    const { id, ...updates } = args;
+    assertAdmin(args.adminKey);
+    const { id, adminKey: _adminKey, ...updates } = args;
     return await ctx.db.patch(id, updates);
   },
 });
 
 export const remove = mutation({
-  args: { id: v.id("content_calendar") },
+  args: { adminKey: v.string(), id: v.id("content_calendar") },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     await ctx.db.delete(args.id);
   },
 });

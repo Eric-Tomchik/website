@@ -1,14 +1,19 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { assertAdmin } from "./lib/auth";
 
 export const list = query({
-  handler: async (ctx) => {
+  args: { adminKey: v.string() },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     return await ctx.db.query("seo_keywords").order("desc").collect();
   },
 });
 
 export const stats = query({
-  handler: async (ctx) => {
+  args: { adminKey: v.string() },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const keywords = await ctx.db.query("seo_keywords").collect();
     const tracking = keywords.filter((k) => k.status === "tracking");
     const targeting = keywords.filter((k) => k.status === "targeting");
@@ -23,8 +28,7 @@ export const stats = query({
 });
 
 export const create = mutation({
-  args: {
-    keyword: v.string(),
+  args: { adminKey: v.string(), keyword: v.string(),
     target_url: v.optional(v.string()),
     current_position: v.optional(v.number()),
     search_volume: v.optional(v.number()),
@@ -35,11 +39,12 @@ export const create = mutation({
       v.literal("ranking"),
       v.literal("archived")
     ),
-    notes: v.optional(v.string()),
-  },
+    notes: v.optional(v.string()), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
+    const { adminKey: _adminKey, ...data } = args;
     return await ctx.db.insert("seo_keywords", {
-      ...args,
+      ...data,
       previous_position: undefined,
       last_checked: Date.now(),
     });
@@ -47,8 +52,7 @@ export const create = mutation({
 });
 
 export const update = mutation({
-  args: {
-    id: v.id("seo_keywords"),
+  args: { adminKey: v.string(), id: v.id("seo_keywords"),
     keyword: v.optional(v.string()),
     target_url: v.optional(v.string()),
     current_position: v.optional(v.number()),
@@ -62,10 +66,10 @@ export const update = mutation({
         v.literal("archived")
       )
     ),
-    notes: v.optional(v.string()),
-  },
+    notes: v.optional(v.string()), },
   handler: async (ctx, args) => {
-    const { id, ...updates } = args;
+    assertAdmin(args.adminKey);
+    const { id, adminKey: _adminKey, ...updates } = args;
     const existing = await ctx.db.get(id);
     if (!existing) throw new Error("Keyword not found");
 
@@ -81,8 +85,9 @@ export const update = mutation({
 });
 
 export const remove = mutation({
-  args: { id: v.id("seo_keywords") },
+  args: { adminKey: v.string(), id: v.id("seo_keywords") },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     await ctx.db.delete(args.id);
   },
 });

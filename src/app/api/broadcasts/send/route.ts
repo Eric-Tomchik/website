@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     const convex = getConvexClient();
 
     // Get the broadcast
-    const broadcast = await convex.query(api.emailBroadcasts.get, { id: broadcastId });
+    const broadcast = await convex.query(api.emailBroadcasts.get, { adminKey: process.env.CONVEX_AUTH_SECRET!, id: broadcastId });
     if (!broadcast) {
       return NextResponse.json({ error: 'Broadcast not found' }, { status: 404 });
     }
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     }
 
     // Get active subscribers
-    const subscribers = await convex.query(api.newsletter.listActive, {});
+    const subscribers = await convex.query(api.newsletter.listActive, { adminKey: process.env.CONVEX_AUTH_SECRET! });
     if (subscribers.length === 0) {
       return NextResponse.json({ error: 'No active subscribers' }, { status: 400 });
     }
@@ -32,6 +32,7 @@ export async function POST(req: Request) {
     const resendKey = process.env.RESEND_API_KEY;
     if (!resendKey) {
       await convex.mutation(api.emailBroadcasts.markFailed, {
+        adminKey: process.env.CONVEX_AUTH_SECRET!,
         id: broadcastId,
         error_message: 'RESEND_API_KEY not configured',
       });
@@ -40,6 +41,7 @@ export async function POST(req: Request) {
 
     // Mark as sending
     await convex.mutation(api.emailBroadcasts.markSending, {
+      adminKey: process.env.CONVEX_AUTH_SECRET!,
       id: broadcastId,
       recipient_count: subscribers.length,
     });
@@ -92,6 +94,7 @@ export async function POST(req: Request) {
 
     // Update broadcast status
     await convex.mutation(api.emailBroadcasts.markSent, {
+      adminKey: process.env.CONVEX_AUTH_SECRET!,
       id: broadcastId,
       sent_count: sentCount,
       failed_count: failedCount,
@@ -100,6 +103,7 @@ export async function POST(req: Request) {
     // Audit log
     try {
       await convex.mutation(api.auditLog.create, {
+        adminKey: process.env.CONVEX_AUTH_SECRET!,
         action: 'broadcast_sent',
         actor: 'admin',
         entity_type: 'email_broadcast',

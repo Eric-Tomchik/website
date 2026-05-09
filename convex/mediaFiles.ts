@@ -1,9 +1,9 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { assertAdmin } from "./lib/auth";
 
 export const list = query({
-  args: {
-    file_type: v.optional(
+  args: { adminKey: v.string(), file_type: v.optional(
       v.union(
         v.literal("image"),
         v.literal("pdf"),
@@ -12,9 +12,9 @@ export const list = query({
         v.literal("other")
       )
     ),
-    folder: v.optional(v.string()),
-  },
+    folder: v.optional(v.string()), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     let q = ctx.db.query("media_files");
     if (args.file_type) {
       const files = await q.withIndex("by_type", (qb) => qb.eq("file_type", args.file_type!)).collect();
@@ -32,7 +32,9 @@ export const list = query({
 });
 
 export const stats = query({
-  handler: async (ctx) => {
+  args: { adminKey: v.string() },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const files = await ctx.db.query("media_files").collect();
     const totalSize = files.reduce((sum, f) => sum + f.file_size_bytes, 0);
     const byType = files.reduce(
@@ -57,8 +59,7 @@ export const stats = query({
 });
 
 export const create = mutation({
-  args: {
-    name: v.string(),
+  args: { adminKey: v.string(), name: v.string(),
     storage_id: v.string(),
     url: v.optional(v.string()),
     file_type: v.union(
@@ -72,33 +73,34 @@ export const create = mutation({
     file_size_bytes: v.number(),
     alt_text: v.optional(v.string()),
     folder: v.optional(v.string()),
-    tags: v.array(v.string()),
-  },
+    tags: v.array(v.string()), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
+    const { adminKey: _adminKey, ...data } = args;
     return await ctx.db.insert("media_files", {
-      ...args,
+      ...data,
       used_in: [],
     });
   },
 });
 
 export const update = mutation({
-  args: {
-    id: v.id("media_files"),
+  args: { adminKey: v.string(), id: v.id("media_files"),
     name: v.optional(v.string()),
     alt_text: v.optional(v.string()),
     folder: v.optional(v.string()),
-    tags: v.optional(v.array(v.string())),
-  },
+    tags: v.optional(v.array(v.string())), },
   handler: async (ctx, args) => {
-    const { id, ...updates } = args;
+    assertAdmin(args.adminKey);
+    const { id, adminKey: _adminKey, ...updates } = args;
     return await ctx.db.patch(id, updates);
   },
 });
 
 export const remove = mutation({
-  args: { id: v.id("media_files") },
+  args: { adminKey: v.string(), id: v.id("media_files") },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const file = await ctx.db.get(args.id);
     if (file) {
       // Also delete from storage

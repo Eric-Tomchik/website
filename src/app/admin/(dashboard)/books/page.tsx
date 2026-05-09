@@ -1,6 +1,5 @@
 'use client';
 
-import { useQuery, useMutation } from 'convex/react';
 import { useState } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import { BookOpen, Plus, Pencil, Trash2, Eye, EyeOff } from 'lucide-react';
@@ -14,6 +13,7 @@ import {
 } from '@/lib/utils';
 import type { Id } from '../../../../../convex/_generated/dataModel';
 import type { BookFormat } from '@/lib/utils';
+import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
 
 type Book = {
   _id: Id<"books">;
@@ -40,9 +40,9 @@ type Book = {
 };
 
 export default function AdminBooksPage() {
-  const books = useQuery(api.books.list, {}) ?? [];
-  const updateBook = useMutation(api.books.update);
-  const deleteBook = useMutation(api.books.remove);
+  const books = useAdminQuery(api.books.list, {}) ?? [];
+  const updateBook = useAdminMutation(api.books.update);
+  const deleteBook = useAdminMutation(api.books.remove);
 
   const [showForm, setShowForm] = useState(false);
   const [editingBook, setEditingBook] = useState<Book | null>(null);
@@ -191,9 +191,9 @@ function BookForm({
   onSave: () => void;
   onCancel: () => void;
 }) {
-  const createBook = useMutation(api.books.create);
-  const updateBook = useMutation(api.books.update);
-  const generateUploadUrl = useMutation(api.downloadTokens.generateUploadUrl);
+  const createBook = useAdminMutation(api.books.create);
+  const updateBook = useAdminMutation(api.books.update);
+  const generateUploadUrl = useAdminMutation(api.downloadTokens.generateUploadUrl);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
 

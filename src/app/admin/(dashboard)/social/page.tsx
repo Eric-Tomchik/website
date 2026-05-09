@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery, useMutation } from 'convex/react';
+
 import { api } from '../../../../../convex/_generated/api';
 import type { Id } from '../../../../../convex/_generated/dataModel';
 import {
+import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
   PlusCircle,
   Send,
   Calendar,
@@ -64,9 +65,9 @@ export default function SocialMediaPage() {
   const [editingPost, setEditingPost] = useState<any>(null);
   const [showCampaignForm, setShowCampaignForm] = useState(false);
 
-  const posts = useQuery(api.socialPosts.list, statusFilter === 'all' ? {} : { status: statusFilter as PostStatus });
-  const postCounts = useQuery(api.socialPosts.counts);
-  const campaigns = useQuery(api.socialCampaigns.list, {});
+  const posts = useAdminQuery(api.socialPosts.list, statusFilter === 'all' ? {} : { status: statusFilter as PostStatus });
+  const postCounts = useAdminQuery(api.socialPosts.counts);
+  const campaigns = useAdminQuery(api.socialCampaigns.list, {});
 
   const tabs: { id: Tab; label: string; icon: any }[] = [
     { id: 'posts', label: 'All Posts', icon: FileText },
@@ -176,8 +177,8 @@ function PostsList({
   campaigns: any[];
   onEdit: (p: any) => void;
 }) {
-  const removePost = useMutation(api.socialPosts.remove);
-  const updatePost = useMutation(api.socialPosts.update);
+  const removePost = useAdminMutation(api.socialPosts.remove);
+  const updatePost = useAdminMutation(api.socialPosts.update);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -372,8 +373,8 @@ function PostComposer({
   editingPost: any;
   onDone: () => void;
 }) {
-  const createPost = useMutation(api.socialPosts.create);
-  const updatePost = useMutation(api.socialPosts.update);
+  const createPost = useAdminMutation(api.socialPosts.create);
+  const updatePost = useAdminMutation(api.socialPosts.update);
 
   const [title, setTitle] = useState(editingPost?.title ?? '');
   const [content, setContent] = useState(editingPost?.content ?? '');
@@ -852,9 +853,9 @@ function CampaignsView({
   showForm: boolean;
   setShowForm: (s: boolean) => void;
 }) {
-  const createCampaign = useMutation(api.socialCampaigns.create);
-  const updateCampaign = useMutation(api.socialCampaigns.update);
-  const removeCampaign = useMutation(api.socialCampaigns.remove);
+  const createCampaign = useAdminMutation(api.socialCampaigns.create);
+  const updateCampaign = useAdminMutation(api.socialCampaigns.update);
+  const removeCampaign = useAdminMutation(api.socialCampaigns.remove);
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');

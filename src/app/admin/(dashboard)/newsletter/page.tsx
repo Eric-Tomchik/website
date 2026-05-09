@@ -1,10 +1,10 @@
 'use client';
 
-import { useQuery, useMutation } from 'convex/react';
 import { useState } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import type { Id } from '../../../../../convex/_generated/dataModel';
 import {
+import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
   Mail,
   Search,
   Download,
@@ -19,11 +19,11 @@ import {
 type FilterType = 'all' | 'active' | 'inactive';
 
 export default function NewsletterPage() {
-  const subscribers = useQuery(api.newsletter.listAll) ?? [];
-  const stats = useQuery(api.newsletter.stats) ?? { total: 0, active: 0, inactive: 0, last30d: 0 };
-  const unsubscribe = useMutation(api.newsletter.unsubscribe);
-  const subscribe = useMutation(api.newsletter.subscribe);
-  const remove = useMutation(api.newsletter.remove);
+  const subscribers = useAdminQuery(api.newsletter.listAll) ?? [];
+  const stats = useAdminQuery(api.newsletter.stats) ?? { total: 0, active: 0, inactive: 0, last30d: 0 };
+  const unsubscribe = useAdminMutation(api.newsletter.unsubscribe);
+  const subscribe = useAdminMutation(api.newsletter.subscribe);
+  const remove = useAdminMutation(api.newsletter.remove);
 
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterType>('all');

@@ -1,10 +1,10 @@
 'use client';
 
-import { useQuery, useMutation } from 'convex/react';
 import { useState } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import type { Id } from '../../../../../convex/_generated/dataModel';
 import {
+import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
   FolderOpen,
   Image,
   FileText,
@@ -47,10 +47,10 @@ function formatFileSize(bytes: number): string {
 }
 
 export default function MediaLibraryPage() {
-  const files = useQuery(api.mediaFiles.list, {}) ?? [];
-  const stats = useQuery(api.mediaFiles.stats);
-  const remove = useMutation(api.mediaFiles.remove);
-  const update = useMutation(api.mediaFiles.update);
+  const files = useAdminQuery(api.mediaFiles.list, {}) ?? [];
+  const stats = useAdminQuery(api.mediaFiles.stats);
+  const remove = useAdminMutation(api.mediaFiles.remove);
+  const update = useAdminMutation(api.mediaFiles.update);
 
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<FileType>('all');

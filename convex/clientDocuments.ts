@@ -1,13 +1,16 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { assertAdmin, assertAdminOrPortal } from "./lib/auth";
 
 export const list = query({
-  args: {
-    clientId: v.optional(v.id("clients")),
+  args: { adminKey: v.optional(v.string()), clientId: v.optional(v.id("clients")),
     projectId: v.optional(v.id("projects")),
-    category: v.optional(v.string()),
-  },
+    category: v.optional(v.string()), },
   handler: async (ctx, args) => {
+    const auth = assertAdminOrPortal(args.adminKey, args.clientId);
+    if (!auth.isAdmin && !args.clientId) {
+      throw new Error("Unauthorized: portal users must provide clientId");
+    }
     if (args.clientId) {
       const docs = await ctx.db
         .query("client_documents")
@@ -54,8 +57,7 @@ export const getBySignatureToken = query({
 });
 
 export const create = mutation({
-  args: {
-    client_id: v.id("clients"),
+  args: { adminKey: v.string(), client_id: v.id("clients"),
     project_id: v.optional(v.id("projects")),
     name: v.string(),
     category: v.union(
@@ -84,16 +86,15 @@ export const create = mutation({
         v.literal("declined")
       )
     ),
-    signature_token: v.optional(v.string()),
-  },
+    signature_token: v.optional(v.string()), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     return await ctx.db.insert("client_documents", args);
   },
 });
 
 export const update = mutation({
-  args: {
-    id: v.id("client_documents"),
+  args: { adminKey: v.string(), id: v.id("client_documents"),
     name: v.optional(v.string()),
     category: v.optional(
       v.union(
@@ -122,10 +123,10 @@ export const update = mutation({
       )
     ),
     signature_token: v.optional(v.string()),
-    sent_for_signature_at: v.optional(v.number()),
-  },
+    sent_for_signature_at: v.optional(v.number()), },
   handler: async (ctx, args) => {
-    const { id, ...updates } = args;
+    assertAdmin(args.adminKey);
+    const { id, adminKey: _adminKey, ...updates } = args;
     const filtered: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(updates)) {
       if (value !== undefined) filtered[key] = value;
@@ -174,11 +175,10 @@ export const sign = mutation({
 });
 
 export const adminSign = mutation({
-  args: {
-    id: v.id("client_documents"),
-    signature_data: v.string(),
-  },
+  args: { adminKey: v.string(), id: v.id("client_documents"),
+    signature_data: v.string(), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const doc = await ctx.db.get(args.id);
     if (!doc) throw new Error("Document not found");
     await ctx.db.patch(args.id, {
@@ -190,11 +190,10 @@ export const adminSign = mutation({
 });
 
 export const saveSignedPdf = mutation({
-  args: {
-    id: v.id("client_documents"),
-    signed_storage_id: v.string(),
-  },
+  args: { adminKey: v.string(), id: v.id("client_documents"),
+    signed_storage_id: v.string(), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     await ctx.db.patch(args.id, {
       signed_storage_id: args.signed_storage_id,
     });
@@ -203,8 +202,9 @@ export const saveSignedPdf = mutation({
 });
 
 export const decline = mutation({
-  args: { token: v.string() },
+  args: { adminKey: v.string(), token: v.string() },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const doc = await ctx.db
       .query("client_documents")
       .withIndex("by_signature_token", (q) => q.eq("signature_token", args.token))
@@ -217,8 +217,9 @@ export const decline = mutation({
 });
 
 export const remove = mutation({
-  args: { id: v.id("client_documents") },
+  args: { adminKey: v.string(), id: v.id("client_documents") },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const doc = await ctx.db.get(args.id);
     // Clean up stored file
     if (doc?.storage_id) {

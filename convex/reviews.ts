@@ -1,8 +1,11 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { assertAdmin } from "./lib/auth";
 
 export const list = query({
-  handler: async (ctx) => {
+  args: { adminKey: v.string() },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     return await ctx.db.query("reviews").order("desc").collect();
   },
 });
@@ -28,7 +31,9 @@ export const listFeatured = query({
 });
 
 export const stats = query({
-  handler: async (ctx) => {
+  args: { adminKey: v.string() },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const reviews = await ctx.db.query("reviews").collect();
     const active = reviews.filter((r) => r.is_active);
     const avgRating =
@@ -53,8 +58,7 @@ export const stats = query({
 });
 
 export const create = mutation({
-  args: {
-    author_name: v.string(),
+  args: { adminKey: v.string(), author_name: v.string(),
     author_title: v.optional(v.string()),
     author_image_url: v.optional(v.string()),
     content: v.string(),
@@ -70,16 +74,15 @@ export const create = mutation({
     book_id: v.optional(v.string()),
     project_id: v.optional(v.string()),
     is_featured: v.boolean(),
-    is_active: v.boolean(),
-  },
+    is_active: v.boolean(), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     return await ctx.db.insert("reviews", args);
   },
 });
 
 export const update = mutation({
-  args: {
-    id: v.id("reviews"),
+  args: { adminKey: v.string(), id: v.id("reviews"),
     author_name: v.optional(v.string()),
     author_title: v.optional(v.string()),
     author_image_url: v.optional(v.string()),
@@ -98,17 +101,18 @@ export const update = mutation({
     book_id: v.optional(v.string()),
     project_id: v.optional(v.string()),
     is_featured: v.optional(v.boolean()),
-    is_active: v.optional(v.boolean()),
-  },
+    is_active: v.optional(v.boolean()), },
   handler: async (ctx, args) => {
-    const { id, ...updates } = args;
+    assertAdmin(args.adminKey);
+    const { id, adminKey: _adminKey, ...updates } = args;
     return await ctx.db.patch(id, updates);
   },
 });
 
 export const remove = mutation({
-  args: { id: v.id("reviews") },
+  args: { adminKey: v.string(), id: v.id("reviews") },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     await ctx.db.delete(args.id);
   },
 });

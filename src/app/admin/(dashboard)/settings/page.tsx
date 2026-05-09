@@ -1,6 +1,5 @@
 'use client';
 
-import { useQuery, useMutation } from 'convex/react';
 import { useState, useEffect } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import {
@@ -15,6 +14,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { TwoFactorSetup } from '@/components/admin/TwoFactorSetup';
+import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
 
 interface SettingGroup {
   id: string;
@@ -101,8 +101,8 @@ const SETTING_GROUPS: SettingGroup[] = [
 ];
 
 export default function SettingsPage() {
-  const allSettings = useQuery(api.siteSettings.getAll) as Record<string, unknown> | undefined;
-  const setMany = useMutation(api.siteSettings.setMany);
+  const allSettings = useAdminQuery(api.siteSettings.getAll) as Record<string, unknown> | undefined;
+  const setMany = useAdminMutation(api.siteSettings.setMany);
 
   const [values, setValues] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);

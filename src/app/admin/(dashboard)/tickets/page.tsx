@@ -1,6 +1,5 @@
 'use client';
 
-import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../../../convex/_generated/api';
 import { useState, useRef, useEffect } from 'react';
 import {
@@ -19,6 +18,7 @@ import {
   User,
 } from 'lucide-react';
 import { Id } from '../../../../../convex/_generated/dataModel';
+import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
 
 const categoryLabels: Record<string, string> = {
   bug: 'Bug', feature_request: 'Feature', support: 'Support', billing: 'Billing', general: 'General',
@@ -33,12 +33,12 @@ const statusBadge: Record<string, string> = {
 };
 
 function TicketDetail({ ticketId, onBack }: { ticketId: Id<'tickets'>; onBack: () => void }) {
-  const ticket = useQuery(api.tickets.get, { id: ticketId });
-  const messages = useQuery(api.tickets.getMessages, { ticketId }) ?? [];
-  const client = useQuery(api.clients.get, ticket ? { id: ticket.client_id } : 'skip');
-  const addMessage = useMutation(api.tickets.addMessage);
-  const updateStatus = useMutation(api.tickets.updateStatus);
-  const updatePriority = useMutation(api.tickets.updatePriority);
+  const ticket = useAdminQuery(api.tickets.get, { id: ticketId });
+  const messages = useAdminQuery(api.tickets.getMessages, { ticketId }) ?? [];
+  const client = useAdminQuery(api.clients.get, ticket ? { id: ticket.client_id } : 'skip');
+  const addMessage = useAdminMutation(api.tickets.addMessage);
+  const updateStatus = useAdminMutation(api.tickets.updateStatus);
+  const updatePriority = useAdminMutation(api.tickets.updatePriority);
   const [newMsg, setNewMsg] = useState('');
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -143,9 +143,9 @@ function TicketDetail({ ticketId, onBack }: { ticketId: Id<'tickets'>; onBack: (
 }
 
 export default function AdminTicketsPage() {
-  const tickets = useQuery(api.tickets.list, {}) ?? [];
-  const clients = useQuery(api.clients.list, {}) ?? [];
-  const counts = useQuery(api.tickets.counts, {});
+  const tickets = useAdminQuery(api.tickets.list, {}) ?? [];
+  const clients = useAdminQuery(api.clients.list, {}) ?? [];
+  const counts = useAdminQuery(api.tickets.counts, {});
   const [selectedId, setSelectedId] = useState<Id<'tickets'> | null>(null);
   const [statusFilter, setStatusFilter] = useState('open');
 

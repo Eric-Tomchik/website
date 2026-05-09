@@ -1,10 +1,10 @@
 'use client';
 
-import { useQuery, useMutation } from 'convex/react';
 import { useState } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import { ShoppingCart, Package, Download, ChevronDown, ChevronUp } from 'lucide-react';
 import type { Id } from '../../../../../convex/_generated/dataModel';
+import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
 
 const statusColors: Record<string, string> = {
   paid: 'bg-green-500/10 text-green-400',
@@ -14,8 +14,8 @@ const statusColors: Record<string, string> = {
 };
 
 export default function AdminOrdersPage() {
-  const orders = useQuery(api.orders.list) ?? [];
-  const updateStatus = useMutation(api.orders.updateStatus);
+  const orders = useAdminQuery(api.orders.list) ?? [];
+  const updateStatus = useAdminMutation(api.orders.updateStatus);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const totalRevenue = orders

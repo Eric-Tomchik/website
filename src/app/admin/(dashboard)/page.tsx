@@ -1,6 +1,5 @@
 'use client';
 
-import { useQuery } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
 import {
   BookOpen,
@@ -15,6 +14,7 @@ import {
   ArrowDownRight,
 } from 'lucide-react';
 import { useMemo } from 'react';
+import { useAdminQuery } from '@/hooks/useAdminAuth';
 
 function formatCurrency(cents: number) {
   return `$${(cents / 100).toFixed(2)}`;
@@ -25,9 +25,9 @@ function getDaysAgo(days: number) {
 }
 
 export default function AdminDashboard() {
-  const books = useQuery(api.books.list, {});
-  const orders = useQuery(api.orders.list);
-  const unreadMessages = useQuery(api.contacts.unreadCount);
+  const books = useAdminQuery(api.books.list, {});
+  const orders = useAdminQuery(api.orders.list);
+  const unreadMessages = useAdminQuery(api.contacts.unreadCount);
 
   const analytics = useMemo(() => {
     if (!orders) return null;

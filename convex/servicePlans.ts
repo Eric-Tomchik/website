@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { assertAdmin } from "./lib/auth";
 
 export const listActive = query({
   args: {},
@@ -14,8 +15,9 @@ export const listActive = query({
 });
 
 export const listAll = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { adminKey: v.string() },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     const plans = await ctx.db.query("service_plans").collect();
     plans.sort((a, b) => a.sort_order - b.sort_order);
     return plans;
@@ -33,8 +35,7 @@ export const getBySlug = query({
 });
 
 export const create = mutation({
-  args: {
-    name: v.string(),
+  args: { adminKey: v.string(), name: v.string(),
     slug: v.string(),
     description: v.string(),
     features: v.array(v.string()),
@@ -47,16 +48,15 @@ export const create = mutation({
     ),
     is_popular: v.boolean(),
     is_active: v.boolean(),
-    sort_order: v.number(),
-  },
+    sort_order: v.number(), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     return await ctx.db.insert("service_plans", args);
   },
 });
 
 export const update = mutation({
-  args: {
-    id: v.id("service_plans"),
+  args: { adminKey: v.string(), id: v.id("service_plans"),
     name: v.optional(v.string()),
     slug: v.optional(v.string()),
     description: v.optional(v.string()),
@@ -72,10 +72,10 @@ export const update = mutation({
     ),
     is_popular: v.optional(v.boolean()),
     is_active: v.optional(v.boolean()),
-    sort_order: v.optional(v.number()),
-  },
+    sort_order: v.optional(v.number()), },
   handler: async (ctx, args) => {
-    const { id, ...updates } = args;
+    assertAdmin(args.adminKey);
+    const { id, adminKey: _adminKey, ...updates } = args;
     const existing = await ctx.db.get(id);
     if (!existing) throw new Error("Service plan not found");
     return await ctx.db.patch(id, updates);
@@ -83,8 +83,9 @@ export const update = mutation({
 });
 
 export const remove = mutation({
-  args: { id: v.id("service_plans") },
+  args: { adminKey: v.string(), id: v.id("service_plans") },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     await ctx.db.delete(args.id);
   },
 });

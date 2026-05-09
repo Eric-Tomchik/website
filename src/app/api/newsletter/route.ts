@@ -86,6 +86,7 @@ export async function POST(req: Request) {
               // Log to audit trail
               try {
                 await convex.mutation(api.auditLog.create, {
+                  adminKey: process.env.CONVEX_AUTH_SECRET!,
                   action: 'welcome_email_sent',
                   actor: 'system',
                   entity_type: 'newsletter_subscriber',

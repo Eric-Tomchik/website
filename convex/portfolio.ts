@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { assertAdmin } from "./lib/auth";
 
 export const list = query({
   args: {
@@ -21,8 +22,7 @@ export const list = query({
 });
 
 export const create = mutation({
-  args: {
-    title: v.string(),
+  args: { adminKey: v.string(), title: v.string(),
     slug: v.string(),
     description: v.string(),
     long_description: v.optional(v.string()),
@@ -34,16 +34,15 @@ export const create = mutation({
     category: v.string(),
     is_featured: v.boolean(),
     is_active: v.boolean(),
-    sort_order: v.number(),
-  },
+    sort_order: v.number(), },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     return await ctx.db.insert("portfolio_projects", args);
   },
 });
 
 export const update = mutation({
-  args: {
-    id: v.id("portfolio_projects"),
+  args: { adminKey: v.string(), id: v.id("portfolio_projects"),
     title: v.optional(v.string()),
     slug: v.optional(v.string()),
     description: v.optional(v.string()),
@@ -56,10 +55,10 @@ export const update = mutation({
     category: v.optional(v.string()),
     is_featured: v.optional(v.boolean()),
     is_active: v.optional(v.boolean()),
-    sort_order: v.optional(v.number()),
-  },
+    sort_order: v.optional(v.number()), },
   handler: async (ctx, args) => {
-    const { id, ...updates } = args;
+    assertAdmin(args.adminKey);
+    const { id, adminKey: _adminKey, ...updates } = args;
     const filtered: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(updates)) {
       if (value !== undefined) filtered[key] = value;
@@ -69,8 +68,9 @@ export const update = mutation({
 });
 
 export const remove = mutation({
-  args: { id: v.id("portfolio_projects") },
+  args: { adminKey: v.string(), id: v.id("portfolio_projects") },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     await ctx.db.delete(args.id);
   },
 });

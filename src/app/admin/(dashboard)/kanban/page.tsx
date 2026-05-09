@@ -1,10 +1,10 @@
 'use client';
 
-import { useQuery, useMutation } from 'convex/react';
 import { useMemo, useState } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import type { Id } from '../../../../../convex/_generated/dataModel';
 import {
+import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
   Columns3,
   User,
   Calendar,
@@ -23,9 +23,9 @@ const COLUMNS: { status: ProjectStatus; label: string; color: string; bg: string
 ];
 
 export default function KanbanPage() {
-  const projects = useQuery(api.projects.list, {}) ?? [];
-  const clients = useQuery(api.clients.list, {}) ?? [];
-  const updateProject = useMutation(api.projects.update);
+  const projects = useAdminQuery(api.projects.list, {}) ?? [];
+  const clients = useAdminQuery(api.clients.list, {}) ?? [];
+  const updateProject = useAdminMutation(api.projects.update);
 
   const [dragging, setDragging] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState<string | null>(null);

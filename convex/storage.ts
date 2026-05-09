@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { assertAdmin } from "./lib/auth";
 
 /**
  * Generate a short-lived upload URL for the client to upload a file directly
@@ -27,8 +28,9 @@ export const getUrl = query({
  * Delete a file from storage.
  */
 export const deleteFile = mutation({
-  args: { storageId: v.id("_storage") },
+  args: { adminKey: v.string(), storageId: v.id("_storage") },
   handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
     await ctx.storage.delete(args.storageId);
   },
 });
