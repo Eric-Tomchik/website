@@ -58,10 +58,23 @@ export const create = mutation({
         country: v.optional(v.string()),
       })
     ),
+    discount_code: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     assertAdmin(args.adminKey);
-    return await ctx.db.insert("orders", args);
+    const { adminKey: _ak, ...orderData } = args;
+    return await ctx.db.insert("orders", orderData);
+  },
+});
+
+export const listByDiscountCode = query({
+  args: { adminKey: v.string(), discount_code: v.string() },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
+    const orders = await ctx.db.query("orders").collect();
+    return orders
+      .filter((o) => o.discount_code === args.discount_code)
+      .sort((a, b) => b._creationTime - a._creationTime);
   },
 });
 

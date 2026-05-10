@@ -90,6 +90,7 @@ export default defineSchema({
       })
     ),
     tracking_number: v.optional(v.string()),
+    discount_code: v.optional(v.string()),
   })
     .index("by_stripe_session", ["stripe_session_id"])
     .index("by_stripe_payment_intent", ["stripe_payment_intent_id"])
