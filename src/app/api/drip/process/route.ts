@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getConvexClient } from '@/lib/convex';
-import { api } from '../../../../../convex/_generated/api';
+import { convexQuery, convexMutation } from '@/lib/convexRaw';
 
 /**
  * POST /api/drip/process
@@ -25,31 +24,30 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'RESEND_API_KEY not configured' }, { status: 500 });
   }
 
-  const convex = getConvexClient();
   const now = Date.now();
 
   try {
     // 1. Get all due enrollments
-    const due = await convex.query(api.dripSequences.getDueEnrollments, {
+    const due: any[] = await convexQuery('dripSequences:getDueEnrollments', {
       adminKey: authSecret,
       now,
     });
 
-    if (due.length === 0) {
+    if (!due || due.length === 0) {
       return NextResponse.json({ processed: 0, sent: 0, errors: 0 });
     }
 
     // 2. Pre-fetch all needed sequences + steps
     const seqIds = [...new Set(due.map((e) => e.sequence_id))];
-    const stepsMap = new Map<string, Awaited<ReturnType<typeof convex.query>>>();
+    const stepsMap = new Map<string, any[]>();
 
     await Promise.all(
       seqIds.map(async (sid) => {
-        const steps = await convex.query(api.dripSequences.getSteps, {
+        const steps = await convexQuery('dripSequences:getSteps', {
           adminKey: authSecret,
           sequenceId: sid,
         });
-        stepsMap.set(sid, steps);
+        stepsMap.set(sid, steps ?? []);
       }),
     );
 
@@ -59,14 +57,7 @@ export async function POST(req: NextRequest) {
 
     // 3. Process each enrollment
     for (const enrollment of due) {
-      const steps = stepsMap.get(enrollment.sequence_id) as Array<{
-        _id: string;
-        step_order: number;
-        subject: string;
-        preview_text?: string;
-        content: string;
-        delay_hours: number;
-      }> | undefined;
+      const steps = stepsMap.get(enrollment.sequence_id);
 
       if (!steps || steps.length === 0) {
         errors++;
@@ -74,10 +65,10 @@ export async function POST(req: NextRequest) {
         continue;
       }
 
-      const currentStep = steps.find((s) => s.step_order === enrollment.current_step);
+      const currentStep = steps.find((s: any) => s.step_order === enrollment.current_step);
       if (!currentStep) {
         // No more steps — mark complete
-        await convex.mutation(api.dripSequences.advanceEnrollment, {
+        await convexMutation('dripSequences:advanceEnrollment', {
           adminKey: authSecret,
           enrollmentId: enrollment._id,
         });
@@ -112,8 +103,8 @@ export async function POST(req: NextRequest) {
         sent++;
 
         // Advance to next step or complete
-        const nextStep = steps.find((s) => s.step_order === enrollment.current_step + 1);
-        await convex.mutation(api.dripSequences.advanceEnrollment, {
+        const nextStep = steps.find((s: any) => s.step_order === enrollment.current_step + 1);
+        await convexMutation('dripSequences:advanceEnrollment', {
           adminKey: authSecret,
           enrollmentId: enrollment._id,
           nextStepDelayHours: nextStep ? nextStep.delay_hours : undefined,
@@ -126,7 +117,7 @@ export async function POST(req: NextRequest) {
 
     // Audit log
     try {
-      await convex.mutation(api.auditLog.create, {
+      await convexMutation('auditLog:create', {
         adminKey: authSecret,
         action: 'drip_process',
         actor: 'system',

@@ -103,9 +103,13 @@ export async function POST(req: Request) {
       }
     }
 
-    // Auto-enroll into drip sequences (non-blocking)
+    // Auto-enroll into drip sequences (non-blocking, raw HTTP to avoid type deps)
     if (!result.alreadySubscribed) {
-      convex.mutation(api.dripSequences.autoEnroll, { email }).catch((err) => {
+      fetch(`${process.env.NEXT_PUBLIC_CONVEX_URL}/api/mutation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: 'dripSequences:autoEnroll', args: { email } }),
+      }).catch((err) => {
         console.error('Drip auto-enroll error:', err);
       });
     }
