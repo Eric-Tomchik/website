@@ -103,8 +103,8 @@ export default async function AboutPage() {
       />
       <div className="section-container">
         <div className="grid lg:grid-cols-2 gap-16 items-start">
-          {/* Image & Certifications — sticky on desktop */}
-          <div className="flex flex-col items-center lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto gap-8">
+          {/* Image & Certifications */}
+          <div className="flex flex-col items-center gap-8">
             <div className="relative w-full max-w-md">
               <div className="absolute -inset-1 bg-gradient-to-r from-brand-500 to-brand-700 rounded-2xl blur-lg opacity-30" />
               <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden border-2 border-surface-800">
