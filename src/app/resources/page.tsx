@@ -6,6 +6,7 @@ import CreditScoreContent from './_components/CreditScoreContent';
 import AIGuideContent from './_components/AIGuideContent';
 import CybersecurityContent from './_components/CybersecurityContent';
 import POSGuideContent from './_components/POSGuideContent';
+import { LeadMagnet } from '@/components/ui/LeadMagnet';
 
 export const metadata: Metadata = {
   title: 'Book Resources — Eric Tomchik',
@@ -50,6 +51,42 @@ export default function ResourcesPage() {
           <CybersecurityContent />
           <POSGuideContent />
         </ResourcesTabs>
+
+        {/* Free Downloads — Lead Magnets */}
+        <section className="space-y-6">
+          <h2 className="text-2xl font-bold text-white">
+            Free <span className="gradient-text">Downloads</span>
+          </h2>
+          <p className="text-surface-400 max-w-2xl">
+            Grab these free reference guides — condensed checklists and cheat sheets from the full books.
+          </p>
+          <div className="grid md:grid-cols-2 gap-6">
+            <LeadMagnet
+              title="Business Credit Starter Checklist"
+              description="A step-by-step checklist to start building business credit with just an EIN — no personal guarantee required."
+              downloadUrl="/downloads/business-credit-checklist.pdf"
+              fileName="business-credit-checklist.pdf"
+              previewItems={[
+                'EIN setup & DUNS number registration',
+                'First 5 net-30 vendor accounts to open',
+                'Business credit monitoring services',
+                'Timeline: 0–90 day action plan',
+              ]}
+            />
+            <LeadMagnet
+              title="Cybersecurity Quick-Reference Guide"
+              description="Essential cybersecurity practices for small businesses — password policies, 2FA setup, and common attack prevention."
+              downloadUrl="/downloads/cybersecurity-quick-reference.pdf"
+              fileName="cybersecurity-quick-reference.pdf"
+              previewItems={[
+                'Password manager comparison chart',
+                'Phishing red flags checklist',
+                'Wi-Fi security audit steps',
+                'Incident response template',
+              ]}
+            />
+          </div>
+        </section>
 
         {/* Bottom CTA */}
         <section className="text-center space-y-6 pt-4">
