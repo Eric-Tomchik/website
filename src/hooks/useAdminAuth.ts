@@ -9,7 +9,34 @@ import type { FunctionReference, FunctionArgs, FunctionReturnType } from "convex
 
 /**
  * Read the admin auth key from the `admin_ck` cookie.
- * This cookie is set (non-httpOnly) on successful admin login.
+ *
+ * ── SECURITY: Why admin_ck is intentionally non-httpOnly ──────────────────
+ *
+ * The `admin_ck` cookie stores CONVEX_AUTH_SECRET and is set with
+ * `httpOnly: false` so that client-side JavaScript can read it. This is
+ * required because the Convex React SDK (useQuery / useMutation) runs
+ * entirely in the browser and needs the auth key to authenticate every
+ * real-time query and mutation over its WebSocket connection.
+ *
+ * Making this cookie httpOnly would require:
+ *  1. A server-side proxy route (e.g. /api/convex) that reads the key from
+ *     the httpOnly cookie and forwards queries/mutations to Convex.
+ *  2. Replacing useAdminQuery/useAdminMutation to call the proxy via fetch
+ *     instead of the Convex client SDK.
+ *  3. Giving up Convex's real-time WebSocket subscriptions on admin pages
+ *     (everything becomes request/response through the proxy).
+ *
+ * Mitigations in place:
+ *  • Strict Content-Security-Policy with per-request nonces (no 'unsafe-inline',
+ *    no 'unsafe-eval') — blocks injected scripts from executing.
+ *  • Third-party scripts (GA, Meta Pixel) loaded with crossOrigin="anonymous"
+ *    and restricted to specific domains in script-src.
+ *  • The cookie is Secure + SameSite=Lax, limiting network exposure.
+ *  • Admin routes are behind TOTP 2FA + rate limiting.
+ *  • The admin_session cookie (which gates route access) IS httpOnly.
+ *
+ * If real-time admin updates are ever dropped, refactor to httpOnly + proxy.
+ * ──────────────────────────────────────────────────────────────────────────
  */
 function getAdminKey(): string {
   if (typeof document === "undefined") return "";
