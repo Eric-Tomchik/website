@@ -245,13 +245,13 @@ export default function ServicesAdminPage() {
 
       {/* Edit / Create Modal */}
       {editing !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-surface-900 border border-surface-700 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" role="presentation">
+          <div className="bg-surface-900 border border-surface-700 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6" role="dialog" aria-modal="true" aria-label={editing === 'new' ? 'New service plan' : 'Edit service plan'}>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-white">
                 {editing === 'new' ? 'New Service Plan' : 'Edit Plan'}
               </h2>
-              <button onClick={() => setEditing(null)} className="p-2 rounded-lg text-surface-400 hover:text-white hover:bg-surface-700/50">
+              <button onClick={() => setEditing(null)} className="p-2 rounded-lg text-surface-400 hover:text-white hover:bg-surface-700/50" aria-label="Close">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -412,8 +412,8 @@ export default function ServicesAdminPage() {
 
       {/* Delete confirmation */}
       {deleting && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-surface-900 border border-surface-700 rounded-2xl p-6 max-w-md w-full">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" role="presentation">
+          <div className="bg-surface-900 border border-surface-700 rounded-2xl p-6 max-w-md w-full" role="alertdialog" aria-modal="true" aria-label="Confirm deletion">
             <h3 className="text-lg font-bold text-white mb-2">Delete Plan?</h3>
             <p className="text-surface-400 text-sm mb-6">
               This will permanently remove the service plan. This action cannot be undone.

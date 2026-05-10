@@ -177,11 +177,11 @@ export default function MediaLibraryPage() {
 
       {/* Edit Modal */}
       {editingId && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setEditingId(null)}>
-          <div className="card p-6 w-full max-w-md space-y-4" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setEditingId(null)} role="presentation">
+          <div className="card p-6 w-full max-w-md space-y-4" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Edit file">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-white">Edit File</h2>
-              <button onClick={() => setEditingId(null)} className="text-surface-400 hover:text-white">
+              <button onClick={() => setEditingId(null)} className="text-surface-400 hover:text-white" aria-label="Close">
                 <X className="w-5 h-5" />
               </button>
             </div>

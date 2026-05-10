@@ -223,7 +223,7 @@ function ContactContent() {
                 </button>
 
                 {status === 'error' && (
-                  <p className="text-red-400 text-sm text-center">
+                  <p className="text-red-400 text-sm text-center" role="alert">
                     Something went wrong. Please try again or email directly.
                   </p>
                 )}
