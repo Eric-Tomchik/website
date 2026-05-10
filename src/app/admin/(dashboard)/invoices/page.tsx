@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import type { Id } from '../../../../../convex/_generated/dataModel';
 import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
+import { useClientNotify } from '@/hooks/useClientNotify';
 import {
   Receipt,
   Plus,
@@ -17,6 +18,8 @@ import {
   Save,
   DollarSign,
   Search,
+  Mail,
+  Loader2,
 } from 'lucide-react';
 
 interface InvoiceItem {
@@ -44,10 +47,13 @@ export default function InvoicesPage() {
   const create = useAdminMutation(api.invoices.create);
   const update = useAdminMutation(api.invoices.update);
   const remove = useAdminMutation(api.invoices.remove);
+  const notify = useClientNotify();
 
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<Id<'invoices'> | null>(null);
+  const [sendingNotify, setSendingNotify] = useState<string | null>(null);
+  const [notifyFeedback, setNotifyFeedback] = useState<{ id: string; ok: boolean; msg: string } | null>(null);
 
   const [form, setForm] = useState({
     invoice_number: '',
@@ -144,6 +150,40 @@ export default function InvoicesPage() {
     const client = clients.find((c) => c._id === clientId);
     if (client) {
       setForm({ ...form, client_id: clientId, customer_name: client.name, customer_email: client.email });
+    }
+  };
+
+  const handleSendAndNotify = async (inv: (typeof invoices)[0]) => {
+    setSendingNotify(inv._id);
+    setNotifyFeedback(null);
+    try {
+      // Mark as sent if still draft
+      if (inv.status === 'draft') {
+        await update({ id: inv._id, status: 'sent' });
+      }
+      // Send email notification
+      const result = await notify({
+        type: 'invoice_sent',
+        recipientEmail: inv.customer_email,
+        recipientName: inv.customer_name,
+        data: {
+          invoiceNumber: inv.invoice_number,
+          totalFormatted: (inv.total_cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2 }),
+          dueDate: inv.due_date,
+          items: inv.items,
+          portalUrl: 'https://erictomchik.com/portal',
+        },
+      });
+      setNotifyFeedback({
+        id: inv._id,
+        ok: result.success,
+        msg: result.success ? `Email sent to ${inv.customer_email}` : (result.error || 'Failed to send'),
+      });
+    } catch {
+      setNotifyFeedback({ id: inv._id, ok: false, msg: 'Failed to send notification' });
+    } finally {
+      setSendingNotify(null);
+      setTimeout(() => setNotifyFeedback(null), 5000);
     }
   };
 
@@ -385,11 +425,30 @@ export default function InvoicesPage() {
                   <td className="py-3 px-4 text-surface-300 text-xs">{inv.due_date || '—'}</td>
                   <td className="py-3 px-4">
                     <div className="flex justify-end gap-1">
+                      {notifyFeedback?.id === inv._id && (
+                        <span className={`text-xs px-2 py-1 rounded-full ${notifyFeedback.ok ? 'text-green-400 bg-green-500/10' : 'text-red-400 bg-red-500/10'}`}>
+                          {notifyFeedback.msg}
+                        </span>
+                      )}
+                      {inv.status === 'draft' && (
+                        <button
+                          onClick={() => handleSendAndNotify(inv)}
+                          disabled={sendingNotify === inv._id}
+                          className="p-1.5 text-surface-400 hover:text-blue-400 disabled:opacity-50 flex items-center gap-1"
+                          title="Send & Email Client"
+                        >
+                          {sendingNotify === inv._id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Mail className="w-4 h-4" />
+                          )}
+                        </button>
+                      )}
                       {inv.status === 'draft' && (
                         <button
                           onClick={() => update({ id: inv._id, status: 'sent' })}
                           className="p-1.5 text-surface-400 hover:text-blue-400"
-                          title="Mark Sent"
+                          title="Mark Sent (no email)"
                         >
                           <Send className="w-4 h-4" />
                         </button>
