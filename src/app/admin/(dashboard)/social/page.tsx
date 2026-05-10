@@ -29,7 +29,16 @@ import {
   MessageCircle,
   Share2,
   MousePointer,
+  RefreshCw,
+  Rocket,
+  AlertCircle,
+  Loader2,
 } from 'lucide-react';
+
+function getAdminKey(): string {
+  const match = document.cookie.match(/admin_ck=([^;]+)/);
+  return match?.[1] ?? '';
+}
 
 // Platform icons & colors
 const PLATFORMS = {
@@ -64,10 +73,35 @@ export default function SocialMediaPage() {
   const [statusFilter, setStatusFilter] = useState<PostStatus | 'all'>('all');
   const [editingPost, setEditingPost] = useState<any>(null);
   const [showCampaignForm, setShowCampaignForm] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [processResult, setProcessResult] = useState('');
 
   const posts = useAdminQuery(api.socialPosts.list, statusFilter === 'all' ? {} : { status: statusFilter as PostStatus });
   const postCounts = useAdminQuery(api.socialPosts.counts, {});
   const campaigns = useAdminQuery(api.socialCampaigns.list, {});
+
+  const runProcess = async () => {
+    setProcessing(true);
+    setProcessResult('');
+    try {
+      const res = await fetch('/api/social/process', {
+        method: 'POST',
+        headers: { 'x-cron-secret': getAdminKey() },
+      });
+      const data = await res.json();
+      if (data.error) {
+        setProcessResult(`Error: ${data.error}`);
+      } else if (data.processed === 0) {
+        setProcessResult('No scheduled posts are due yet');
+      } else {
+        setProcessResult(`Published ${data.published} of ${data.processed} due posts${data.failed ? `, ${data.failed} failed` : ''}`);
+      }
+    } catch (err) {
+      setProcessResult(`Failed: ${String(err)}`);
+    }
+    setProcessing(false);
+    setTimeout(() => setProcessResult(''), 6000);
+  };
 
   const tabs: { id: Tab; label: string; icon: any }[] = [
     { id: 'posts', label: 'All Posts', icon: FileText },
@@ -86,22 +120,33 @@ export default function SocialMediaPage() {
             Create, schedule, and manage posts across all platforms
           </p>
         </div>
-        {postCounts && (
-          <div className="flex gap-3">
-            <div className="card px-4 py-2 text-center">
-              <div className="text-xl font-bold text-white">{postCounts.draft}</div>
-              <div className="text-xs text-surface-400">Drafts</div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={runProcess}
+            disabled={processing}
+            className="px-3 py-2 text-sm bg-surface-800 text-surface-300 rounded-lg hover:text-white hover:bg-surface-700 transition-colors flex items-center gap-1.5 border border-surface-700"
+            title="Publish all due scheduled posts now"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${processing ? 'animate-spin' : ''}`} />
+            Process Scheduled
+          </button>
+          {postCounts && (
+            <div className="flex gap-3">
+              <div className="card px-4 py-2 text-center">
+                <div className="text-xl font-bold text-white">{postCounts.draft}</div>
+                <div className="text-xs text-surface-400">Drafts</div>
+              </div>
+              <div className="card px-4 py-2 text-center">
+                <div className="text-xl font-bold text-blue-400">{postCounts.scheduled}</div>
+                <div className="text-xs text-surface-400">Scheduled</div>
+              </div>
+              <div className="card px-4 py-2 text-center">
+                <div className="text-xl font-bold text-green-400">{postCounts.published}</div>
+                <div className="text-xs text-surface-400">Published</div>
+              </div>
             </div>
-            <div className="card px-4 py-2 text-center">
-              <div className="text-xl font-bold text-blue-400">{postCounts.scheduled}</div>
-              <div className="text-xs text-surface-400">Scheduled</div>
-            </div>
-            <div className="card px-4 py-2 text-center">
-              <div className="text-xl font-bold text-green-400">{postCounts.published}</div>
-              <div className="text-xs text-surface-400">Published</div>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Tab Nav */}
@@ -124,6 +169,13 @@ export default function SocialMediaPage() {
           </button>
         ))}
       </div>
+
+      {/* Process result toast */}
+      {processResult && (
+        <div className={`text-xs px-3 py-2 rounded-lg ${processResult.startsWith('Error') || processResult.startsWith('Failed') ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400'}`}>
+          {processResult}
+        </div>
+      )}
 
       {/* Tab Content */}
       {tab === 'posts' && (
@@ -177,6 +229,41 @@ function PostsList({
   campaigns: any[];
   onEdit: (p: any) => void;
 }) {
+  const [publishingId, setPublishingId] = useState<string | null>(null);
+  const [publishFeedback, setPublishFeedback] = useState<Record<string, { ok: boolean; msg: string }>>({});
+
+  const publishNow = async (postId: string) => {
+    setPublishingId(postId);
+    try {
+      const res = await fetch('/api/social/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setPublishFeedback((prev) => ({ ...prev, [postId]: { ok: false, msg: data.error } }));
+      } else {
+        const platformSummary = Object.entries(data.platforms || {})
+          .map(([p, r]: [string, any]) => `${p}: ${r.success ? '✓' : '✗'}`)
+          .join(', ');
+        setPublishFeedback((prev) => ({
+          ...prev,
+          [postId]: { ok: data.success, msg: platformSummary },
+        }));
+      }
+    } catch (err) {
+      setPublishFeedback((prev) => ({ ...prev, [postId]: { ok: false, msg: String(err) } }));
+    }
+    setPublishingId(null);
+    setTimeout(() => {
+      setPublishFeedback((prev) => {
+        const next = { ...prev };
+        delete next[postId];
+        return next;
+      });
+    }, 6000);
+  };
   const removePost = useAdminMutation(api.socialPosts.remove);
   const updatePost = useAdminMutation(api.socialPosts.update);
 
@@ -271,11 +358,16 @@ function PostsList({
                       </button>
                       {post.status !== 'published' && (
                         <button
-                          onClick={() => updatePost({ id: post._id, status: 'published' })}
-                          className="p-1.5 rounded hover:bg-green-900/40 text-surface-400 hover:text-green-400 transition-colors"
-                          title="Mark as published"
+                          onClick={() => publishNow(post._id)}
+                          disabled={publishingId === post._id}
+                          className="p-1.5 rounded hover:bg-green-900/40 text-surface-400 hover:text-green-400 transition-colors disabled:opacity-50"
+                          title="Publish to platforms now"
                         >
-                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          {publishingId === post._id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Rocket className="w-3.5 h-3.5" />
+                          )}
                         </button>
                       )}
                       <button
@@ -349,7 +441,34 @@ function PostsList({
                         )}
                       </div>
                     )}
+
+                    {/* Platform links for published posts */}
+                    {post.platform_links && Object.entries(post.platform_links).some(([, v]) => v) && (
+                      <div className="flex items-center gap-2">
+                        {Object.entries(post.platform_links)
+                          .filter(([, url]) => url)
+                          .map(([platform, url]) => (
+                            <a
+                              key={platform}
+                              href={url as string}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 text-[11px] text-brand-400 hover:text-brand-300"
+                            >
+                              <ExternalLink className="w-2.5 h-2.5" />
+                              {platform}
+                            </a>
+                          ))}
+                      </div>
+                    )}
                   </div>
+
+                  {/* Publish feedback */}
+                  {publishFeedback[post._id] && (
+                    <div className={`mt-2 text-xs px-2 py-1 rounded ${publishFeedback[post._id].ok ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+                      {publishFeedback[post._id].msg}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
