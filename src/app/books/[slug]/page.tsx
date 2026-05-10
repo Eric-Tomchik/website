@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { fetchQuery } from 'convex/nextjs';
 import { api } from '../../../../convex/_generated/api';
 import { BookOpen, ArrowLeft, ShoppingCart, ExternalLink } from 'lucide-react';
+import { escapeHtml } from '@/lib/sanitize';
 import { PriceButtons } from './PriceButtons';
 import { formatPrice, hasHardback, hasPaperback, hasDigital } from '@/lib/utils';
 import { BookDetailActions } from './BookDetailActions';
@@ -197,7 +198,7 @@ export default async function BookDetailPage({ params }: Props) {
                   __html: (book.long_description || book.description)
                     .split('\n')
                     .filter((p: string) => p.trim())
-                    .map((paragraph: string) => `<p>${paragraph}</p>`)
+                    .map((paragraph: string) => `<p>${escapeHtml(paragraph)}</p>`)
                     .join(''),
                 }}
               />
