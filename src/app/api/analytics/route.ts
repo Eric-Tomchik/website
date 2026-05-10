@@ -210,7 +210,7 @@ async function fetchRealtimeFromGA4(token: string) {
 }
 
 async function fetchHistoricalFromGA4(token: string, days: number) {
-  const [mainRes, pagesRes, sourcesRes, eventsRes] = await Promise.all([
+  const [mainRes, pagesRes, sourcesRes, eventsRes, comparisonRes] = await Promise.all([
     fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${GA4_PROPERTY}:runReport`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -257,21 +257,37 @@ async function fetchHistoricalFromGA4(token: string, days: number) {
         limit: 20,
       }),
     }),
+    // Previous period comparison (same length, offset by days)
+    fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${GA4_PROPERTY}:runReport`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        dateRanges: [{ startDate: `${days * 2}daysAgo`, endDate: `${days + 1}daysAgo` }],
+        metrics: [
+          { name: 'totalUsers' },
+          { name: 'sessions' },
+          { name: 'screenPageViews' },
+          { name: 'bounceRate' },
+          { name: 'newUsers' },
+        ],
+      }),
+    }),
   ]);
 
   if (!mainRes.ok) throw new Error(`GA4 historical: ${mainRes.status} ${await mainRes.text()}`);
 
-  const [main, pages, sources, events] = await Promise.all([
+  const [main, pages, sources, events, comparison] = await Promise.all([
     mainRes.json(),
     pagesRes.json(),
     sourcesRes.json(),
     eventsRes.json(),
+    comparisonRes.json(),
   ]);
 
   // Aggregate main metrics
   let totalUsers = 0, totalSessions = 0, totalPageviews = 0, newUsers = 0;
   let bounceSum = 0, durationSum = 0, rowCount = 0;
-  const dailyMap = new Map<string, { pageviews: number; users: number }>();
+  const dailyMap = new Map<string, { pageviews: number; users: number; sessions: number; bounceSum: number; sessionCount: number }>();
   const deviceMap = new Map<string, number>();
   const countryMap = new Map<string, number>();
 
@@ -294,8 +310,14 @@ async function fetchHistoricalFromGA4(token: string, days: number) {
     durationSum += duration * sessions;
     rowCount += sessions;
 
-    const existing = dailyMap.get(date) ?? { pageviews: 0, users: 0 };
-    dailyMap.set(date, { pageviews: existing.pageviews + views, users: existing.users + users });
+    const existing = dailyMap.get(date) ?? { pageviews: 0, users: 0, sessions: 0, bounceSum: 0, sessionCount: 0 };
+    dailyMap.set(date, {
+      pageviews: existing.pageviews + views,
+      users: existing.users + users,
+      sessions: existing.sessions + sessions,
+      bounceSum: existing.bounceSum + bounce * sessions,
+      sessionCount: existing.sessionCount + sessions,
+    });
 
     deviceMap.set(device, (deviceMap.get(device) ?? 0) + sessions);
     countryMap.set(country, (countryMap.get(country) ?? 0) + users);
@@ -304,9 +326,45 @@ async function fetchHistoricalFromGA4(token: string, days: number) {
   const bounceRate = rowCount > 0 ? bounceSum / rowCount : 0;
   const avgSessionDuration = rowCount > 0 ? durationSum / rowCount : 0;
 
-  const dailyPageviews = Array.from(dailyMap.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, v]) => ({ date, ...v }));
+  const dailySorted = Array.from(dailyMap.entries()).sort(([a], [b]) => a.localeCompare(b));
+
+  const dailyPageviews = dailySorted.map(([date, v]) => ({ date, pageviews: v.pageviews, users: v.users }));
+
+  // Richer daily series for sparklines on stat cards
+  const dailySeries = dailySorted.map(([date, v]) => ({
+    date,
+    users: v.users,
+    sessions: v.sessions,
+    pageviews: v.pageviews,
+    bounceRate: v.sessionCount > 0 ? v.bounceSum / v.sessionCount : 0,
+  }));
+
+  // Parse comparison (previous period) metrics
+  let prevUsers = 0, prevSessions = 0, prevPageviews = 0, prevNewUsers = 0, prevBounce = 0;
+  let prevBounceWeight = 0;
+  for (const row of comparison.rows ?? []) {
+    prevUsers += parseInt(row.metricValues?.[0]?.value ?? '0');
+    prevSessions += parseInt(row.metricValues?.[1]?.value ?? '0');
+    prevPageviews += parseInt(row.metricValues?.[2]?.value ?? '0');
+    const b = parseFloat(row.metricValues?.[3]?.value ?? '0');
+    const s = parseInt(row.metricValues?.[1]?.value ?? '0');
+    prevBounce += b * s;
+    prevBounceWeight += s;
+    prevNewUsers += parseInt(row.metricValues?.[4]?.value ?? '0');
+  }
+  const prevBounceRate = prevBounceWeight > 0 ? prevBounce / prevBounceWeight : 0;
+
+  const pctChange = (curr: number, prev: number) =>
+    prev === 0 ? (curr > 0 ? 100 : 0) : Math.round(((curr - prev) / prev) * 100);
+
+  const trends = {
+    users: pctChange(totalUsers, prevUsers),
+    sessions: pctChange(totalSessions, prevSessions),
+    pageviews: pctChange(totalPageviews, prevPageviews),
+    bounceRate: pctChange(bounceRate * 100, prevBounceRate * 100),
+    newUsers: pctChange(newUsers, prevNewUsers),
+    prev: { users: prevUsers, sessions: prevSessions, pageviews: prevPageviews, bounceRate: prevBounceRate },
+  };
 
   const topPages = (pages.rows ?? []).map((r: any) => ({
     page: r.dimensionValues?.[0]?.value ?? '',
@@ -333,7 +391,7 @@ async function fetchHistoricalFromGA4(token: string, days: number) {
 
   return {
     totalUsers, totalSessions, totalPageviews, bounceRate, avgSessionDuration, newUsers,
-    dailyPageviews, topPages, trafficSources, devices, countries, topEvents,
+    dailyPageviews, dailySeries, trends, topPages, trafficSources, devices, countries, topEvents,
   };
 }
 
