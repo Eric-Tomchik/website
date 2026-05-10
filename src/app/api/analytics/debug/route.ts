@@ -4,13 +4,18 @@ import { NextRequest, NextResponse } from 'next/server';
  * GET /api/analytics/debug — Test GA4 connection end-to-end.
  * Protected by admin session cookie. DELETE THIS FILE after debugging.
  */
+
+function b64url(str: string): string {
+  return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
 export async function GET(req: NextRequest) {
   const session = req.cookies.get('admin_session')?.value;
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const result: Record<string, unknown> = { build: '75085d4-v2' };
+  const result: Record<string, unknown> = { build: 'e01f1d2' };
 
   // 1. Check env vars
   const saJson = process.env.GOOGLE_SA_CREDENTIALS;
@@ -42,8 +47,8 @@ export async function GET(req: NextRequest) {
   // 3. Try to get access token
   try {
     const now = Math.floor(Date.now() / 1000);
-    const header = btoa(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
-    const claim = btoa(JSON.stringify({
+    const header = b64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
+    const claim = b64url(JSON.stringify({
       iss: clientEmail,
       scope: 'https://www.googleapis.com/auth/analytics.readonly',
       aud: tokenUri,
@@ -61,8 +66,8 @@ export async function GET(req: NextRequest) {
       'pkcs8', keyBuffer, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign'],
     );
     const sig = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', cryptoKey, signData);
-    const b64sig = btoa(String.fromCharCode(...new Uint8Array(sig)));
-    const jwt = `${header}.${claim}.${b64sig}`;
+    const signature = b64url(String.fromCharCode(...new Uint8Array(sig)));
+    const jwt = `${header}.${claim}.${signature}`;
 
     result.jwt_created = true;
 
