@@ -5,6 +5,7 @@ import { fetchQuery } from 'convex/nextjs';
 import { api } from '../../../../convex/_generated/api';
 import { ArrowLeft, Clock, Calendar, PenLine } from 'lucide-react';
 import { marked, Renderer } from 'marked';
+import { sanitizeHtml } from '@/lib/sanitize';
 
 // Configure marked to open external links in new tab
 const renderer = new Renderer();
@@ -177,7 +178,7 @@ export default async function BlogPostPage({ params }: Props) {
                 let content = post.content;
                 const h1Match = content.match(/^# .+\n+/);
                 if (h1Match) content = content.slice(h1Match[0].length);
-                return marked.parse(content, { async: false }) as string;
+                return sanitizeHtml(marked.parse(content, { async: false }) as string);
               })(),
             }}
           />
