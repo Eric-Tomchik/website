@@ -42,9 +42,9 @@ function estimateReadingTime(html: string): number {
   return Math.max(1, Math.ceil(words / 200));
 }
 
-/** Sanitize HTML: allow safe tags, strip scripts/iframes/styles */
+/** Sanitize HTML: allow safe tags, strip scripts/iframes/styles, improve formatting */
 function sanitizeHtml(html: string): string {
-  return html
+  let cleaned = html
     // Remove script tags and content
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     // Remove style tags and content
@@ -58,7 +58,37 @@ function sanitizeHtml(html: string): string {
     // Remove javascript: urls
     .replace(/href\s*=\s*["']javascript:[^"']*["']/gi, 'href="#"')
     // Remove form elements
-    .replace(/<\/?(?:form|input|button|select|textarea)[^>]*>/gi, '');
+    .replace(/<\/?(?:form|input|button|select|textarea)[^>]*>/gi, '')
+    // Remove inline styles and classes (let prose handle styling)
+    .replace(/\s+style="[^"]*"/gi, '')
+    .replace(/\s+class="[^"]*"/gi, '')
+    // Remove WordPress-specific boilerplate divs
+    .replace(/<div[^>]*>/gi, '')
+    .replace(/<\/div>/gi, '')
+    // Remove empty paragraphs
+    .replace(/<p[^>]*>\s*(&nbsp;|\s)*<\/p>/gi, '');
+
+  // If content has very few HTML tags, it's likely plain text — wrap in <p> tags
+  const tagCount = (cleaned.match(/<(?:p|h[1-6]|ul|ol|li|blockquote|pre|figure|table)\b/gi) || []).length;
+  const textLength = cleaned.replace(/<[^>]*>/g, '').trim().length;
+
+  if (textLength > 200 && tagCount < 3) {
+    // Plain text content: split on double newlines into paragraphs
+    cleaned = cleaned
+      .split(/\n\s*\n/)
+      .map((block) => block.trim())
+      .filter(Boolean)
+      .map((block) => {
+        // If block already wrapped in a block-level tag, keep it
+        if (/^<(?:p|h[1-6]|ul|ol|li|blockquote|pre|figure|table)\b/i.test(block)) {
+          return block;
+        }
+        return `<p>${block.replace(/\n/g, '<br />')}</p>`;
+      })
+      .join('\n');
+  }
+
+  return cleaned;
 }
 
 export async function generateMetadata({
