@@ -71,10 +71,7 @@ export async function POST(req: Request) {
       );
     }
 
-    console.log(
-      `Client notification [${type}] sent to ${recipientEmail}:`,
-      resendData.id
-    );
+    // Client notification sent successfully
 
     // Log to audit trail (non-blocking)
     try {
