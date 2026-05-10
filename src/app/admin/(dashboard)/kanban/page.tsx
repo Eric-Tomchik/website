@@ -4,12 +4,14 @@ import { useMemo, useState } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import type { Id } from '../../../../../convex/_generated/dataModel';
 import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
+import { useClientNotify } from '@/hooks/useClientNotify';
 import {
   Columns3,
   User,
   Calendar,
   GripVertical,
   ChevronRight,
+  Mail,
 } from 'lucide-react';
 
 type ProjectStatus = 'discovery' | 'proposal' | 'in_progress' | 'review' | 'completed' | 'on_hold' | 'cancelled';
@@ -26,9 +28,11 @@ export default function KanbanPage() {
   const projects = useAdminQuery(api.projects.list, {}) ?? [];
   const clients = useAdminQuery(api.clients.list, {}) ?? [];
   const updateProject = useAdminMutation(api.projects.update);
+  const notify = useClientNotify();
 
   const [dragging, setDragging] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState<string | null>(null);
+  const [notifyFeedback, setNotifyFeedback] = useState<string | null>(null);
 
   const clientMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -51,11 +55,39 @@ export default function KanbanPage() {
     setDragging(projectId);
   };
 
+  const sendStatusNotification = async (project: (typeof projects)[0], newStatus: ProjectStatus) => {
+    if (!project.client_id) return;
+    const client = clients.find((c) => c._id === project.client_id);
+    if (!client?.email) return;
+
+    // Only notify on significant status changes
+    const notifyStatuses: ProjectStatus[] = ['in_progress', 'review', 'completed'];
+    if (!notifyStatuses.includes(newStatus)) return;
+
+    const result = await notify({
+      type: 'project_status_update',
+      recipientEmail: client.email,
+      recipientName: client.name,
+      data: {
+        projectTitle: project.title,
+        newStatus,
+        progressPercent: newStatus === 'completed' ? 100 : project.progress_percent,
+        portalUrl: 'https://erictomchik.com/portal',
+      },
+    });
+
+    if (result.success) {
+      setNotifyFeedback(`Notified ${client.name}`);
+      setTimeout(() => setNotifyFeedback(null), 3000);
+    }
+  };
+
   const handleDrop = async (newStatus: ProjectStatus) => {
     if (!dragging) return;
     const project = projects.find((p) => p._id === dragging);
     if (project && project.status !== newStatus) {
       await updateProject({ id: project._id as Id<'projects'>, status: newStatus });
+      sendStatusNotification(project, newStatus);
     }
     setDragging(null);
     setDragOver(null);
@@ -66,10 +98,12 @@ export default function KanbanPage() {
     if (!project) return;
     const currentIdx = COLUMNS.findIndex((c) => c.status === project.status);
     if (currentIdx < COLUMNS.length - 1) {
+      const newStatus = COLUMNS[currentIdx + 1].status;
       await updateProject({
         id: project._id as Id<'projects'>,
-        status: COLUMNS[currentIdx + 1].status,
+        status: newStatus,
       });
+      sendStatusNotification(project, newStatus);
     }
   };
 
@@ -82,6 +116,11 @@ export default function KanbanPage() {
         </h1>
         <p className="text-surface-400 mt-1">
           Drag and drop to update project status · {projects.length} total projects
+          {notifyFeedback && (
+            <span className="ml-3 text-green-400 text-xs inline-flex items-center gap-1">
+              <Mail className="w-3 h-3" /> {notifyFeedback}
+            </span>
+          )}
         </p>
       </div>
 

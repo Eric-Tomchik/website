@@ -8,6 +8,7 @@ import type { Id } from '../../../../../convex/_generated/dataModel';
 import { generatePDF } from '../../../../lib/pdfGenerator';
 import { useMutation } from 'convex/react';
 import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
+import { useClientNotify } from '@/hooks/useClientNotify';
 import {
   FileText,
   Sparkles,
@@ -20,6 +21,7 @@ import {
   Loader2,
   RefreshCw,
   PenLine,
+  Mail,
 } from 'lucide-react';
 
 type DocType = 'contract' | 'invoice' | 'proposal';
@@ -44,6 +46,7 @@ export default function AIContractGeneratorPage() {
   const allProjects = useAdminQuery(api.projects.list, {}) ?? [];
   const createDoc = useAdminMutation(api.clientDocuments.create);
   const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
+  const notify = useClientNotify();
 
   const [docType, setDocType] = useState<DocType>('contract');
   const [selectedClientId, setSelectedClientId] = useState<string>(preSelectedClient ?? '');
@@ -52,9 +55,12 @@ export default function AIContractGeneratorPage() {
   const [customScope, setCustomScope] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [notifySent, setNotifySent] = useState(false);
+  const [sendingNotify, setSendingNotify] = useState(false);
   const [requireSignature, setRequireSignature] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
+  const [lastSignatureToken, setLastSignatureToken] = useState<string | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const selectedClient = clients.find((c) => c._id === selectedClientId);
@@ -145,13 +151,41 @@ export default function AIContractGeneratorPage() {
         signature_token: signatureToken,
       });
 
+      if (signatureToken) setLastSignatureToken(signatureToken);
       setSaved(true);
+      setNotifySent(false);
     } catch (err) {
       console.error(err);
       alert('Failed to save document');
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSendSignatureEmail = async () => {
+    if (!selectedClient || !lastSignatureToken) return;
+    setSendingNotify(true);
+
+    const docName = `${docType.charAt(0).toUpperCase() + docType.slice(1)} — ${selectedClient.name} — ${new Date().toLocaleDateString()}`;
+    const signUrl = `https://erictomchik.com/sign/${lastSignatureToken}`;
+
+    const result = await notify({
+      type: 'document_signature_requested',
+      recipientEmail: selectedClient.email,
+      recipientName: selectedClient.name,
+      data: {
+        documentName: docName,
+        category: docType,
+        signUrl,
+      },
+    });
+
+    if (result.success) {
+      setNotifySent(true);
+    } else {
+      alert(`Failed to send email: ${result.error}`);
+    }
+    setSendingNotify(false);
   };
 
   return (
@@ -346,6 +380,26 @@ export default function AIContractGeneratorPage() {
                     )}
                     {saved ? 'Saved to Client Hub' : 'Save to Client'}
                   </button>
+                  {saved && requireSignature && lastSignatureToken && (
+                    <button
+                      onClick={handleSendSignatureEmail}
+                      disabled={sendingNotify || notifySent}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                        notifySent
+                          ? 'bg-green-600/20 text-green-400'
+                          : 'bg-purple-600 text-white hover:bg-purple-500 disabled:opacity-50'
+                      }`}
+                    >
+                      {sendingNotify ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : notifySent ? (
+                        <FileCheck className="w-3.5 h-3.5" />
+                      ) : (
+                        <Mail className="w-3.5 h-3.5" />
+                      )}
+                      {notifySent ? 'Email Sent' : 'Email for Signature'}
+                    </button>
+                  )}
                 </div>
               )}
             </div>
