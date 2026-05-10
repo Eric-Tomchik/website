@@ -403,6 +403,48 @@ export default defineSchema({
   })
     .index("by_email", ["email"]),
 
+  // === Drip Sequences ===
+  drip_sequences: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    trigger: v.union(v.literal("on_subscribe"), v.literal("manual")),
+    is_active: v.boolean(),
+    enrolled_count: v.number(),
+    completed_count: v.number(),
+    total_sent: v.number(),
+  })
+    .index("by_active", ["is_active"]),
+
+  drip_steps: defineTable({
+    sequence_id: v.id("drip_sequences"),
+    step_order: v.number(),
+    subject: v.string(),
+    preview_text: v.optional(v.string()),
+    content: v.string(), // HTML content
+    delay_hours: v.number(), // hours after previous step (0 = immediate)
+  })
+    .index("by_sequence", ["sequence_id"]),
+
+  drip_enrollments: defineTable({
+    sequence_id: v.id("drip_sequences"),
+    email: v.string(),
+    current_step: v.number(), // 0-indexed, which step to send next
+    status: v.union(
+      v.literal("active"),
+      v.literal("completed"),
+      v.literal("paused"),
+      v.literal("unsubscribed")
+    ),
+    enrolled_at: v.number(),
+    next_send_at: v.number(), // timestamp when next email should be sent
+    last_sent_at: v.optional(v.number()),
+    emails_sent: v.number(),
+  })
+    .index("by_sequence", ["sequence_id"])
+    .index("by_email", ["email"])
+    .index("by_status_next", ["status", "next_send_at"])
+    .index("by_sequence_email", ["sequence_id", "email"]),
+
   // === Email Broadcasts ===
   email_broadcasts: defineTable({
     subject: v.string(),

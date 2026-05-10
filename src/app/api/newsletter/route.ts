@@ -103,6 +103,13 @@ export async function POST(req: Request) {
       }
     }
 
+    // Auto-enroll into drip sequences (non-blocking)
+    if (!result.alreadySubscribed) {
+      convex.mutation(api.dripSequences.autoEnroll, { email }).catch((err) => {
+        console.error('Drip auto-enroll error:', err);
+      });
+    }
+
     return NextResponse.json({
       success: true,
       alreadySubscribed: result.alreadySubscribed,
