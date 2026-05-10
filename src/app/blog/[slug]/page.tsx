@@ -6,13 +6,26 @@ import { api } from '../../../../convex/_generated/api';
 import { ArrowLeft, Clock, Calendar, PenLine } from 'lucide-react';
 import { marked, Renderer } from 'marked';
 import { sanitizeHtml } from '@/lib/sanitize';
+import { TableOfContents } from '@/components/ui/TableOfContents';
+import { BlogNewsletterCTA } from '@/components/ui/BlogNewsletterCTA';
 
-// Configure marked to open external links in new tab
+// Configure marked: external links in new tab + heading IDs for TOC
 const renderer = new Renderer();
 renderer.link = ({ href, text }: { href: string; text: string }) => {
   const isExternal = href.startsWith('http');
   const attrs = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
   return `<a href="${href}"${attrs}>${text}</a>`;
+};
+renderer.heading = ({ text, depth }: { text: string; depth: number }) => {
+  const id = text
+    .replace(/<[^>]*>/g, '') // strip HTML tags
+    .replace(/\*\*/g, '').replace(/\*/g, '').replace(/`/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+  return `<h${depth} id="${id}">${text}</h${depth}>`;
 };
 marked.use({ renderer });
 
@@ -170,6 +183,9 @@ export default async function BlogPostPage({ params }: Props) {
 
         {/* Content */}
         <div className="max-w-3xl mx-auto">
+          {/* Table of Contents */}
+          <TableOfContents content={post.content} />
+
           <div
             className="blog-content"
             dangerouslySetInnerHTML={{
@@ -182,6 +198,9 @@ export default async function BlogPostPage({ params }: Props) {
               })(),
             }}
           />
+
+          {/* Newsletter CTA */}
+          <BlogNewsletterCTA />
 
           {/* Tags */}
           {post.tags.length > 0 && (

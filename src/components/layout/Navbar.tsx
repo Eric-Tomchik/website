@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { Menu, X, BookOpen, LogIn } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from './ThemeToggle';
+import { SearchProvider } from '@/components/ui/SearchProvider';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -68,6 +69,7 @@ export function Navbar() {
             </div>
 
             <div className="hidden lg:flex items-center gap-2">
+              <SearchProvider />
               <ThemeToggle />
               <Link
                 href="/portal"
@@ -133,9 +135,12 @@ export function Navbar() {
               <LogIn className="w-4 h-4" />
               Client Portal
             </Link>
-            <div className="flex items-center gap-3 px-3 py-2.5">
-              <ThemeToggle />
-              <span className="text-sm text-surface-400">Toggle theme</span>
+            <div className="flex items-center justify-between px-3 py-2.5">
+              <div className="flex items-center gap-3">
+                <ThemeToggle />
+                <span className="text-sm text-surface-400">Toggle theme</span>
+              </div>
+              <SearchProvider />
             </div>
             <Link
               href="/books"
