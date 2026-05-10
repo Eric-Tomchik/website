@@ -2,9 +2,57 @@
 
 import { useState } from 'react';
 import { api } from '../../../../../convex/_generated/api';
-import { Tag, Plus, Trash2, Edit2, X, Check, Copy } from 'lucide-react';
+import { Tag, Plus, Trash2, Edit2, X, Check, Copy, Users, ChevronDown, ChevronUp } from 'lucide-react';
 import type { Id } from '../../../../../convex/_generated/dataModel';
 import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
+
+function RedemptionsList({ code }: { code: string }) {
+  const orders = useAdminQuery(api.orders.listByDiscountCode, { discount_code: code }) ?? [];
+
+  if (orders.length === 0) {
+    return (
+      <div className="px-5 py-4 text-sm text-surface-500 border-t border-surface-800">
+        No redemptions recorded yet. Orders placed before tracking was added won&apos;t appear here.
+      </div>
+    );
+  }
+
+  return (
+    <div className="border-t border-surface-800">
+      <div className="px-5 py-3">
+        <h4 className="text-xs font-semibold text-surface-400 uppercase mb-2">
+          Redemptions ({orders.length})
+        </h4>
+        <div className="space-y-2">
+          {orders.map((order) => (
+            <div
+              key={order._id}
+              className="flex items-center justify-between text-sm bg-surface-800/50 rounded-lg px-3 py-2"
+            >
+              <div>
+                <span className="text-white font-medium">{order.customer_name}</span>
+                <span className="text-surface-500 ml-2">{order.customer_email}</span>
+              </div>
+              <div className="flex items-center gap-3 text-xs text-surface-400">
+                <span>
+                  {order.items.map((i) => i.book_title).join(', ')}
+                </span>
+                <span>
+                  {new Date(order._creationTime).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 type DiscountCode = {
   _id: Id<"discount_codes">;
@@ -240,6 +288,7 @@ export default function AdminDiscountsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [expandedCode, setExpandedCode] = useState<string | null>(null);
 
   const activeCount = discounts.filter((d) => d.is_active).length;
   const totalUses = discounts.reduce((s, d) => s + d.current_uses, 0);
@@ -337,9 +386,17 @@ export default function AdminDiscountsPage() {
                           ? `${code.discount_value}% off`
                           : `$${(code.discount_value / 100).toFixed(2)} off`}
                       </span>
-                      <span>
+                      <button
+                        onClick={() => setExpandedCode(expandedCode === code.code ? null : code.code)}
+                        className="hover:text-brand-400 transition-colors inline-flex items-center gap-1"
+                      >
                         {code.current_uses}{code.max_uses ? `/${code.max_uses}` : ''} uses
-                      </span>
+                        {code.current_uses > 0 && (
+                          expandedCode === code.code
+                            ? <ChevronUp className="w-3 h-3" />
+                            : <ChevronDown className="w-3 h-3" />
+                        )}
+                      </button>
                       {code.min_order_cents && (
                         <span>Min ${(code.min_order_cents / 100).toFixed(2)}</span>
                       )}
@@ -385,6 +442,10 @@ export default function AdminDiscountsPage() {
                     </button>
                   </div>
                 </div>
+
+                {expandedCode === code.code && code.current_uses > 0 && (
+                  <RedemptionsList code={code.code} />
+                )}
               </div>
             );
           })}

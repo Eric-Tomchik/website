@@ -167,6 +167,7 @@ export async function POST(req: Request) {
       ],
       total_cents: 0,
       status: 'fulfilled' as const,
+      discount_code: data.discount_code.toUpperCase(),
     });
 
     // Generate download token for digital purchases

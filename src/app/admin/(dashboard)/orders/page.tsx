@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { api } from '../../../../../convex/_generated/api';
-import { ShoppingCart, Package, Download, ChevronDown, ChevronUp } from 'lucide-react';
+import { ShoppingCart, Package, Download, ChevronDown, ChevronUp, Tag } from 'lucide-react';
 import type { Id } from '../../../../../convex/_generated/dataModel';
 import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
 
@@ -63,10 +63,18 @@ export default function AdminOrdersPage() {
                 <div className="flex items-center gap-4">
                   <div className="text-left">
                     <div className="text-sm font-medium text-white">{order.customer_name || order.customer_email}</div>
-                    <div className="text-xs text-surface-400">
-                      {new Date(order._creationTime).toLocaleDateString('en-US', {
-                        month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                      })}
+                    <div className="flex items-center gap-2 text-xs text-surface-400">
+                      <span>
+                        {new Date(order._creationTime).toLocaleDateString('en-US', {
+                          month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                        })}
+                      </span>
+                      {order.discount_code && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[10px] font-medium">
+                          <Tag className="w-2.5 h-2.5" />
+                          {order.discount_code}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -104,6 +112,16 @@ export default function AdminOrdersPage() {
                         </div>
                       ))}
                     </div>
+
+                    {order.discount_code && (
+                      <div>
+                        <h4 className="text-xs font-semibold text-surface-400 uppercase mb-2">Discount</h4>
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                          <Tag className="w-3.5 h-3.5 text-amber-400" />
+                          <span className="font-mono text-sm font-medium text-amber-400 tracking-wider">{order.discount_code}</span>
+                        </div>
+                      </div>
+                    )}
 
                     {order.shipping_address && (
                       <div>

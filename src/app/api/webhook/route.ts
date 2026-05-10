@@ -116,6 +116,9 @@ export async function POST(req: Request) {
         total_cents: session.amount_total || 0,
         status: 'paid' as const,
         shipping_address: shippingAddress,
+        ...(session.metadata?.discount_code
+          ? { discount_code: session.metadata.discount_code }
+          : {}),
       });
 
       // Generate download tokens for digital purchases
