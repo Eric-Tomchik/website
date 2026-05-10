@@ -372,7 +372,7 @@ export async function GET(req: NextRequest) {
     const convexRes = await fetch(`${CONVEX_URL}/api/query`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ path: 'analytics:get', args: { type, period } }),
+      body: JSON.stringify({ path: 'analytics:get', args: { adminKey: process.env.CONVEX_AUTH_SECRET!, type, period } }),
     });
 
     if (!convexRes.ok) throw new Error(`Convex query failed: ${convexRes.status}`);
