@@ -103,6 +103,21 @@ export async function POST(req: Request) {
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://erictomchik.com';
 
+    // IP-based one-per-network guard for promo codes.
+    // Uses the rate limiter with 1 attempt in a 10-year window — effectively permanent.
+    // Prevents the same IP/network from redeeming the same promo code more than once.
+    const promoIpCheck = await convex.mutation(api.rateLimit.check, {
+      key: `promo_ip:${data.discount_code.toUpperCase()}:${ip}`,
+      maxAttempts: 1,
+      windowMs: 10 * 365 * 24 * 60 * 60 * 1000, // ~10 years
+    });
+    if (!promoIpCheck.allowed) {
+      return NextResponse.json(
+        { error: 'This promotional code has already been redeemed from your network. Limit one per household.' },
+        { status: 403 }
+      );
+    }
+
     // Atomically validate AND apply the discount code
     const discountResult = await convex.mutation(api.discountCodes.validateAndApply, {
       code: data.discount_code,
@@ -112,6 +127,10 @@ export async function POST(req: Request) {
     });
 
     if (!discountResult?.valid) {
+      // Release the IP lock since the discount code itself was invalid
+      await convex.mutation(api.rateLimit.release, {
+        key: `promo_ip:${data.discount_code.toUpperCase()}:${ip}`,
+      });
       return NextResponse.json(
         { error: discountResult?.error || 'Invalid or expired discount code' },
         { status: 400 }
@@ -121,6 +140,10 @@ export async function POST(req: Request) {
     // Verify the discount makes it truly free (100% off)
     if (discountResult.discount_type !== 'percentage' || discountResult.discount_value !== 100) {
       await convex.mutation(api.discountCodes.release, { code: data.discount_code });
+      // Release the IP lock since this wasn't actually a free-download promo
+      await convex.mutation(api.rateLimit.release, {
+        key: `promo_ip:${data.discount_code.toUpperCase()}:${ip}`,
+      });
       return NextResponse.json(
         { error: 'This discount does not make the item free. Please use the standard checkout.' },
         { status: 400 }

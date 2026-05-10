@@ -62,17 +62,38 @@ export const check = mutation({
 });
 
 /**
+ * Release (roll back) a single count for a rate-limit key.
+ * Useful when a downstream step fails after the rate check passed —
+ * e.g. promo IP guard passed but the discount code itself was invalid.
+ */
+export const release = mutation({
+  args: { key: v.string() },
+  handler: async (ctx, args) => {
+    const entry = await ctx.db
+      .query("rate_limits")
+      .withIndex("by_key", (q) => q.eq("key", args.key))
+      .first();
+
+    if (entry && entry.count > 0) {
+      await ctx.db.patch(entry._id, { count: entry.count - 1 });
+    }
+  },
+});
+
+/**
  * Clean up expired rate limit entries (call periodically or via cron).
  */
 export const cleanup = internalMutation({
   args: {},
   handler: async (ctx) => {
     const now = Date.now();
-    // Default window is 60s, clean anything older than 5 minutes
+    // Default window is 60s, clean anything older than 5 minutes.
+    // Skip long-lived promo IP guards (key starts with "promo_ip:").
     const cutoff = now - 5 * 60_000;
     const entries = await ctx.db.query("rate_limits").collect();
     let cleaned = 0;
     for (const entry of entries) {
+      if (entry.key.startsWith("promo_ip:")) continue;
       if (entry.window_start < cutoff) {
         await ctx.db.delete(entry._id);
         cleaned++;
