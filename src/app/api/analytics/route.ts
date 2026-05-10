@@ -366,8 +366,8 @@ export async function GET(req: NextRequest) {
 
   const creds = getSACredentials();
 
-  // If live=true AND we have SA credentials, call GA4 directly
-  if (live && creds) {
+  // Always try live GA4 first if we have SA credentials
+  if (creds) {
     try {
       const token = await getAccessToken(creds);
       const data =
@@ -385,6 +385,8 @@ export async function GET(req: NextRequest) {
       console.error('Live GA4 fetch failed, falling back to cache:', err.message);
       // Fall through to Convex cache
     }
+  } else {
+    console.error('No SA credentials found. GOOGLE_SA_CREDENTIALS env var is missing or invalid.');
   }
 
   // Default: read from Convex cache
