@@ -13,14 +13,19 @@ interface SACredentials {
 
 let cachedToken: { token: string; expiry: number } | null = null;
 
+/** Base64url encode (no padding) — required for JWT */
+function b64url(str: string): string {
+  return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
 async function getAccessToken(creds: SACredentials): Promise<string> {
   if (cachedToken && Date.now() < cachedToken.expiry - 60_000) {
     return cachedToken.token;
   }
 
   const now = Math.floor(Date.now() / 1000);
-  const header = btoa(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
-  const payload = btoa(
+  const header = b64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
+  const payload = b64url(
     JSON.stringify({
       iss: creds.client_email,
       scope: 'https://www.googleapis.com/auth/analytics.readonly',
@@ -33,10 +38,7 @@ async function getAccessToken(creds: SACredentials): Promise<string> {
   const signingInput = `${header}.${payload}`;
   const key = await importPKCS8(creds.private_key);
   const sig = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, new TextEncoder().encode(signingInput));
-  const signature = btoa(String.fromCharCode(...new Uint8Array(sig)))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
+  const signature = b64url(String.fromCharCode(...new Uint8Array(sig)));
 
   const jwt = `${signingInput}.${signature}`;
 
