@@ -335,6 +335,22 @@ async function fetchHistoricalFromGA4(token: string, days: number) {
   };
 }
 
+/* ─── Helper: write data to Convex cache ────────────────────────────── */
+
+async function writeToCache(type: 'realtime' | 'historical', period: string, data: Record<string, unknown>) {
+  const authSecret = process.env.CONVEX_AUTH_SECRET;
+  if (!authSecret) return;
+
+  await fetch(`${CONVEX_URL}/api/mutation`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      path: 'analytics:update',
+      args: { adminKey: authSecret, type, period, data: JSON.stringify(data) },
+    }),
+  });
+}
+
 /* ─── Route handler ─────────────────────────────────────────────────── */
 
 export async function GET(req: NextRequest) {
@@ -344,7 +360,7 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = new URL(req.url);
-  const type = searchParams.get('type') ?? 'historical';
+  const type = (searchParams.get('type') ?? 'historical') as 'realtime' | 'historical';
   const days = parseInt(searchParams.get('days') ?? '30');
   const live = searchParams.get('live') === 'true';
 
@@ -356,6 +372,11 @@ export async function GET(req: NextRequest) {
       const token = await getAccessToken(creds);
       const data =
         type === 'realtime' ? await fetchRealtimeFromGA4(token) : await fetchHistoricalFromGA4(token, days);
+
+      // Also update the cache in the background
+      const period = type === 'realtime' ? 'realtime' : String(days);
+      writeToCache(type, period, data).catch(() => {});
+
       return NextResponse.json(
         { ...data, _cachedAt: Date.now(), _source: 'live' },
         { headers: { 'Cache-Control': 'private, no-cache' } },
@@ -393,5 +414,43 @@ export async function GET(req: NextRequest) {
   } catch (err: any) {
     console.error('Analytics API error:', err);
     return NextResponse.json({ error: err.message ?? 'Failed to fetch analytics' }, { status: 500 });
+  }
+}
+
+/* ─── Cron endpoint: POST /api/analytics ────────────────────────────── */
+
+export async function POST(req: NextRequest) {
+  // Verify cron secret to prevent unauthorized cache refreshes
+  const cronSecret = req.headers.get('x-cron-secret');
+  const authSecret = process.env.CONVEX_AUTH_SECRET;
+  if (!cronSecret || !authSecret || cronSecret !== authSecret) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const creds = getSACredentials();
+  if (!creds) {
+    return NextResponse.json({ error: 'No SA credentials configured' }, { status: 500 });
+  }
+
+  try {
+    const token = await getAccessToken(creds);
+
+    // Refresh realtime + 7-day + 30-day caches in parallel
+    const [realtime, hist7, hist30] = await Promise.all([
+      fetchRealtimeFromGA4(token),
+      fetchHistoricalFromGA4(token, 7),
+      fetchHistoricalFromGA4(token, 30),
+    ]);
+
+    await Promise.all([
+      writeToCache('realtime', 'realtime', realtime),
+      writeToCache('historical', '7', hist7),
+      writeToCache('historical', '30', hist30),
+    ]);
+
+    return NextResponse.json({ success: true, refreshed: ['realtime', '7d', '30d'] });
+  } catch (err: any) {
+    console.error('Analytics cron refresh failed:', err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

@@ -63,7 +63,7 @@ function useAnalytics<T>(type: 'realtime' | 'historical', days?: number, refresh
 
   const fetchData = useCallback(async () => {
     try {
-      const params = new URLSearchParams({ type });
+      const params = new URLSearchParams({ type, live: 'true' });
       if (days) params.set('days', String(days));
       const res = await fetch(`/api/analytics?${params}`);
       if (!res.ok) {
