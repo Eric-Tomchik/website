@@ -17,6 +17,7 @@ import {
   Activity,
   ArrowUp,
   ArrowDown,
+  TrendingUp,
   RefreshCw,
   Zap,
 } from 'lucide-react';
@@ -38,6 +39,23 @@ interface RealtimeData {
   _source?: string;
 }
 
+interface DailySeries {
+  date: string;
+  users: number;
+  sessions: number;
+  pageviews: number;
+  bounceRate: number;
+}
+
+interface Trends {
+  users: number;
+  sessions: number;
+  pageviews: number;
+  bounceRate: number;
+  newUsers: number;
+  prev: { users: number; sessions: number; pageviews: number; bounceRate: number };
+}
+
 interface HistoricalData {
   totalUsers: number;
   totalSessions: number;
@@ -46,6 +64,8 @@ interface HistoricalData {
   avgSessionDuration: number;
   newUsers: number;
   dailyPageviews: { date: string; pageviews: number; users: number }[];
+  dailySeries?: DailySeries[];
+  trends?: Trends;
   topPages: { page: string; pageviews: number; users: number }[];
   trafficSources: { source: string; medium: string; sessions: number; users: number }[];
   devices: { device: string; sessions: number }[];
@@ -138,6 +158,41 @@ function SparkBars({ values, color = 'bg-brand-400' }: { values: number[]; color
         />
       ))}
     </div>
+  );
+}
+
+/** SVG sparkline for stat cards */
+function Sparkline({ values, color = '#6366f1', height = 28 }: { values: number[]; color?: string; height?: number }) {
+  if (values.length < 2) return null;
+  const max = Math.max(...values, 1);
+  const min = Math.min(...values, 0);
+  const range = max - min || 1;
+  const w = 100;
+  const pad = 2;
+  const step = (w - pad * 2) / (values.length - 1);
+  const points = values.map((v, i) => `${pad + i * step},${pad + (1 - (v - min) / range) * (height - pad * 2)}`).join(' ');
+  const fillPoints = `${pad},${height - pad} ${points} ${pad + (values.length - 1) * step},${height - pad}`;
+  return (
+    <svg viewBox={`0 0 ${w} ${height}`} className="w-full" style={{ height }} preserveAspectRatio="none">
+      <polygon points={fillPoints} fill={color} opacity={0.1} />
+      <polyline points={points} fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={pad + (values.length - 1) * step} cy={pad + (1 - (values[values.length - 1] - min) / range) * (height - pad * 2)} r={2} fill={color} />
+    </svg>
+  );
+}
+
+/** Trend badge: shows % change with up/down arrow */
+function TrendBadge({ pct, invertColor = false }: { pct: number; invertColor?: boolean }) {
+  if (pct === 0) return <span className="text-[10px] text-surface-500 font-medium">—</span>;
+  const isUp = pct > 0;
+  // For bounce rate, up is bad (invertColor=true)
+  const isGood = invertColor ? !isUp : isUp;
+  const color = isGood ? 'text-green-400 bg-green-500/10' : 'text-red-400 bg-red-500/10';
+  return (
+    <span className={`inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${color}`}>
+      {isUp ? <ArrowUp className="w-2.5 h-2.5" /> : <ArrowDown className="w-2.5 h-2.5" />}
+      {Math.abs(pct)}%
+    </span>
   );
 }
 
@@ -510,39 +565,107 @@ export default function AdminAnalyticsPage() {
             </div>
           ) : historical ? (
             <>
-              {/* Overview stats — single row */}
+              {/* Overview stats — single row with sparklines */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <div className="card p-3">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[11px] font-medium text-surface-400">Users</span>
                     <Users className="w-3.5 h-3.5 text-brand-400" />
                   </div>
-                  <div className="text-xl font-bold text-white">{formatNumber(historical.totalUsers)}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-xl font-bold text-white">{formatNumber(historical.totalUsers)}</div>
+                    {historical.trends && <TrendBadge pct={historical.trends.users} />}
+                  </div>
                   <div className="text-[10px] text-surface-500">{formatNumber(historical.newUsers)} new</div>
+                  {historical.dailySeries && historical.dailySeries.length > 1 && (
+                    <div className="mt-2">
+                      <Sparkline values={historical.dailySeries.map(d => d.users)} color="#6366f1" />
+                    </div>
+                  )}
                 </div>
                 <div className="card p-3">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[11px] font-medium text-surface-400">Sessions</span>
                     <Activity className="w-3.5 h-3.5 text-green-400" />
                   </div>
-                  <div className="text-xl font-bold text-white">{formatNumber(historical.totalSessions)}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-xl font-bold text-white">{formatNumber(historical.totalSessions)}</div>
+                    {historical.trends && <TrendBadge pct={historical.trends.sessions} />}
+                  </div>
+                  {historical.dailySeries && historical.dailySeries.length > 1 && (
+                    <div className="mt-2">
+                      <Sparkline values={historical.dailySeries.map(d => d.sessions)} color="#22c55e" />
+                    </div>
+                  )}
                 </div>
                 <div className="card p-3">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[11px] font-medium text-surface-400">Pageviews</span>
                     <Eye className="w-3.5 h-3.5 text-blue-400" />
                   </div>
-                  <div className="text-xl font-bold text-white">{formatNumber(historical.totalPageviews)}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-xl font-bold text-white">{formatNumber(historical.totalPageviews)}</div>
+                    {historical.trends && <TrendBadge pct={historical.trends.pageviews} />}
+                  </div>
+                  {historical.dailySeries && historical.dailySeries.length > 1 && (
+                    <div className="mt-2">
+                      <Sparkline values={historical.dailySeries.map(d => d.pageviews)} color="#3b82f6" />
+                    </div>
+                  )}
                 </div>
                 <div className="card p-3">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[11px] font-medium text-surface-400">Bounce</span>
                     <Zap className="w-3.5 h-3.5 text-yellow-400" />
                   </div>
-                  <div className="text-xl font-bold text-white">{historical.bounceRate < 1 ? (historical.bounceRate * 100).toFixed(1) : historical.bounceRate.toFixed(1)}%</div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-xl font-bold text-white">{historical.bounceRate < 1 ? (historical.bounceRate * 100).toFixed(1) : historical.bounceRate.toFixed(1)}%</div>
+                    {historical.trends && <TrendBadge pct={historical.trends.bounceRate} invertColor />}
+                  </div>
                   <div className="text-[10px] text-surface-500">Avg: {formatDuration(historical.avgSessionDuration)}</div>
+                  {historical.dailySeries && historical.dailySeries.length > 1 && (
+                    <div className="mt-2">
+                      <Sparkline values={historical.dailySeries.map(d => d.bounceRate < 1 ? d.bounceRate * 100 : d.bounceRate)} color="#eab308" />
+                    </div>
+                  )}
                 </div>
               </div>
+
+              {/* Weekly summary trend card */}
+              {historical.trends && (
+                <div className="card p-4 border-brand-500/10">
+                  <div className="flex items-center gap-2 mb-3">
+                    <TrendingUp className="w-4 h-4 text-brand-400" />
+                    <h2 className="text-sm font-semibold text-white">
+                      Period Comparison
+                    </h2>
+                    <span className="text-[10px] text-surface-500 ml-auto">
+                      vs previous {period} days
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {[
+                      { label: 'Users', curr: historical.totalUsers, prev: historical.trends.prev.users, pct: historical.trends.users },
+                      { label: 'Sessions', curr: historical.totalSessions, prev: historical.trends.prev.sessions, pct: historical.trends.sessions },
+                      { label: 'Pageviews', curr: historical.totalPageviews, prev: historical.trends.prev.pageviews, pct: historical.trends.pageviews },
+                      { label: 'Bounce', curr: historical.bounceRate < 1 ? +(historical.bounceRate * 100).toFixed(1) : +historical.bounceRate.toFixed(1), prev: historical.trends.prev.bounceRate < 1 ? +(historical.trends.prev.bounceRate * 100).toFixed(1) : +historical.trends.prev.bounceRate.toFixed(1), pct: historical.trends.bounceRate, invert: true },
+                    ].map(({ label, curr, prev, pct, invert }) => (
+                      <div key={label} className="p-2.5 rounded-lg bg-surface-900/50 border border-surface-800">
+                        <div className="text-[10px] text-surface-400 mb-1">{label}</div>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-sm font-bold text-white">
+                            {label === 'Bounce' ? `${curr}%` : formatNumber(curr)}
+                          </span>
+                          <TrendBadge pct={pct} invertColor={invert} />
+                        </div>
+                        <div className="text-[9px] text-surface-500 mt-0.5">
+                          was {label === 'Bounce' ? `${prev}%` : formatNumber(prev)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Daily chart — compact */}
               <div className="card p-4">
