@@ -113,11 +113,22 @@ export async function POST(req: NextRequest) {
     });
 
     // Set a non-httpOnly cookie with the Convex auth secret so the admin
-    // client SDK can pass it to Convex functions for server-side auth.
+    // client SDK (useAdminQuery / useAdminMutation) can inject it into every
+    // real-time Convex query and mutation from the browser.
+    //
+    // SECURITY TRADEOFF: This cookie is intentionally httpOnly: false.
+    // The Convex React SDK communicates over WebSocket directly from the
+    // client, so there's no server-side proxy to inject the key. Making this
+    // httpOnly would require replacing all Convex client subscriptions with
+    // a fetch-based proxy, losing real-time updates on admin pages.
+    //
+    // XSS mitigations: strict CSP with per-request nonces, third-party
+    // scripts loaded with crossOrigin="anonymous" and domain-restricted in
+    // script-src. See useAdminAuth.ts for full documentation.
     const convexSecret = process.env.CONVEX_AUTH_SECRET;
     if (convexSecret) {
       response.cookies.set('admin_ck', convexSecret, {
-        httpOnly: false,       // Readable by client JS
+        httpOnly: false,       // Required: read by Convex client SDK in browser
         secure: true,
         sameSite: 'lax',
         maxAge: 60 * 60 * 24 * 7,

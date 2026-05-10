@@ -89,7 +89,11 @@ const organizationJsonLd = {
   },
 };
 
-// Inline script to apply theme before paint — prevents flash
+// Inline script to apply theme before paint — prevents flash.
+// SECURITY: This inline script MUST receive the CSP nonce (applied via the
+// `nonce` attribute below) to execute under our strict Content-Security-Policy.
+// Without the nonce, the browser will block it. If you modify this script,
+// ensure it remains minimal and cannot be influenced by user input.
 const themeScript = `
   (function() {
     try {
@@ -108,12 +112,26 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" className="dark">
       <head>
         <script nonce={nonce} dangerouslySetInnerHTML={{ __html: themeScript }} />
+        {/*
+          ── Third-Party Scripts: GA4 & Meta Pixel ──────────────────────────
+          SECURITY NOTES:
+          • All inline scripts receive the per-request CSP nonce (see middleware.ts).
+          • External scripts (gtag.js, fbevents.js) are loaded from domains
+            allowlisted in our script-src CSP directive.
+          • crossOrigin="anonymous" enables CORS error reporting and prevents
+            credentials from leaking to the CDN.
+          • Subresource Integrity (SRI) is NOT used because Google and Meta
+            serve these files dynamically — the content hash changes on every
+            request, so a pinned `integrity` attribute would immediately break.
+            If SRI becomes critical, self-host the scripts and pin the hash.
+        */}
         {GA_ID && (
           <>
             <Script
               src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
               strategy="afterInteractive"
               nonce={nonce}
+              crossOrigin="anonymous"
             />
             <Script id="google-analytics" strategy="afterInteractive" nonce={nonce}>
               {`
@@ -134,6 +152,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 n.callMethod.apply(n,arguments):n.queue.push(arguments)};
                 if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
                 n.queue=[];t=b.createElement(e);t.async=!0;
+                t.crossOrigin='anonymous';
                 t.src=v;s=b.getElementsByTagName(e)[0];
                 s.parentNode.insertBefore(t,s)}(window, document,'script',
                 'https://connect.facebook.net/en_US/fbevents.js');
