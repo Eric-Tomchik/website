@@ -20,6 +20,9 @@ import {
   TrendingUp,
   RefreshCw,
   Zap,
+  MousePointerClick,
+  Crosshair,
+  Loader2,
 } from 'lucide-react';
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useQuery } from 'convex/react';
@@ -194,6 +197,90 @@ function TrendBadge({ pct, invertColor = false }: { pct: number; invertColor?: b
       {Math.abs(pct)}%
     </span>
   );
+}
+
+// ── GSC Types & Hook ─────────────────────────────────────────────────────────
+
+interface GSCOverview {
+  clicks: number;
+  impressions: number;
+  ctr: number;
+  position: number;
+  trends: { clicks: number; impressions: number; ctr: number; position: number };
+  prev: { clicks: number; impressions: number; ctr: number; position: number };
+  dailySeries: { date: string; clicks: number; impressions: number; ctr: number; position: number }[];
+}
+
+interface GSCQuery {
+  query: string;
+  clicks: number;
+  impressions: number;
+  ctr: number;
+  position: number;
+}
+
+interface GSCPage {
+  page: string;
+  clicks: number;
+  impressions: number;
+  ctr: number;
+  position: number;
+}
+
+interface GSCDevice {
+  device: string;
+  clicks: number;
+  impressions: number;
+  ctr: number;
+  position: number;
+}
+
+interface GSCCountry {
+  country: string;
+  clicks: number;
+  impressions: number;
+  ctr: number;
+  position: number;
+}
+
+interface GSCData {
+  overview: GSCOverview;
+  queries: GSCQuery[];
+  pages: GSCPage[];
+  devices: GSCDevice[];
+  countries: GSCCountry[];
+  _source?: string;
+  _cachedAt?: number;
+}
+
+function useGSC(days: number) {
+  const [data, setData] = useState<GSCData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/gsc?days=${days}`);
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || `HTTP ${res.status}`);
+      }
+      const json = await res.json();
+      setData(json);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [days]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, error, loading, refresh: fetchData };
 }
 
 // ── SEO helpers ──────────────────────────────────────────────────────────────
@@ -474,9 +561,13 @@ export default function AdminAnalyticsPage() {
   const books = useQuery(api.books.list, {}) ?? [];
   const [period, setPeriod] = useState<7 | 30 | 90>(30);
   const [activeTab, setActiveTab] = useState<'analytics' | 'seo'>('analytics');
+  const [gscPeriod, setGscPeriod] = useState<7 | 28 | 90>(28);
+  const [gscSubTab, setGscSubTab] = useState<'overview' | 'queries' | 'pages' | 'audit'>('overview');
 
   const { data: historical, error: histError, loading: histLoading, refresh: histRefresh } =
     useAnalytics<HistoricalData>('historical', period, 300_000);
+
+  const { data: gsc, error: gscError, loading: gscLoading, refresh: gscRefresh } = useGSC(gscPeriod);
 
   const overallChecks = useMemo(() => books.flatMap((b) => getBookSeoChecks(b)), [books]);
   const overallScore = overallChecks.length > 0
@@ -787,132 +878,421 @@ export default function AdminAnalyticsPage() {
       ) : (
         /* ── SEO Tab ──────────────────────────────────────────────────── */
         <>
-          {/* SEO Quick Stats */}
-          <div className="grid sm:grid-cols-3 gap-3">
-            <div className="card p-3">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-medium text-surface-400">Analytics</span>
-                <BarChart3 className="w-3.5 h-3.5 text-green-400" />
-              </div>
-              <div className="flex items-center gap-1 text-[11px] text-green-400">
-                <CheckCircle className="w-3 h-3" />
-                Tracking active
-              </div>
+          {/* GSC period selector + sub-tabs */}
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex gap-1">
+              {(['overview', 'queries', 'pages', 'audit'] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setGscSubTab(t)}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors capitalize ${
+                    gscSubTab === t
+                      ? 'bg-brand-500/20 text-brand-400 border border-brand-500/30'
+                      : 'bg-surface-800 text-surface-400 hover:text-white border border-transparent'
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
             </div>
-
-            <div className="card p-3">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-medium text-surface-400">SEO Health</span>
-                <Search className="w-3.5 h-3.5 text-brand-400" />
-              </div>
-              <div className="text-xl font-bold text-white">{overallScore}%</div>
-              <div className="text-[10px] text-surface-500">{books.length} books</div>
-            </div>
-
-            <div className="card p-3">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-medium text-surface-400">Schema Markup</span>
-                <FileText className="w-3.5 h-3.5 text-yellow-400" />
-              </div>
-              <div className="text-xl font-bold text-white">{books.length}</div>
-              <div className="text-[10px] text-surface-500">pages w/ structured data</div>
+            <div className="flex items-center gap-1.5">
+              {([7, 28, 90] as const).map((d) => (
+                <button
+                  key={d}
+                  onClick={() => setGscPeriod(d)}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${
+                    gscPeriod === d
+                      ? 'bg-brand-500/20 text-brand-400 border border-brand-500/30'
+                      : 'bg-surface-800 text-surface-400 hover:text-white border border-transparent'
+                  }`}
+                >
+                  {d}d
+                </button>
+              ))}
+              <button
+                onClick={gscRefresh}
+                className="ml-1 text-surface-500 hover:text-white transition-colors text-[11px] flex items-center gap-1"
+              >
+                <RefreshCw className={`w-3 h-3 ${gscLoading ? 'animate-spin' : ''}`} />
+                Refresh
+              </button>
             </div>
           </div>
 
-          {/* Book SEO Audit — compact */}
-          <div className="card p-4">
-            <div className="flex items-baseline justify-between mb-3">
-              <h2 className="text-sm font-semibold text-white">Book SEO Audit</h2>
-              <span className="text-[10px] text-surface-500">JSON-LD on each page</span>
+          {gscError ? (
+            <div className="card p-4 border-yellow-500/20">
+              <div className="flex items-start gap-2 text-yellow-400 text-xs">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium mb-1">{gscError}</p>
+                  {gscError.includes('setup') || gscError.includes('No GSC data') ? (
+                    <div className="text-surface-400 space-y-0.5 mt-2">
+                      <p>To connect Google Search Console:</p>
+                      <p>1. Go to Search Console → Settings → Users and permissions</p>
+                      <p>2. Add your service account email as a Full user</p>
+                      <p>3. Set <code className="text-xs bg-surface-800 px-1 py-0.5 rounded">GSC_SITE_URL</code> env var (e.g. <code className="text-xs bg-surface-800 px-1 py-0.5 rounded">https://erictomchik.com</code>)</p>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
             </div>
-            <div className="space-y-3">
-              {books.map((book) => {
-                const checks = getBookSeoChecks(book);
-                return (
-                  <div key={book._id} className="p-3 rounded-lg bg-surface-900/50 border border-surface-800">
-                    <div className="flex items-center justify-between gap-3 mb-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        {book.cover_image_url && (
-                          <img src={book.cover_image_url} alt="" className="w-7 h-10 rounded object-cover border border-surface-700 shrink-0" />
-                        )}
-                        <div className="min-w-0">
-                          <h3 className="text-xs text-white font-medium truncate">{book.title}</h3>
-                          <a href={`/books/${book.slug}`} target="_blank" className="text-[10px] text-brand-400 hover:text-brand-300">
-                            /books/{book.slug}
-                          </a>
+          ) : gscLoading && !gsc ? (
+            <div className="card p-8 flex items-center justify-center">
+              <Loader2 className="w-5 h-5 text-brand-400 animate-spin" />
+            </div>
+          ) : null}
+
+          {/* Overview sub-tab */}
+          {gscSubTab === 'overview' && gsc && (
+            <>
+              {/* Stat cards with sparklines */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {[
+                  { label: 'Clicks', value: gsc.overview.clicks.toLocaleString(), trend: gsc.overview.trends.clicks, color: '#6366f1', series: gsc.overview.dailySeries.map((d) => d.clicks) },
+                  { label: 'Impressions', value: gsc.overview.impressions.toLocaleString(), trend: gsc.overview.trends.impressions, color: '#06b6d4', series: gsc.overview.dailySeries.map((d) => d.impressions) },
+                  { label: 'Avg CTR', value: `${gsc.overview.ctr}%`, trend: gsc.overview.trends.ctr, color: '#10b981', series: gsc.overview.dailySeries.map((d) => d.ctr) },
+                  { label: 'Avg Position', value: gsc.overview.position.toFixed(1), trend: gsc.overview.trends.position, color: '#f59e0b', series: gsc.overview.dailySeries.map((d) => d.position), invert: true },
+                ].map((stat) => (
+                  <div key={stat.label} className="card p-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[11px] font-medium text-surface-400">{stat.label}</span>
+                      <TrendBadge pct={stat.trend} invertColor={stat.invert} />
+                    </div>
+                    <div className="text-xl font-bold text-white mb-2">{stat.value}</div>
+                    <Sparkline values={stat.series} color={stat.color} height={24} />
+                  </div>
+                ))}
+              </div>
+
+              {/* Click & Impression daily chart */}
+              <div className="card p-4">
+                <h2 className="text-sm font-semibold text-white mb-3">Daily Performance</h2>
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="w-2 h-2 rounded-full bg-indigo-500" />
+                      <span className="text-[11px] text-surface-400">Clicks</span>
+                    </div>
+                    <Sparkline values={gsc.overview.dailySeries.map((d) => d.clicks)} color="#6366f1" height={40} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="w-2 h-2 rounded-full bg-cyan-500" />
+                      <span className="text-[11px] text-surface-400">Impressions</span>
+                    </div>
+                    <Sparkline values={gsc.overview.dailySeries.map((d) => d.impressions)} color="#06b6d4" height={40} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Device + Country breakdown */}
+              <div className="grid lg:grid-cols-2 gap-3">
+                <div className="card p-4">
+                  <h2 className="text-sm font-semibold text-white mb-2">Devices</h2>
+                  <div className="space-y-1.5">
+                    {gsc.devices.map((d) => {
+                      const DevIcon = d.device === 'MOBILE' ? Smartphone : d.device === 'TABLET' ? Tablet : Monitor;
+                      const total = gsc.devices.reduce((s, x) => s + x.clicks, 0) || 1;
+                      return (
+                        <div key={d.device} className="flex items-center gap-2">
+                          <DevIcon className="w-3.5 h-3.5 text-surface-500 shrink-0" />
+                          <span className="text-[11px] text-white font-medium w-16">{d.device.charAt(0) + d.device.slice(1).toLowerCase()}</span>
+                          <div className="flex-1 h-1.5 bg-surface-800 rounded-full overflow-hidden">
+                            <div className="h-full bg-brand-500 rounded-full" style={{ width: `${(d.clicks / total) * 100}%` }} />
+                          </div>
+                          <span className="text-[10px] text-surface-400 w-10 text-right">{d.clicks}</span>
+                          <span className="text-[10px] text-surface-500 w-10 text-right">{d.ctr}%</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="card p-4">
+                  <h2 className="text-sm font-semibold text-white mb-2">Countries</h2>
+                  <div className="space-y-1">
+                    {gsc.countries.slice(0, 8).map((c) => (
+                      <div key={c.country} className="flex items-center justify-between px-2 py-1 rounded bg-surface-900/50">
+                        <span className="text-[11px] text-white font-medium">{c.country}</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-[10px] text-surface-400">{c.clicks} clicks</span>
+                          <span className="text-[10px] text-surface-500">{c.impressions.toLocaleString()} imp</span>
+                          <span className="text-[10px] text-brand-400">{c.ctr}%</span>
                         </div>
                       </div>
-                      <SeoScore checks={checks} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Period comparison */}
+              <div className="card p-4">
+                <h2 className="text-sm font-semibold text-white mb-3">Period Comparison</h2>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  {[
+                    { label: 'Clicks', current: gsc.overview.clicks, prev: gsc.overview.prev.clicks },
+                    { label: 'Impressions', current: gsc.overview.impressions, prev: gsc.overview.prev.impressions },
+                    { label: 'CTR', current: `${gsc.overview.ctr}%`, prev: `${gsc.overview.prev.ctr}%` },
+                    { label: 'Position', current: gsc.overview.position.toFixed(1), prev: gsc.overview.prev.position.toFixed(1) },
+                  ].map((item) => (
+                    <div key={item.label} className="p-2 rounded-lg bg-surface-900/50 border border-surface-800">
+                      <div className="text-[10px] text-surface-500 mb-1">{item.label}</div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-sm font-bold text-white">{typeof item.current === 'number' ? item.current.toLocaleString() : item.current}</span>
+                        <span className="text-[10px] text-surface-500">vs {typeof item.prev === 'number' ? item.prev.toLocaleString() : item.prev}</span>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1">
-                      {checks.map((check) => (
-                        <div
-                          key={check.label}
-                          className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] ${
-                            check.pass ? 'bg-green-500/5 text-green-400' : 'bg-red-500/5 text-red-400'
-                          }`}
-                        >
-                          {check.pass ? <CheckCircle className="w-2.5 h-2.5 shrink-0" /> : <AlertCircle className="w-2.5 h-2.5 shrink-0" />}
-                          <span className="font-medium">{check.label}</span>
-                          <span className="text-surface-500 ml-auto text-[9px] truncate">{check.detail}</span>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Queries sub-tab */}
+          {gscSubTab === 'queries' && gsc && (
+            <div className="card p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-semibold text-white">Top Search Queries</h2>
+                <span className="text-[10px] text-surface-500">{gsc.queries.length} queries</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-surface-800">
+                      <th className="text-[10px] font-medium text-surface-500 pb-2 pr-4">Query</th>
+                      <th className="text-[10px] font-medium text-surface-500 pb-2 pr-3 text-right">Clicks</th>
+                      <th className="text-[10px] font-medium text-surface-500 pb-2 pr-3 text-right">Impressions</th>
+                      <th className="text-[10px] font-medium text-surface-500 pb-2 pr-3 text-right">CTR</th>
+                      <th className="text-[10px] font-medium text-surface-500 pb-2 text-right">Position</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {gsc.queries.map((q, i) => (
+                      <tr key={q.query} className={`border-b border-surface-800/50 ${i % 2 === 0 ? '' : 'bg-surface-900/30'}`}>
+                        <td className="py-1.5 pr-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-surface-600 w-4">{i + 1}</span>
+                            <Search className="w-3 h-3 text-surface-600 shrink-0" />
+                            <span className="text-[11px] text-white font-medium">{q.query}</span>
+                          </div>
+                        </td>
+                        <td className="py-1.5 pr-3 text-right">
+                          <span className="text-[11px] text-brand-400 font-semibold">{q.clicks}</span>
+                        </td>
+                        <td className="py-1.5 pr-3 text-right">
+                          <span className="text-[11px] text-surface-300">{q.impressions.toLocaleString()}</span>
+                        </td>
+                        <td className="py-1.5 pr-3 text-right">
+                          <span className={`text-[11px] font-medium ${q.ctr >= 5 ? 'text-green-400' : q.ctr >= 2 ? 'text-yellow-400' : 'text-surface-400'}`}>
+                            {q.ctr}%
+                          </span>
+                        </td>
+                        <td className="py-1.5 text-right">
+                          <span className={`text-[11px] font-medium ${q.position <= 10 ? 'text-green-400' : q.position <= 20 ? 'text-yellow-400' : 'text-surface-400'}`}>
+                            {q.position}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {gsc.queries.length === 0 && (
+                <p className="text-xs text-surface-500 text-center py-4">No query data yet for this period.</p>
+              )}
+            </div>
+          )}
+
+          {/* Pages sub-tab */}
+          {gscSubTab === 'pages' && gsc && (
+            <div className="card p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-semibold text-white">Top Pages in Search</h2>
+                <span className="text-[10px] text-surface-500">{gsc.pages.length} pages</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-surface-800">
+                      <th className="text-[10px] font-medium text-surface-500 pb-2 pr-4">Page</th>
+                      <th className="text-[10px] font-medium text-surface-500 pb-2 pr-3 text-right">Clicks</th>
+                      <th className="text-[10px] font-medium text-surface-500 pb-2 pr-3 text-right">Impressions</th>
+                      <th className="text-[10px] font-medium text-surface-500 pb-2 pr-3 text-right">CTR</th>
+                      <th className="text-[10px] font-medium text-surface-500 pb-2 text-right">Position</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {gsc.pages.map((p, i) => (
+                      <tr key={p.page} className={`border-b border-surface-800/50 ${i % 2 === 0 ? '' : 'bg-surface-900/30'}`}>
+                        <td className="py-1.5 pr-4">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Globe className="w-3 h-3 text-surface-600 shrink-0" />
+                            <a
+                              href={`https://erictomchik.com${p.page}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[11px] text-brand-400 hover:text-brand-300 font-medium truncate max-w-[300px]"
+                            >
+                              {p.page || '/'}
+                            </a>
+                          </div>
+                        </td>
+                        <td className="py-1.5 pr-3 text-right">
+                          <span className="text-[11px] text-brand-400 font-semibold">{p.clicks}</span>
+                        </td>
+                        <td className="py-1.5 pr-3 text-right">
+                          <span className="text-[11px] text-surface-300">{p.impressions.toLocaleString()}</span>
+                        </td>
+                        <td className="py-1.5 pr-3 text-right">
+                          <span className={`text-[11px] font-medium ${p.ctr >= 5 ? 'text-green-400' : p.ctr >= 2 ? 'text-yellow-400' : 'text-surface-400'}`}>
+                            {p.ctr}%
+                          </span>
+                        </td>
+                        <td className="py-1.5 text-right">
+                          <span className={`text-[11px] font-medium ${p.position <= 10 ? 'text-green-400' : p.position <= 20 ? 'text-yellow-400' : 'text-surface-400'}`}>
+                            {p.position}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {gsc.pages.length === 0 && (
+                <p className="text-xs text-surface-500 text-center py-4">No page data yet for this period.</p>
+              )}
+            </div>
+          )}
+
+          {/* Audit sub-tab — existing book audit + schema + tips */}
+          {gscSubTab === 'audit' && (
+            <>
+              {/* Quick stats row */}
+              <div className="grid sm:grid-cols-3 gap-3">
+                <div className="card p-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[11px] font-medium text-surface-400">Analytics</span>
+                    <BarChart3 className="w-3.5 h-3.5 text-green-400" />
+                  </div>
+                  <div className="flex items-center gap-1 text-[11px] text-green-400">
+                    <CheckCircle className="w-3 h-3" />
+                    Tracking active
+                  </div>
+                </div>
+                <div className="card p-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[11px] font-medium text-surface-400">SEO Health</span>
+                    <Search className="w-3.5 h-3.5 text-brand-400" />
+                  </div>
+                  <div className="text-xl font-bold text-white">{overallScore}%</div>
+                  <div className="text-[10px] text-surface-500">{books.length} books</div>
+                </div>
+                <div className="card p-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[11px] font-medium text-surface-400">Schema Markup</span>
+                    <FileText className="w-3.5 h-3.5 text-yellow-400" />
+                  </div>
+                  <div className="text-xl font-bold text-white">{books.length}</div>
+                  <div className="text-[10px] text-surface-500">pages w/ structured data</div>
+                </div>
+              </div>
+
+              {/* Book SEO Audit */}
+              <div className="card p-4">
+                <div className="flex items-baseline justify-between mb-3">
+                  <h2 className="text-sm font-semibold text-white">Book SEO Audit</h2>
+                  <span className="text-[10px] text-surface-500">JSON-LD on each page</span>
+                </div>
+                <div className="space-y-3">
+                  {books.map((book) => {
+                    const checks = getBookSeoChecks(book);
+                    return (
+                      <div key={book._id} className="p-3 rounded-lg bg-surface-900/50 border border-surface-800">
+                        <div className="flex items-center justify-between gap-3 mb-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            {book.cover_image_url && (
+                              <img src={book.cover_image_url} alt="" className="w-7 h-10 rounded object-cover border border-surface-700 shrink-0" />
+                            )}
+                            <div className="min-w-0">
+                              <h3 className="text-xs text-white font-medium truncate">{book.title}</h3>
+                              <a href={`/books/${book.slug}`} target="_blank" className="text-[10px] text-brand-400 hover:text-brand-300">
+                                /books/{book.slug}
+                              </a>
+                            </div>
+                          </div>
+                          <SeoScore checks={checks} />
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Site Pages + SEO Tips — side by side */}
-          <div className="grid lg:grid-cols-2 gap-3">
-            <div className="card p-4">
-              <h2 className="text-sm font-semibold text-white mb-2">Site Pages</h2>
-              <div className="space-y-1">
-                {sitePages.map((page) => (
-                  <div key={page.path} className="flex items-center justify-between px-2 py-1.5 rounded bg-surface-900/50 border border-surface-800">
-                    <div className="flex items-center gap-2">
-                      <Globe className="w-3 h-3 text-surface-500" />
-                      <span className="text-[11px] text-white font-medium">{page.title}</span>
-                      <span className="text-[10px] text-surface-500">{page.path}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[9px] text-surface-500 hidden sm:inline">{page.note}</span>
-                      {page.hasSchema ? (
-                        <span className="flex items-center gap-0.5 text-[9px] text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded">
-                          <CheckCircle className="w-2.5 h-2.5" /> ✓
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-0.5 text-[9px] text-surface-500 bg-surface-800 px-1.5 py-0.5 rounded">
-                          <AlertCircle className="w-2.5 h-2.5" /> —
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1">
+                          {checks.map((check) => (
+                            <div
+                              key={check.label}
+                              className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] ${
+                                check.pass ? 'bg-green-500/5 text-green-400' : 'bg-red-500/5 text-red-400'
+                              }`}
+                            >
+                              {check.pass ? <CheckCircle className="w-2.5 h-2.5 shrink-0" /> : <AlertCircle className="w-2.5 h-2.5 shrink-0" />}
+                              <span className="font-medium">{check.label}</span>
+                              <span className="text-surface-500 ml-auto text-[9px] truncate">{check.detail}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
 
-            <div className="card p-4">
-              <h2 className="text-sm font-semibold text-white mb-2">SEO Tips</h2>
-              <div className="space-y-2">
-                {[
-                  { icon: Tag, title: 'Fill all metadata', desc: 'ISBN, page count, published date → rich results.' },
-                  { icon: FileText, title: 'Long descriptions', desc: 'Detailed content improves ranking.' },
-                  { icon: Search, title: 'Submit sitemap', desc: 'sitemap.xml → Google Search Console.' },
-                  { icon: Globe, title: 'Get backlinks', desc: 'Goodreads, BookBub, review sites.' },
-                ].map((tip) => (
-                  <div key={tip.title} className="flex gap-2 p-2 rounded bg-surface-900/50">
-                    <tip.icon className="w-3.5 h-3.5 text-brand-400 shrink-0 mt-0.5" />
-                    <div>
-                      <div className="text-[11px] font-medium text-white">{tip.title}</div>
-                      <div className="text-[10px] text-surface-500">{tip.desc}</div>
-                    </div>
+              {/* Site Pages + SEO Tips */}
+              <div className="grid lg:grid-cols-2 gap-3">
+                <div className="card p-4">
+                  <h2 className="text-sm font-semibold text-white mb-2">Site Pages</h2>
+                  <div className="space-y-1">
+                    {sitePages.map((page) => (
+                      <div key={page.path} className="flex items-center justify-between px-2 py-1.5 rounded bg-surface-900/50 border border-surface-800">
+                        <div className="flex items-center gap-2">
+                          <Globe className="w-3 h-3 text-surface-500" />
+                          <span className="text-[11px] text-white font-medium">{page.title}</span>
+                          <span className="text-[10px] text-surface-500">{page.path}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[9px] text-surface-500 hidden sm:inline">{page.note}</span>
+                          {page.hasSchema ? (
+                            <span className="flex items-center gap-0.5 text-[9px] text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded">
+                              <CheckCircle className="w-2.5 h-2.5" /> ✓
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-0.5 text-[9px] text-surface-500 bg-surface-800 px-1.5 py-0.5 rounded">
+                              <AlertCircle className="w-2.5 h-2.5" /> —
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
+
+                <div className="card p-4">
+                  <h2 className="text-sm font-semibold text-white mb-2">SEO Tips</h2>
+                  <div className="space-y-2">
+                    {[
+                      { icon: Tag, title: 'Fill all metadata', desc: 'ISBN, page count, published date → rich results.' },
+                      { icon: FileText, title: 'Long descriptions', desc: 'Detailed content improves ranking.' },
+                      { icon: Search, title: 'Submit sitemap', desc: 'sitemap.xml → Google Search Console.' },
+                      { icon: Globe, title: 'Get backlinks', desc: 'Goodreads, BookBub, review sites.' },
+                    ].map((tip) => (
+                      <div key={tip.title} className="flex gap-2 p-2 rounded bg-surface-900/50">
+                        <tip.icon className="w-3.5 h-3.5 text-brand-400 shrink-0 mt-0.5" />
+                        <div>
+                          <div className="text-[11px] font-medium text-white">{tip.title}</div>
+                          <div className="text-[10px] text-surface-500">{tip.desc}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </>
+          )}
         </>
       )}
     </div>
