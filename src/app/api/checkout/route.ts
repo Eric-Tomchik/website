@@ -4,6 +4,14 @@ import { getConvexClient } from '@/lib/convex';
 import { api } from '../../../../convex/_generated/api';
 import { z } from 'zod';
 
+function getClientIp(req: Request): string {
+  const forwarded = req.headers.get('x-forwarded-for');
+  if (forwarded) return forwarded.split(',')[0].trim();
+  const real = req.headers.get('x-real-ip');
+  if (real) return real;
+  return 'unknown';
+}
+
 const checkoutSchema = z.object({
   items: z.array(
     z.object({
@@ -18,10 +26,30 @@ const checkoutSchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    const convex = getConvexClient();
+
+    // Rate limit: 10 checkout session creations per minute per IP
+    const ip = getClientIp(req);
+    const rateCheck = await convex.mutation(api.rateLimit.check, {
+      key: `checkout:${ip}`,
+      maxAttempts: 10,
+      windowMs: 60_000,
+    });
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Too many checkout attempts. Please try again later.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(Math.ceil((rateCheck.resetAt - Date.now()) / 1000)),
+          },
+        }
+      );
+    }
+
     const body = await req.json();
     const { items, embedded, discount_code } = checkoutSchema.parse(body);
 
-    const convex = getConvexClient();
     const allBooks = await convex.query(api.books.list, { activeOnly: true });
     const books = allBooks.filter((b) =>
       items.some((i) => i.book_id === b._id)

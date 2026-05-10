@@ -28,6 +28,39 @@ export const metadata: Metadata = {
 
 export const revalidate = 3600; // ISR: revalidate every hour
 
+const servicesJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfessionalService',
+  name: 'Eric Tomchik — Web Development Services',
+  url: 'https://erictomchik.com/services',
+  description:
+    'Professional web development services. Custom websites, e-commerce, and web applications built with React, Next.js, and modern tech.',
+  provider: {
+    '@type': 'Person',
+    name: 'Eric Tomchik',
+    url: 'https://erictomchik.com',
+  },
+  areaServed: 'US',
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'Web Development Services',
+    itemListElement: [
+      {
+        '@type': 'Offer',
+        itemOffered: { '@type': 'Service', name: 'Custom Website Development' },
+      },
+      {
+        '@type': 'Offer',
+        itemOffered: { '@type': 'Service', name: 'E-Commerce Development' },
+      },
+      {
+        '@type': 'Offer',
+        itemOffered: { '@type': 'Service', name: 'Web Application Development' },
+      },
+    ],
+  },
+};
+
 export default async function ServicesPage() {
   const client = getConvexClient();
   const plans = await client.query(api.servicePlans.listActive, {});
@@ -48,6 +81,11 @@ export default async function ServicesPage() {
   }));
 
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(servicesJsonLd) }}
+      />
     <div className="py-16">
       <div className="section-container">
         {/* Header */}
@@ -113,5 +151,6 @@ export default async function ServicesPage() {
         </ScrollReveal>
       </div>
     </div>
+    </>
   );
 }

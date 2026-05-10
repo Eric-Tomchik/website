@@ -81,7 +81,7 @@ export async function POST(req: Request) {
             if (!resendRes.ok) {
               console.error('Welcome email error:', resendRes.status, resendData);
             } else {
-              console.log('Welcome email sent to:', email, 'id:', resendData.id);
+              // Welcome email sent successfully
 
               // Log to audit trail
               try {

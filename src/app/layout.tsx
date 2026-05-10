@@ -89,6 +89,23 @@ const organizationJsonLd = {
   },
 };
 
+const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Eric Tomchik',
+  url: 'https://erictomchik.com',
+  description:
+    'Author, web developer, and creator. Browse my books, explore my web development services, and view my portfolio.',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: 'https://erictomchik.com/blog?q={search_term_string}',
+    },
+    'query-input': 'required name=search_term_string',
+  },
+};
+
 // Inline script to apply theme before paint — prevents flash.
 // SECURITY: This inline script MUST receive the CSP nonce (applied via the
 // `nonce` attribute below) to execute under our strict Content-Security-Policy.
@@ -176,6 +193,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
         <ConvexClientProvider>
           <CheckoutProvider>

@@ -142,7 +142,7 @@ export async function POST(req: Request) {
           console.error('Resend API error:', emailError);
         } else {
           emailStatus = 'sent';
-          console.log('Resend email sent:', resendData.id);
+          // Email sent successfully
         }
       } catch (emailErr) {
         emailStatus = 'exception';

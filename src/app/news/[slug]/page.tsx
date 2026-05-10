@@ -132,7 +132,26 @@ export default async function NewsArticlePage({
   const hasFullContent = article.fullContent && article.fullContent.length > 100;
   const sanitizedContent = sanitizeHtml(article.fullContent || article.description);
 
+  const newsArticleJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'NewsArticle',
+    headline: article.title,
+    description: article.description,
+    url: `https://erictomchik.com/news/${slug}`,
+    datePublished: article.pubDate,
+    ...(article.source ? { publisher: { '@type': 'Organization', name: article.source } } : {}),
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `https://erictomchik.com/news/${slug}`,
+    },
+  };
+
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(newsArticleJsonLd) }}
+      />
     <div className="py-16">
       <div className="section-container max-w-3xl">
         {/* Back link */}
@@ -232,5 +251,6 @@ export default async function NewsArticlePage({
         </div>
       </div>
     </div>
+    </>
   );
 }

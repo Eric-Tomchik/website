@@ -40,7 +40,42 @@ export default async function BooksPage({
     format: book_format || undefined,
   });
 
+  // ItemList structured data for the book catalog
+  const booksJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'ArcLight Press — Books by Eric Tomchik',
+    url: 'https://erictomchik.com/books',
+    numberOfItems: books.length,
+    itemListElement: books.map((book, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'Book',
+        name: book.title,
+        url: `https://erictomchik.com/books/${book.slug}`,
+        author: { '@type': 'Person', name: 'Eric Tomchik' },
+        ...(book.description ? { description: book.description } : {}),
+        ...(book.cover_image_url
+          ? { image: book.cover_image_url.startsWith('/') ? `https://erictomchik.com${book.cover_image_url}` : book.cover_image_url }
+          : {}),
+        offers: {
+          '@type': 'Offer',
+          price: (book.price_cents / 100).toFixed(2),
+          priceCurrency: 'USD',
+          availability: 'https://schema.org/InStock',
+          url: `https://erictomchik.com/books/${book.slug}`,
+        },
+      },
+    })),
+  };
+
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(booksJsonLd) }}
+      />
     <div className="py-16">
       <div className="section-container">
         {/* Header */}
@@ -84,5 +119,6 @@ export default async function BooksPage({
         </div>
       </div>
     </div>
+    </>
   );
 }
