@@ -10,6 +10,7 @@ import { X, BookOpen, CheckCircle, Loader2, Tag, Check, Gift, Mail, User } from 
 import { useCheckout } from './CheckoutContext';
 import { PayPalButton } from './PayPalButton';
 import { formatPrice, formatLabel } from '@/lib/utils';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
@@ -32,6 +33,7 @@ function calculateDiscount(price: number, discount: DiscountInfo): number {
 export function CheckoutDrawer() {
   const { state, closeCheckout } = useCheckout();
   const { isOpen, book, format } = state;
+  const trapRef = useFocusTrap<HTMLDivElement>(isOpen);
   const basePrice = book
     ? format === 'digital' && book.digital_price_cents
       ? book.digital_price_cents
@@ -223,7 +225,7 @@ export function CheckoutDrawer() {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6" role="presentation">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in"
@@ -231,7 +233,13 @@ export function CheckoutDrawer() {
       />
 
       {/* Dialog */}
-      <div className="relative w-full max-w-2xl max-h-[90vh] bg-surface-950 border border-surface-800 rounded-2xl shadow-2xl animate-scale-in flex flex-col overflow-hidden">
+      <div
+        ref={trapRef}
+        className="relative w-full max-w-2xl max-h-[90vh] bg-surface-950 border border-surface-800 rounded-2xl shadow-2xl animate-scale-in flex flex-col overflow-hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-label={completed ? 'Order complete' : 'Checkout'}
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-surface-800 flex-shrink-0">
           <h2 className="text-lg font-bold text-white">
@@ -239,7 +247,9 @@ export function CheckoutDrawer() {
           </h2>
           <button
             onClick={closeCheckout}
-            className="p-2 rounded-lg text-surface-400 hover:text-white hover:bg-surface-800 transition-colors"
+            className="p-2 rounded-lg text-surface-400 hover:text-white hover:bg-surface-800 transition-colors
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
+            aria-label="Close checkout"
           >
             <X className="w-5 h-5" />
           </button>

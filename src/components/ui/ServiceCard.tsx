@@ -40,7 +40,7 @@ export function ServiceCard({ plan }: { plan: ServicePlan }) {
       <ul className="space-y-2.5 mb-6 flex-1">
         {plan.features.map((feature) => (
           <li key={feature} className="flex items-start gap-2.5 text-sm text-surface-300">
-            <CheckCircle2 className="w-4 h-4 text-brand-400 mt-0.5 flex-shrink-0" />
+            <CheckCircle2 className="w-4 h-4 text-brand-400 mt-0.5 flex-shrink-0" aria-hidden="true" />
             {feature}
           </li>
         ))}

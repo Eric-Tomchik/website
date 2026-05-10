@@ -77,8 +77,9 @@ export function PortfolioCard({ project }: { project: Project }) {
               target="_blank"
               rel="noopener noreferrer"
               className="btn-secondary text-sm py-2 px-3"
+              aria-label={`View ${project.title} source on GitHub`}
             >
-              <Github className="w-3.5 h-3.5" />
+              <Github className="w-3.5 h-3.5" aria-hidden="true" />
             </a>
           )}
         </div>

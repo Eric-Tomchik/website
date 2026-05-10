@@ -58,16 +58,21 @@
     @apply inline-flex items-center justify-center px-6 py-3 rounded-lg
            bg-brand-600 hover:bg-brand-500 text-white font-medium
            transition-all duration-200 shadow-lg shadow-brand-600/25
-           hover:shadow-brand-500/30 active:scale-[0.98];
+           hover:shadow-brand-500/30 active:scale-[0.98]
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400
+           focus-visible:ring-offset-2 focus-visible:ring-offset-surface-950;
   }
 
   .btn-secondary {
     @apply inline-flex items-center justify-center px-6 py-3 rounded-lg
-           glass glass-hover text-surface-200 font-medium;
+           glass glass-hover text-surface-200 font-medium
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400
+           focus-visible:ring-offset-2 focus-visible:ring-offset-surface-950;
   }
 
   .card {
-    @apply glass rounded-xl overflow-hidden glass-hover;
+    @apply glass rounded-xl overflow-hidden glass-hover
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400;
   }
 
   /* Book description HTML rendering */
@@ -375,7 +380,7 @@ html:not(.dark) .text-surface-400 {
   color: #64748b;
 }
 html:not(.dark) .text-surface-500 {
-  color: #94a3b8;
+  color: #64748b; /* Bumped from #94a3b8 (2.45:1) to #64748b (4.55:1) — passes WCAG AA */
 }
 
 /* Hover text */
@@ -502,6 +507,12 @@ html:not(.dark) .placeholder\:text-surface-500::placeholder {
 /* Ring / focus */
 html:not(.dark) .focus\:ring-brand-500:focus {
   --tw-ring-color: rgba(37, 99, 235, 0.5);
+}
+html:not(.dark) .focus-visible\:ring-brand-400:focus-visible {
+  --tw-ring-color: #2563eb;
+}
+html:not(.dark) .focus-visible\:ring-offset-surface-950:focus-visible {
+  --tw-ring-offset-color: #f8fafc;
 }
 
 /* Announcement banner keeps its gradient — no override needed */

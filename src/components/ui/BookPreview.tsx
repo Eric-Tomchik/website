@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Eye, X, Download, BookOpen } from 'lucide-react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface BookPreviewProps {
   previewUrl: string;
@@ -48,8 +49,9 @@ function PreviewModal({
   onClose,
 }: BookPreviewProps & { onClose: () => void }) {
   const [isMobile, setIsMobile] = useState(false);
+  const trapRef = useFocusTrap<HTMLDivElement>(true);
 
-  // Lock body scroll and detect mobile
+  // Lock body scroll, detect mobile, handle Escape key
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);
@@ -57,22 +59,36 @@ function PreviewModal({
     checkMobile();
 
     document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+
     return () => {
       document.body.style.overflow = '';
+      document.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [onClose]);
 
   return (
     <div
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      role="presentation"
     >
-      <div className="relative w-full h-full max-w-5xl max-h-[92vh] mx-4 my-4 flex flex-col">
+      <div
+        ref={trapRef}
+        className="relative w-full h-full max-w-5xl max-h-[92vh] mx-4 my-4 flex flex-col"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Preview of ${bookTitle}`}
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-4 sm:px-5 py-3 bg-surface-900/95 backdrop-blur border border-surface-700/50 rounded-t-xl shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-8 h-8 rounded-lg bg-brand-600/20 border border-brand-600/30 flex items-center justify-center shrink-0">
-              <BookOpen className="w-4 h-4 text-brand-400" />
+              <BookOpen className="w-4 h-4 text-brand-400" aria-hidden="true" />
             </div>
             <div className="min-w-0">
               <h3 className="text-sm font-bold text-white leading-tight truncate">{bookTitle}</h3>
@@ -83,15 +99,17 @@ function PreviewModal({
             <a
               href={previewUrl}
               download
-              className="p-2 rounded-lg text-surface-400 hover:text-white hover:bg-surface-700/50 transition-colors"
-              title="Download preview"
+              className="p-2 rounded-lg text-surface-400 hover:text-white hover:bg-surface-700/50 transition-colors
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
+              aria-label={`Download ${bookTitle} preview`}
             >
               <Download className="w-4 h-4" />
             </a>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg text-surface-400 hover:text-white hover:bg-surface-700/50 transition-colors"
-              title="Close preview"
+              className="p-2 rounded-lg text-surface-400 hover:text-white hover:bg-surface-700/50 transition-colors
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
+              aria-label="Close preview"
             >
               <X className="w-5 h-5" />
             </button>

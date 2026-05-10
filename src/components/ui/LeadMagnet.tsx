@@ -69,7 +69,7 @@ export function LeadMagnet({
         <ul className="space-y-1.5 mb-6 ml-1">
           {previewItems.map((item) => (
             <li key={item} className="flex items-center gap-2 text-sm text-surface-300">
-              <CheckCircle2 className="w-3.5 h-3.5 text-brand-400 flex-shrink-0" />
+              <CheckCircle2 className="w-3.5 h-3.5 text-brand-400 flex-shrink-0" aria-hidden="true" />
               {item}
             </li>
           ))}
@@ -102,6 +102,7 @@ export function LeadMagnet({
                 onChange={(e) => { setEmail(e.target.value); if (status === 'error') setStatus('locked'); }}
                 placeholder="you@email.com"
                 required
+                aria-label="Email address to unlock download"
                 className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-surface-800 border border-surface-700
                            text-sm text-white placeholder:text-surface-500
                            focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
@@ -123,7 +124,7 @@ export function LeadMagnet({
             </button>
           </div>
           {status === 'error' && (
-            <p className="text-xs text-red-400">{errorMsg}</p>
+            <p className="text-xs text-red-400" role="alert">{errorMsg}</p>
           )}
           <p className="text-[11px] text-surface-500">
             Free download — just enter your email. You&apos;ll also get occasional insights on business credit, tech, and web development. Unsubscribe anytime.

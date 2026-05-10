@@ -251,11 +251,15 @@ export default function AdminSidebar() {
         <div
           className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
           onClick={() => setMobileOpen(false)}
+          role="presentation"
         >
           <aside
             className="absolute left-0 top-0 bottom-0 w-72 max-w-[85vw] glass border-r border-surface-800/50
                        flex flex-col shadow-2xl animate-slide-in-left"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Admin navigation"
           >
             {sidebarContent}
           </aside>

@@ -77,10 +77,11 @@ export function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-9 h-9 rounded-lg bg-surface-800 hover:bg-brand-600
-                             flex items-center justify-center transition-colors"
+                             flex items-center justify-center transition-colors
+                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
                   aria-label={social.label}
                 >
-                  <social.icon className="w-4 h-4 text-surface-300 hover:text-white" />
+                  <social.icon className="w-4 h-4 text-surface-300 hover:text-white" aria-hidden="true" />
                 </a>
               ))}
               <a
@@ -88,7 +89,8 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-lg bg-surface-800 hover:bg-brand-600
-                           flex items-center justify-center transition-colors"
+                           flex items-center justify-center transition-colors
+                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
                 aria-label="TikTok"
               >
                 <svg className="w-4 h-4 text-surface-300" fill="currentColor" viewBox="0 0 24 24">
@@ -99,7 +101,7 @@ export function Footer() {
           </div>
 
           {footerLinks.map((group) => (
-            <div key={group.title}>
+            <nav key={group.title} aria-label={group.title}>
               <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
                 {group.title}
               </h4>
@@ -108,14 +110,15 @@ export function Footer() {
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-sm text-surface-400 hover:text-brand-400 transition-colors"
+                      className="text-sm text-surface-400 hover:text-brand-400 transition-colors
+                                 focus-visible:outline-none focus-visible:text-brand-400"
                     >
                       {link.label}
                     </Link>
                   </li>
                 ))}
               </ul>
-            </div>
+            </nav>
           ))}
         </div>
 
@@ -125,10 +128,12 @@ export function Footer() {
             © {new Date().getFullYear()} Eric Tomchik. All rights reserved.
           </p>
           <div className="flex items-center gap-4 text-sm text-surface-500">
-            <Link href="/privacy" className="hover:text-surface-300 transition-colors">
+            <Link href="/privacy" className="hover:text-surface-300 transition-colors
+                       focus-visible:outline-none focus-visible:text-surface-300">
               Privacy Policy
             </Link>
-            <Link href="/terms" className="hover:text-surface-300 transition-colors">
+            <Link href="/terms" className="hover:text-surface-300 transition-colors
+                       focus-visible:outline-none focus-visible:text-surface-300">
               Terms of Service
             </Link>
           </div>

@@ -57,15 +57,16 @@ export function BlogNewsletterCTA() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex gap-2">
+      <form onSubmit={handleSubmit} className="flex gap-2" aria-label="Blog newsletter signup">
         <div className="relative flex-1">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500" />
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500" aria-hidden="true" />
           <input
             type="email"
             value={email}
             onChange={(e) => { setEmail(e.target.value); setStatus('idle'); }}
             placeholder="you@email.com"
             required
+            aria-label="Email address"
             className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-surface-800 border border-surface-700
                        text-sm text-white placeholder:text-surface-500
                        focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
@@ -76,10 +77,10 @@ export function BlogNewsletterCTA() {
           disabled={status === 'loading'}
           className="btn-primary text-sm py-2.5 px-5 whitespace-nowrap disabled:opacity-50"
         >
-          {status === 'loading' ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Subscribe'}
+          {status === 'loading' ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : 'Subscribe'}
         </button>
       </form>
-      {status === 'error' && <p className="text-xs text-red-400 mt-2">{message}</p>}
+      {status === 'error' && <p className="text-xs text-red-400 mt-2" role="alert">{message}</p>}
     </div>
   );
 }

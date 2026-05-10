@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, X, FileText, BookOpen, Globe, ArrowRight } from 'lucide-react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface SearchItem {
   title: string;
@@ -20,6 +21,7 @@ export function SearchModal({ items }: SearchModalProps) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const trapRef = useFocusTrap<HTMLDivElement>(isOpen);
   const router = useRouter();
 
   // Filter items
@@ -119,15 +121,20 @@ export function SearchModal({ items }: SearchModalProps) {
         <div
           className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-start justify-center pt-[15vh]"
           onClick={() => setIsOpen(false)}
+          role="presentation"
         >
           {/* Modal */}
           <div
+            ref={trapRef}
             className="w-full max-w-xl mx-4 bg-surface-900 border border-surface-700 rounded-2xl shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Site search"
           >
             {/* Search input */}
             <div className="flex items-center gap-3 px-4 border-b border-surface-800">
-              <Search className="w-5 h-5 text-surface-500 flex-shrink-0" />
+              <Search className="w-5 h-5 text-surface-500 flex-shrink-0" aria-hidden="true" />
               <input
                 ref={inputRef}
                 type="text"
@@ -135,50 +142,62 @@ export function SearchModal({ items }: SearchModalProps) {
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Search articles, books, projects…"
+                aria-label="Search articles, books, and projects"
+                aria-autocomplete="list"
+                aria-controls="search-results"
+                aria-activedescendant={results[selectedIndex] ? `search-result-${selectedIndex}` : undefined}
                 className="flex-1 bg-transparent py-4 text-white placeholder:text-surface-500
                            focus:outline-none text-base"
               />
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1 rounded hover:bg-surface-800 transition-colors"
+                className="p-1 rounded hover:bg-surface-800 transition-colors
+                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
+                aria-label="Close search"
               >
                 <X className="w-4 h-4 text-surface-500" />
               </button>
             </div>
 
             {/* Results */}
-            <div className="max-h-80 overflow-y-auto">
+            <div className="max-h-80 overflow-y-auto" id="search-results" role="listbox" aria-label="Search results">
               {query.trim().length < 2 ? (
                 <div className="px-4 py-8 text-center text-sm text-surface-500">
                   Start typing to search across articles, books, and projects…
                 </div>
               ) : results.length === 0 ? (
-                <div className="px-4 py-8 text-center text-sm text-surface-500">
+                <div className="px-4 py-8 text-center text-sm text-surface-500" role="status" aria-live="polite">
                   No results found for &quot;{query}&quot;
                 </div>
               ) : (
-                <ul className="py-2">
-                  {results.map((item, i) => (
-                    <li key={item.href}>
-                      <button
-                        onClick={() => navigate(item.href)}
-                        onMouseEnter={() => setSelectedIndex(i)}
-                        className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors
-                          ${i === selectedIndex ? 'bg-surface-800/80' : 'hover:bg-surface-800/40'}`}
-                      >
-                        <div className="mt-0.5 flex-shrink-0">{typeIcon(item.type)}</div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-white truncate">{item.title}</div>
-                          <div className="text-xs text-surface-400 truncate mt-0.5">{item.description}</div>
-                        </div>
-                        <div className="flex items-center gap-2 flex-shrink-0 mt-0.5">
-                          <span className="text-[10px] text-surface-500 uppercase tracking-wider">{typeLabel(item.type)}</span>
-                          <ArrowRight className="w-3 h-3 text-surface-600" />
-                        </div>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                <>
+                  <div className="sr-only" role="status" aria-live="polite">
+                    {results.length} result{results.length !== 1 ? 's' : ''} found
+                  </div>
+                  <ul className="py-2">
+                    {results.map((item, i) => (
+                      <li key={item.href} id={`search-result-${i}`} role="option" aria-selected={i === selectedIndex}>
+                        <button
+                          onClick={() => navigate(item.href)}
+                          onMouseEnter={() => setSelectedIndex(i)}
+                          className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors
+                            ${i === selectedIndex ? 'bg-surface-800/80' : 'hover:bg-surface-800/40'}`}
+                          tabIndex={-1}
+                        >
+                          <div className="mt-0.5 flex-shrink-0">{typeIcon(item.type)}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-white truncate">{item.title}</div>
+                            <div className="text-xs text-surface-400 truncate mt-0.5">{item.description}</div>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0 mt-0.5">
+                            <span className="text-[10px] text-surface-500 uppercase tracking-wider">{typeLabel(item.type)}</span>
+                            <ArrowRight className="w-3 h-3 text-surface-600" />
+                          </div>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
               )}
             </div>
 

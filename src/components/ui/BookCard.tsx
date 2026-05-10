@@ -46,7 +46,8 @@ export function BookCard({ book }: { book: Book }) {
   const showDigital = hasDigital(book.book_format);
 
   return (
-    <Link href={`/books/${book.slug}`} className="card group flex flex-col cursor-pointer">
+    <Link href={`/books/${book.slug}`} className="card group flex flex-col cursor-pointer
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-950">
       {/* Cover */}
       <div className="relative aspect-[3/4] bg-surface-900 overflow-hidden flex items-center justify-center p-2 sm:p-4">
         {book.cover_image_url ? (

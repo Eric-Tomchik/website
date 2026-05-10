@@ -199,8 +199,8 @@ export default function NewsletterPage() {
 
       {/* Add Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowAddModal(false)}>
-          <div className="card p-6 w-full max-w-md space-y-4" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowAddModal(false)} role="presentation">
+          <div className="card p-6 w-full max-w-md space-y-4" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Add subscriber">
             <h2 className="text-lg font-bold text-white">Add Subscriber</h2>
             <input
               type="email"
@@ -210,6 +210,7 @@ export default function NewsletterPage() {
               onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
               className="w-full px-4 py-2 bg-surface-800 border border-surface-700 rounded-lg text-white placeholder:text-surface-500 focus:outline-none focus:border-brand-500"
               autoFocus
+              aria-label="Subscriber email address"
             />
             <div className="flex gap-3 justify-end">
               <button onClick={() => setShowAddModal(false)} className="btn-secondary text-sm">Cancel</button>
