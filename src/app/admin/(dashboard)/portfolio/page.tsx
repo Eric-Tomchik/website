@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import { Briefcase, Plus, Pencil, Trash2, Eye, EyeOff, ExternalLink } from 'lucide-react';
 import type { Id } from '../../../../../convex/_generated/dataModel';
+import { useQuery } from 'convex/react';
 import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
 
 type Project = {
@@ -24,7 +25,7 @@ type Project = {
 };
 
 export default function AdminPortfolioPage() {
-  const projects = useAdminQuery(api.portfolio.list, {}) ?? [];
+  const projects = useQuery(api.portfolio.list, {}) ?? [];
   const updateProject = useAdminMutation(api.portfolio.update);
   const deleteProject = useAdminMutation(api.portfolio.remove);
 

@@ -36,6 +36,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { Id } from '../../../../../convex/_generated/dataModel';
+import { useQuery, useMutation } from 'convex/react';
 import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
 
 // =========== Client Detail View ===========
@@ -49,7 +50,7 @@ function ClientDetail({ clientId, onBack }: { clientId: Id<'clients'>; onBack: (
   const createDoc = useAdminMutation(api.clientDocuments.create);
   const updateDoc = useAdminMutation(api.clientDocuments.update);
   const removeDoc = useAdminMutation(api.clientDocuments.remove);
-  const generateUploadUrl = useAdminMutation(api.storage.generateUploadUrl);
+  const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
 
   const [tab, setTab] = useState<'overview' | 'projects' | 'tickets' | 'documents'>('overview');
   const [showNewProject, setShowNewProject] = useState(false);
@@ -731,7 +732,7 @@ function DocumentsTab({
 
 // Helper component to download files from Convex storage
 function DownloadButton({ storageId, name }: { storageId: string; name: string }) {
-  const fileUrl = useAdminQuery(api.storage.getUrl, { storageId: storageId as any });
+  const fileUrl = useQuery(api.storage.getUrl, { storageId: storageId as any });
 
   if (!fileUrl) return (
     <span className="p-2 text-surface-600"><Loader2 className="w-4 h-4 animate-spin" /></span>

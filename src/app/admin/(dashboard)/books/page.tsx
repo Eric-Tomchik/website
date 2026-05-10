@@ -13,6 +13,7 @@ import {
 } from '@/lib/utils';
 import type { Id } from '../../../../../convex/_generated/dataModel';
 import type { BookFormat } from '@/lib/utils';
+import { useQuery } from 'convex/react';
 import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
 
 type Book = {
@@ -40,7 +41,7 @@ type Book = {
 };
 
 export default function AdminBooksPage() {
-  const books = useAdminQuery(api.books.list, {}) ?? [];
+  const books = useQuery(api.books.list, {}) ?? [];
   const updateBook = useAdminMutation(api.books.update);
   const deleteBook = useAdminMutation(api.books.remove);
 

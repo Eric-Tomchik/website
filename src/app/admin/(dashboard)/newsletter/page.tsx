@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import type { Id } from '../../../../../convex/_generated/dataModel';
+import { useMutation } from 'convex/react';
 import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
 import {
   Mail,
@@ -21,8 +22,8 @@ type FilterType = 'all' | 'active' | 'inactive';
 export default function NewsletterPage() {
   const subscribers = useAdminQuery(api.newsletter.listAll, {}) ?? [];
   const stats = useAdminQuery(api.newsletter.stats, {}) ?? { total: 0, active: 0, inactive: 0, last30d: 0 };
-  const unsubscribe = useAdminMutation(api.newsletter.unsubscribe);
-  const subscribe = useAdminMutation(api.newsletter.subscribe);
+  const unsubscribe = useMutation(api.newsletter.unsubscribe);
+  const subscribe = useMutation(api.newsletter.subscribe);
   const remove = useAdminMutation(api.newsletter.remove);
 
   const [search, setSearch] = useState('');

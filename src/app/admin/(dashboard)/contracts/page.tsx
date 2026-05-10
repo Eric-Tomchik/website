@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { api } from '../../../../../convex/_generated/api';
 import type { Id } from '../../../../../convex/_generated/dataModel';
 import { generatePDF } from '../../../../lib/pdfGenerator';
+import { useMutation } from 'convex/react';
 import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
 import {
   FileText,
@@ -42,7 +43,7 @@ export default function AIContractGeneratorPage() {
   const clients = useAdminQuery(api.clients.list, {}) ?? [];
   const allProjects = useAdminQuery(api.projects.list, {}) ?? [];
   const createDoc = useAdminMutation(api.clientDocuments.create);
-  const generateUploadUrl = useAdminMutation(api.storage.generateUploadUrl);
+  const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
 
   const [docType, setDocType] = useState<DocType>('contract');
   const [selectedClientId, setSelectedClientId] = useState<string>(preSelectedClient ?? '');

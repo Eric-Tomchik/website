@@ -21,6 +21,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useQuery } from 'convex/react';
 import { useAdminQuery } from '@/hooks/useAdminAuth';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -415,7 +416,7 @@ function RealtimeSection() {
 // ── Main Page ────────────────────────────────────────────────────────────────
 
 export default function AdminAnalyticsPage() {
-  const books = useAdminQuery(api.books.list, {}) ?? [];
+  const books = useQuery(api.books.list, {}) ?? [];
   const [period, setPeriod] = useState<7 | 30 | 90>(30);
   const [activeTab, setActiveTab] = useState<'analytics' | 'seo'>('analytics');
 
