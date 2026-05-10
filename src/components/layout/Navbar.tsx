@@ -37,7 +37,7 @@ export function Navbar() {
       <header className="sticky top-0 z-50 glass border-b border-surface-800/50">
         <div className="section-container">
           <nav className="flex items-center justify-between h-16" aria-label="Main navigation">
-            <Link href="/" className="flex items-center gap-2 group">
+            <Link href="/" className="flex items-center gap-2 shrink-0 group">
               <Image
                 src="/et-monogram.webp"
                 alt="Eric Tomchik logo"
@@ -54,12 +54,12 @@ export function Navbar() {
               />
             </Link>
 
-            <div className="hidden lg:flex items-center gap-1">
+            <div className="hidden lg:flex items-center gap-0.5">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="px-3 py-2 rounded-lg text-sm font-medium text-surface-300
+                  className="px-2.5 py-2 rounded-lg text-sm font-medium text-surface-300 whitespace-nowrap
                              hover:text-white hover:bg-surface-800/60 transition-all
                              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
                 >
