@@ -5,7 +5,8 @@ import Script from 'next/script';
 import './globals.css';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { AnnouncementBanner } from '@/components/layout/AnnouncementBanner';
+// AnnouncementBanner removed from global layout — now only shown on /books pages
+// import { AnnouncementBanner } from '@/components/layout/AnnouncementBanner';
 import ConvexClientProvider from './ConvexClientProvider';
 import { CheckoutProvider } from '@/components/checkout/CheckoutContext';
 import { CheckoutDrawer } from '@/components/checkout/CheckoutDrawer';
@@ -24,33 +25,33 @@ const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
 export const metadata: Metadata = {
   title: {
-    default: 'Eric Tomchik — Author, Web Developer, Creator',
+    default: 'Eric Tomchik — Web Developer, Author, Creator',
     template: '%s | Eric Tomchik',
   },
   description:
-    'Author, web developer, and creator. Browse my books, explore my web development services, and view my portfolio.',
+    'Web developer, author, and creator. Custom websites for Gulf Coast businesses. Explore my web development services, view my portfolio, and browse my books.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://erictomchik.com'),
   openGraph: {
     type: 'website',
     locale: 'en_US',
     url: 'https://erictomchik.com',
     siteName: 'Eric Tomchik',
-    title: 'Eric Tomchik — Author, Web Developer, Creator',
+    title: 'Eric Tomchik — Web Developer, Author, Creator',
     description:
-      'Author, web developer, and creator. Browse my books, explore my web development services, and view my portfolio.',
+      'Web developer, author, and creator. Custom websites for Gulf Coast businesses. Explore my web development services, view my portfolio, and browse my books.',
     images: [
       {
         url: '/og-image.webp',
         width: 1200,
         height: 630,
-        alt: 'Eric Tomchik — Author, Web Developer, Creator',
+        alt: 'Eric Tomchik — Web Developer, Author, Creator',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Eric Tomchik',
-    description: 'Author, Web Developer, Creator',
+    description: 'Web Developer, Author, Creator',
     images: ['/og-image.webp'],
   },
   alternates: {
@@ -95,7 +96,7 @@ const websiteJsonLd = {
   name: 'Eric Tomchik',
   url: 'https://erictomchik.com',
   description:
-    'Author, web developer, and creator. Browse my books, explore my web development services, and view my portfolio.',
+    'Web developer, author, and creator. Custom websites for Gulf Coast businesses. Explore my web development services, view my portfolio, and browse my books.',
   potentialAction: {
     '@type': 'SearchAction',
     target: {
@@ -200,7 +201,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
         <ConvexClientProvider>
           <CheckoutProvider>
-            <AnnouncementBanner />
             <Navbar />
             <main id="main-content" className="flex-1">{children}</main>
             <Footer />

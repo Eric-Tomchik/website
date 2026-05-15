@@ -30,7 +30,7 @@ export default async function HomePage() {
             <div className="space-y-8">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-sm text-brand-400 animate-fade-in">
                 <Sparkles className="w-4 h-4" />
-                Author · Web Developer · Creator
+                Web Developer · Author · Creator
               </div>
 
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-tight">
@@ -45,13 +45,13 @@ export default async function HomePage() {
               </p>
 
               <div className="flex flex-wrap gap-4">
-                <Link href="/books" className="btn-primary text-lg py-4 px-8">
-                  <BookOpen className="w-5 h-5 mr-2" />
-                  Browse My Books
-                </Link>
-                <Link href="/services" className="btn-secondary text-lg py-4 px-8">
+                <Link href="/services" className="btn-primary text-lg py-4 px-8">
                   <Code2 className="w-5 h-5 mr-2" />
                   Hire Me
+                </Link>
+                <Link href="/books" className="btn-secondary text-lg py-4 px-8">
+                  <BookOpen className="w-5 h-5 mr-2" />
+                  Browse My Books
                 </Link>
               </div>
             </div>
@@ -82,11 +82,6 @@ export default async function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             {[
               {
-                icon: BookOpen,
-                stat: `${(books || []).length || '4'}+`,
-                label: 'Books Published',
-              },
-              {
                 icon: Globe,
                 stat: `${websiteCount}`,
                 label: 'Websites Built',
@@ -95,6 +90,11 @@ export default async function HomePage() {
                 icon: Code2,
                 stat: '100%',
                 label: 'Custom Code',
+              },
+              {
+                icon: BookOpen,
+                stat: `${(books || []).length || '4'}+`,
+                label: 'Books Published',
               },
               {
                 icon: Coffee,
@@ -157,16 +157,16 @@ export default async function HomePage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
-                icon: BookOpen,
-                title: 'ArcLight Press',
-                description: 'Premium hardcover business & tech books by Eric Tomchik.',
-                href: '/books',
-              },
-              {
                 icon: Code2,
                 title: 'Web Services',
                 description: 'Custom websites and apps built with modern tech.',
                 href: '/services',
+              },
+              {
+                icon: BookOpen,
+                title: 'ArcLight Press',
+                description: 'Premium hardcover business & tech books by Eric Tomchik.',
+                href: '/books',
               },
               {
                 icon: ClipboardCheck,
