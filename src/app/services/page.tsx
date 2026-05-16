@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { ServiceCard } from '@/components/ui/ServiceCard';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
-import { Code2, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Code2, ArrowRight, CheckCircle2, Shield, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { getConvexClient } from '@/lib/convex';
 import { api } from '../../../convex/_generated/api';
@@ -109,6 +109,63 @@ export default async function ServicesPage() {
           {servicePlans.map((plan) => (
             <ServiceCard key={plan.id} plan={plan} />
           ))}
+        </div>
+        </ScrollReveal>
+
+        {/* Maintenance Plan */}
+        <ScrollReveal animation="fade-up">
+        <div className="mb-20">
+          <div className="text-center space-y-4 mb-10">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-sm text-brand-400">
+              <Shield className="w-4 h-4" />
+              Monthly Care
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
+              Keep Your Site <span className="gradient-text">Running Smoothly</span>
+            </h2>
+            <p className="text-surface-400 max-w-xl mx-auto">
+              Don&apos;t just launch and forget. A maintained website stays fast, secure, and up to date — so you can focus on running your business.
+            </p>
+          </div>
+
+          <div className="glass rounded-2xl p-8 sm:p-10 max-w-2xl mx-auto border border-brand-500/20">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+              <div>
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  <RefreshCw className="w-5 h-5 text-brand-400" />
+                  Website Maintenance Plan
+                </h3>
+                <p className="text-sm text-surface-400 mt-1">Available as an add-on to any package</p>
+              </div>
+              <div className="text-right">
+                <div className="text-3xl font-extrabold text-white">$99<span className="text-lg text-surface-400 font-normal">/mo</span></div>
+              </div>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-3 mb-8">
+              {[
+                'Hosting & SSL included',
+                'Monthly backups & security updates',
+                'Up to 2 hours of content changes',
+                'Uptime monitoring & performance checks',
+                'Priority email support',
+                'Monthly analytics report',
+              ].map((feature) => (
+                <div key={feature} className="flex items-start gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-brand-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-surface-300">{feature}</span>
+                </div>
+              ))}
+            </div>
+
+            <Link
+              href="/contact?service=maintenance"
+              className="btn-primary w-full text-center"
+            >
+              Add Maintenance to Your Project
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Link>
+          </div>
         </div>
         </ScrollReveal>
 
