@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { fetchQuery } from 'convex/nextjs';
 import { api } from '../../../convex/_generated/api';
-import { ArrowRight, Code2, ExternalLink, Lightbulb } from 'lucide-react';
+import { ArrowRight, Code2, ExternalLink } from 'lucide-react';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
 
 export const revalidate = 60;
@@ -10,7 +10,7 @@ export const revalidate = 60;
 export const metadata: Metadata = {
   title: 'Portfolio',
   description:
-    'Web development portfolio by Eric Tomchik — showcase projects demonstrating custom restaurant websites, e-commerce, and web applications.',
+    'Web development portfolio by Eric Tomchik — custom websites for restaurants, bars, and businesses on the Mississippi Gulf Coast.',
   alternates: {
     canonical: 'https://erictomchik.com/portfolio',
   },
@@ -21,7 +21,7 @@ const fallbackProjects = [
   {
     title: 'Boonies on the Bayou',
     description:
-      'Full-featured restaurant website with real-time menu management powered by Convex, online reservations, interactive Google Maps integration, image gallery, and live events calendar. Bay St. Louis, MS.',
+      'Customers can find the full menu, make reservations, and discover upcoming events — all from their phone. The owner updates menus and events instantly without needing a developer. Interactive map helps first-time visitors find the Bay St. Louis waterfront location.',
     thumbnail_url: '/images/portfolio/boonies-on-the-bayou.webp',
     technologies: ['HTML/CSS', 'JavaScript', 'Convex', 'Google Maps API'],
     category: 'Restaurant',
@@ -30,7 +30,7 @@ const fallbackProjects = [
   {
     title: 'Butcher Block Steak House & Bar',
     description:
-      'Multi-location steakhouse site with Convex-powered dynamic menus, table reservation system, private events booking, catering request forms, and location-specific content for four Gulf Coast restaurants.',
+      'One website manages four Gulf Coast restaurant locations. Guests pick their nearest spot, view location-specific menus, book tables, request catering, and reserve private event space — reducing phone calls and walk-in confusion across all four venues.',
     thumbnail_url: '/images/portfolio/butcher-block.webp',
     technologies: ['HTML/CSS', 'JavaScript', 'Convex', 'Responsive Design'],
     category: 'Restaurant',
@@ -39,7 +39,7 @@ const fallbackProjects = [
   {
     title: 'Cosmos Café',
     description:
-      'Immersive space-themed café website for The Pearl Hotel in Bay St. Louis. Features an animated menu system, photo gallery with lightbox, embedded maps, and bold cosmic visual design.',
+      'Captures the unique atmosphere of The Pearl Hotel\'s café with an immersive design that drives walk-in traffic. Guests browse the full menu and photo gallery on any device, and the built-in map ensures they find the Bay St. Louis location on the first try.',
     thumbnail_url: '/images/portfolio/cosmos.webp',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Restaurant',
@@ -48,7 +48,7 @@ const fallbackProjects = [
   {
     title: "Dan B. Murphy's Restaurant & Bar",
     description:
-      'Three-floor restaurant and entertainment venue website featuring interactive menus, photo galleries of harbor views, live music event calendar, and responsive design showcasing decades of history.',
+      'Three floors of dining and entertainment showcased in one seamless site. Guests browse each floor\'s menu, see upcoming live music, view harbor-view galleries, and get directions — turning online visitors into seated customers.',
     thumbnail_url: '/images/portfolio/dan-b-murphys.webp',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Restaurant',
@@ -57,7 +57,7 @@ const fallbackProjects = [
   {
     title: 'Hen House Cocktail & Wine Bar',
     description:
-      'Upscale cocktail bar website with elegant dark design, curated drink menus with detailed descriptions, artisan small plates showcase, event listings, and an immersive gallery of the venue.',
+      'Elegant design that matches the upscale atmosphere and sets guest expectations before they walk in. Visitors browse craft cocktails and artisan small plates with rich descriptions. Event listings and an immersive venue gallery keep regulars coming back.',
     thumbnail_url: '/images/portfolio/hen-house.webp',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Bar & Lounge',
@@ -66,7 +66,7 @@ const fallbackProjects = [
   {
     title: "Lemoine's Landing Tiki Bar",
     description:
-      'Tropical-themed waterfront bar website with vibrant visual design, food and drink menus, photo gallery of harbor views, embedded maps, and event information for the Bay St. Louis hotspot.',
+      'Vibrant waterfront tiki bar brought to life online. Visitors see the food, drinks, harbor views, and upcoming events — then show up. Mobile-optimized so tourists and locals can check the menu from anywhere along the Bay St. Louis strip.',
     thumbnail_url: '/images/portfolio/lemoines-landing.webp',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Bar & Restaurant',
@@ -75,7 +75,7 @@ const fallbackProjects = [
   {
     title: "Rickey's on Coleman",
     description:
-      "Redesigned website for Waveland's beloved 25-year legacy seafood restaurant. Features comprehensive Cajun/seafood menus, press coverage showcase, customer review integration, and location mapping.",
+      "A 25-year legacy Waveland seafood restaurant modernized online. Showcases press coverage and customer reviews alongside the full Cajun/seafood menu — building trust with new visitors before their first visit. Directions and hours are one tap away on mobile.",
     thumbnail_url: '/images/portfolio/rickeys-on-coleman.webp',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'Responsive Design'],
     category: 'Restaurant',
@@ -84,7 +84,7 @@ const fallbackProjects = [
   {
     title: 'The Ugly Pirate Cafe & Bar',
     description:
-      "Personality-packed website for a legendary Bay St. Louis pirate-themed café and bar. Features extensive press/article showcase, full pizza and menu system, events calendar, contact forms, and fun pirate branding.",
+      "Captures the legendary personality of Bay St. Louis' favorite pirate-themed café. Press features, the full pizza and bar menu, and an events calendar drive both tourists and locals through the door. The fun branding makes the site as memorable as the restaurant.",
     thumbnail_url: '/images/portfolio/ugly-pirate.webp',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Cafe & Bar',
@@ -93,7 +93,7 @@ const fallbackProjects = [
   {
     title: 'Wicked Pig Kitchen & Bar',
     description:
-      'Modern bistro website with rich photography, comprehensive food and cocktail menus, photo gallery, patio and venue showcase, event listings, and smooth scroll animations throughout.',
+      'Rich photography and smooth design showcase this modern bistro\'s food and cocktail menu. Guests can browse dishes, check the patio and venue, and see upcoming events on any device — filling tables during both lunch and dinner service.',
     thumbnail_url: '/images/portfolio/wicked-pig.webp',
     technologies: ['HTML/CSS', 'JavaScript', 'Google Maps API', 'CSS Animations'],
     category: 'Restaurant',
@@ -102,7 +102,7 @@ const fallbackProjects = [
   {
     title: 'Sparkles Travel Group',
     description:
-      'Sleek travel agency website with luxury cruise & destination wedding packages, interactive booking forms, community portal, animated hero sections, and modern glassmorphism design.',
+      'Luxury travel agency where customers browse cruise and destination wedding packages, submit booking requests, and join a community portal — all in one place. Replaced a manual phone-and-email booking process with a streamlined online experience.',
     thumbnail_url: '/images/portfolio/sparkles-travel.png',
     technologies: ['HTML/CSS', 'JavaScript', 'Font Awesome', 'CSS Animations'],
     category: 'Travel & Tourism',
@@ -134,7 +134,7 @@ export default async function PortfolioPage() {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: 'Portfolio — Eric Tomchik',
-    description: 'Web development portfolio by Eric Tomchik — restaurant websites, e-commerce, and custom web applications.',
+    description: 'Web development portfolio by Eric Tomchik — custom websites for restaurants, bars, and businesses on the Mississippi Gulf Coast.',
     url: 'https://erictomchik.com/portfolio',
     author: {
       '@type': 'Person',
@@ -175,14 +175,10 @@ export default async function PortfolioPage() {
             My <span className="gradient-text">Work</span>
           </h1>
           <p className="text-surface-400 max-w-2xl mx-auto text-lg">
-            Showcase projects demonstrating custom-built websites for restaurants, bars, and
-            businesses on the Mississippi Gulf Coast. Each project is hand-coded with modern web
-            technologies, responsive design, and attention to every detail.
+            Custom-built websites for restaurants, bars, and businesses on the Mississippi Gulf
+            Coast. Every project is hand-coded with modern web technologies, responsive design,
+            and attention to every detail.
           </p>
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-600/10 border border-brand-600/20 text-sm text-brand-300">
-            <Lightbulb className="w-4 h-4 flex-shrink-0" />
-            <span>These are personal concept projects — demonstrating what I can build for <strong className="text-brand-200">your</strong> business.</span>
-          </div>
         </div>
 
         {/* Stats */}
@@ -223,12 +219,9 @@ export default async function PortfolioPage() {
                       />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-surface-950/60 via-transparent to-transparent" />
-                    <div className="absolute bottom-4 left-4 flex items-center gap-2">
+                    <div className="absolute bottom-4 left-4">
                       <span className="px-3 py-1 rounded-full bg-brand-600/90 text-white text-xs font-medium backdrop-blur-sm">
                         {project.category}
-                      </span>
-                      <span className="px-3 py-1 rounded-full bg-surface-900/80 text-surface-300 text-xs font-medium backdrop-blur-sm border border-surface-700/50">
-                        Concept Project
                       </span>
                     </div>
                   </div>
