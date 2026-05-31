@@ -188,6 +188,36 @@ export default async function BookDetailPage({ params }: Props) {
               </div>
             )}
 
+            {/* Online Companion */}
+            {book.companion_url && (
+              <div className="card p-6 border-brand-500/30 bg-brand-500/5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-brand-500/10">
+                    <ExternalLink className="w-5 h-5 text-brand-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-semibold">Online Companion</h3>
+                    <p className="text-sm text-surface-400">Free resources for book owners</p>
+                  </div>
+                </div>
+                <p className="text-sm text-surface-300 mb-4">
+                  Access interactive flashcards, practice quizzes, quick reference cards, lab setup guides, and more.
+                </p>
+                <a
+                  href={book.companion_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center px-6 py-2.5 rounded-lg text-sm font-medium
+                             bg-brand-600 hover:bg-brand-500 text-white
+                             transition-all duration-200 shadow-lg shadow-brand-600/20
+                             hover:shadow-brand-500/30 active:scale-[0.98]"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Visit Companion Site
+                </a>
+              </div>
+            )}
+
             {/* Description */}
             <ScrollReveal animation="fade-up">
             <div className="space-y-4">

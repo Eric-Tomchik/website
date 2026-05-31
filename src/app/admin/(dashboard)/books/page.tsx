@@ -30,6 +30,7 @@ type Book = {
   cover_image_url?: string;
   amazon_url?: string;
   barnes_noble_url?: string;
+  companion_url?: string;
   digital_file_url?: string;
   digital_pdf_storage_id?: string;
   digital_epub_storage_id?: string;
@@ -225,6 +226,7 @@ function BookForm({
     cover_image_url: book?.cover_image_url || '',
     amazon_url: book?.amazon_url || '',
     barnes_noble_url: book?.barnes_noble_url || '',
+    companion_url: book?.companion_url || '',
     digital_pdf_storage_id: book?.digital_pdf_storage_id || '',
     digital_epub_storage_id: book?.digital_epub_storage_id || '',
     is_featured: book?.is_featured || false,
@@ -283,6 +285,7 @@ function BookForm({
         cover_image_url: form.cover_image_url || undefined,
         amazon_url: form.amazon_url || undefined,
         barnes_noble_url: form.barnes_noble_url || undefined,
+        companion_url: form.companion_url || undefined,
         digital_pdf_storage_id: form.digital_pdf_storage_id || undefined,
         digital_epub_storage_id: form.digital_epub_storage_id || undefined,
         is_featured: form.is_featured,
@@ -523,6 +526,18 @@ function BookForm({
             className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
           />
         </div>
+      </div>
+
+      {/* Companion URL */}
+      <div>
+        <label className="block text-sm text-surface-300 mb-1">Online Companion URL</label>
+        <input
+          value={form.companion_url}
+          onChange={(e) => setForm({ ...form, companion_url: e.target.value })}
+          placeholder="https://eric-tomchik.github.io/comptia-a-plus-cyber-companion/"
+          className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
+        />
+        <p className="text-xs text-surface-500 mt-1">Shows an &quot;Online Companion&quot; card on the book detail page when set</p>
       </div>
 
       {/* Flags */}
