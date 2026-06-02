@@ -12,6 +12,7 @@ import {
   Shield,
   RefreshCw,
   ShieldCheck,
+  Megaphone,
 } from 'lucide-react';
 import { TwoFactorSetup } from '@/components/admin/TwoFactorSetup';
 import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
@@ -87,6 +88,18 @@ const SETTING_GROUPS: SettingGroup[] = [
     ],
   },
   {
+    id: 'announcement',
+    label: 'Announcement',
+    icon: Megaphone,
+    color: 'text-brand-400',
+    fields: [
+      { key: 'announcement_enabled', label: 'Show Announcement Banner', type: 'toggle' },
+      { key: 'announcement_text', label: 'Banner Text', type: 'text', placeholder: 'NEW — CompTIA A+ Cyber Study Guide now available!' },
+      { key: 'announcement_link', label: 'Link URL', type: 'text', placeholder: '/books/comptia-a-plus-cyber-study-guide-2026' },
+      { key: 'announcement_link_text', label: 'Button Text', type: 'text', placeholder: 'Shop now →' },
+    ],
+  },
+  {
     id: 'maintenance',
     label: 'Maintenance',
     icon: Shield,
@@ -94,8 +107,6 @@ const SETTING_GROUPS: SettingGroup[] = [
     fields: [
       { key: 'maintenance_mode', label: 'Maintenance Mode', type: 'toggle' },
       { key: 'maintenance_message', label: 'Maintenance Message', type: 'textarea', placeholder: 'We are currently performing scheduled maintenance...' },
-      { key: 'announcement_enabled', label: 'Show Announcement Banner', type: 'toggle' },
-      { key: 'announcement_text', label: 'Announcement Text', type: 'text', placeholder: 'New book available now!' },
     ],
   },
 ];

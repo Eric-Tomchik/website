@@ -37,15 +37,20 @@ export const FEED_SOURCES: FeedSource[] = [
   { name: 'The Hacker News', url: 'https://feeds.feedburner.com/TheHackersNews', category: 'cybersecurity' },
   { name: 'Dark Reading', url: 'https://www.darkreading.com/rss.xml', category: 'cybersecurity' },
 
-  // Web Development
-  { name: 'CSS-Tricks', url: 'https://css-tricks.com/feed/', category: 'web-development' },
-  { name: 'Smashing Magazine', url: 'https://www.smashingmagazine.com/feed/', category: 'web-development' },
-  { name: 'The New Stack', url: 'https://thenewstack.io/feed/', category: 'web-development' },
-
   // AI & Technology
   { name: 'Ars Technica', url: 'https://feeds.arstechnica.com/arstechnica/index', category: 'ai' },
   { name: 'The Verge AI', url: 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml', category: 'ai' },
   { name: 'OpenAI Blog', url: 'https://openai.com/blog/rss.xml', category: 'ai' },
+
+  // Business & Entrepreneurship
+  { name: 'SBA.gov Blog', url: 'https://www.sba.gov/blog/feed', category: 'business' },
+  { name: 'Small Business Trends', url: 'https://smallbiztrends.com/feed', category: 'business' },
+  { name: 'Entrepreneur', url: 'https://www.entrepreneur.com/latest.rss', category: 'business' },
+
+  // Linux & IT Certifications
+  { name: 'OMG! Ubuntu', url: 'https://www.omgubuntu.co.uk/feed', category: 'linux' },
+  { name: 'It\'s FOSS', url: 'https://itsfoss.com/feed/', category: 'linux' },
+  { name: 'CompTIA Blog', url: 'https://www.comptia.org/blog/rss', category: 'linux' },
 ];
 
 function decodeHtmlEntities(str: string): string {
