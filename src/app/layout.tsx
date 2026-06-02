@@ -5,8 +5,7 @@ import Script from 'next/script';
 import './globals.css';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-// AnnouncementBanner removed from global layout — now only shown on /books pages
-// import { AnnouncementBanner } from '@/components/layout/AnnouncementBanner';
+import { AnnouncementBanner } from '@/components/layout/AnnouncementBanner';
 import ConvexClientProvider from './ConvexClientProvider';
 import { CheckoutProvider } from '@/components/checkout/CheckoutContext';
 import { CheckoutDrawer } from '@/components/checkout/CheckoutDrawer';
@@ -202,6 +201,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <ConvexClientProvider>
           <CheckoutProvider>
             <Navbar />
+            <AnnouncementBanner />
             <main id="main-content" className="flex-1">{children}</main>
             <Footer />
             <CheckoutDrawer />
