@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Contact',
   description:
-    'Get in touch with Eric Tomchik for web development services, book inquiries, or collaboration opportunities on the Mississippi Gulf Coast.',
+    'Contact Eric Tomchik — questions, comments, errata reports, bulk orders, or media inquiries about ArcLight Press publications.',
 };
 
 const contactJsonLd = {
@@ -11,7 +11,7 @@ const contactJsonLd = {
   '@type': 'ContactPage',
   name: 'Contact — Eric Tomchik',
   description:
-    'Get in touch with Eric Tomchik for web development services, book inquiries, or collaboration.',
+    'Contact Eric Tomchik for questions, errata reports, or inquiries about ArcLight Press books.',
   url: 'https://erictomchik.com/contact',
   mainEntity: {
     '@type': 'Organization',
