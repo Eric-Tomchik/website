@@ -36,8 +36,7 @@ interface Props {
 }
 
 const categoryLabels: Record<string, string> = {
-  'business-credit': 'Business Credit',
-  'web-development': 'Web Development',
+  'business-credit': 'Business & Credit',
   technology: 'Technology',
   cybersecurity: 'Cybersecurity',
   ai: 'AI',
