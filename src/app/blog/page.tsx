@@ -8,11 +8,11 @@ import { fetchAllFeeds, FEED_SOURCES } from '@/lib/rss';
 export const metadata: Metadata = {
   title: 'Blog',
   description:
-    'Insights on business credit, web development, cybersecurity, AI, and technology — plus curated industry news. By Eric Tomchik.',
+    'Insights on business, IT certifications, cybersecurity, AI, and Linux — plus curated industry news. By Eric Tomchik.',
   openGraph: {
     title: 'Blog — Eric Tomchik',
     description:
-      'Insights on business credit, web development, cybersecurity, AI, and technology.',
+      'Insights on business, IT certifications, cybersecurity, AI, and Linux.',
     url: 'https://erictomchik.com/blog',
   },
   alternates: {
@@ -41,8 +41,8 @@ export default async function BlogPage() {
             Insights & <span className="gradient-text">Articles</span>
           </h1>
           <p className="text-surface-400 max-w-2xl mx-auto">
-            Practical guides and deep dives on business credit, web development,
-            cybersecurity, AI, and the technology that powers modern businesses.
+            Practical guides and deep dives on business, IT certifications,
+            cybersecurity, AI, Linux, and the technology that powers modern businesses.
           </p>
         </div>
 
