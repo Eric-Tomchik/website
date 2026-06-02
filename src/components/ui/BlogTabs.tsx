@@ -42,8 +42,7 @@ interface NewsItem {
 /* ─── Label / Color maps ──────────────────────────────────────────────── */
 
 const postCategoryLabels: Record<string, string> = {
-  'business-credit': 'Business Credit',
-  'web-development': 'Web Development',
+  'business-credit': 'Business & Credit',
   technology: 'Technology',
   cybersecurity: 'Cybersecurity',
   ai: 'AI',
@@ -52,7 +51,6 @@ const postCategoryLabels: Record<string, string> = {
 
 const postCategoryColors: Record<string, string> = {
   'business-credit': 'bg-emerald-600/20 text-emerald-400 border-emerald-600/30',
-  'web-development': 'bg-brand-600/20 text-brand-400 border-brand-600/30',
   technology: 'bg-violet-600/20 text-violet-400 border-violet-600/30',
   cybersecurity: 'bg-red-600/20 text-red-400 border-red-600/30',
   ai: 'bg-amber-600/20 text-amber-400 border-amber-600/30',
@@ -61,18 +59,16 @@ const postCategoryColors: Record<string, string> = {
 
 const newsCategoryLabels: Record<string, string> = {
   cybersecurity: 'Cybersecurity',
-  'web-development': 'Web Development',
   ai: 'AI & Technology',
   business: 'Business',
-  technology: 'Technology',
+  linux: 'Linux & Certifications',
 };
 
 const newsCategoryColors: Record<string, string> = {
   cybersecurity: 'bg-red-600/20 text-red-400 border-red-600/30',
-  'web-development': 'bg-brand-600/20 text-brand-400 border-brand-600/30',
   ai: 'bg-amber-600/20 text-amber-400 border-amber-600/30',
   business: 'bg-emerald-600/20 text-emerald-400 border-emerald-600/30',
-  technology: 'bg-violet-600/20 text-violet-400 border-violet-600/30',
+  linux: 'bg-brand-600/20 text-brand-400 border-brand-600/30',
 };
 
 /* ─── Helpers ─────────────────────────────────────────────────────────── */
