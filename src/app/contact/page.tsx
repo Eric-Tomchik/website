@@ -61,7 +61,8 @@ function ContactContent() {
                 Get In <span className="gradient-text">Touch</span>
               </h1>
               <p className="text-surface-400 leading-relaxed">
-                Have a project in mind? Want to discuss a custom website? Or just
+                Have a question about one of my books? Found an error in a
+                publication? Want to suggest a topic for a future title? Or just
                 want to say hi? Fill out the form and I&apos;ll get back to you
                 within 24 hours.
               </p>
@@ -155,7 +156,7 @@ function ContactContent() {
 
                 <div>
                   <label htmlFor="service" className="block text-sm font-medium text-surface-300 mb-2">
-                    Interested In
+                    Reason for Contact
                   </label>
                   <select
                     id="service"
@@ -165,11 +166,14 @@ function ContactContent() {
                                text-white focus:border-brand-500 focus:ring-1 focus:ring-brand-500
                                outline-none transition-colors"
                   >
-                    <option value="">Select a service (optional)</option>
-                    <option value="starter">Starter Site</option>
-                    <option value="business-pro">Business Pro</option>
-                    <option value="custom-app">Custom Application</option>
-                    <option value="other">Other / General Inquiry</option>
+                    <option value="">Select a reason (optional)</option>
+                    <option value="general">General Question</option>
+                    <option value="errata">Errata / Error in a Publication</option>
+                    <option value="book-question">Question About a Book</option>
+                    <option value="companion">Online Companion Feedback</option>
+                    <option value="bulk-order">Bulk / Institutional Order</option>
+                    <option value="media">Media / Interview Request</option>
+                    <option value="other">Other</option>
                   </select>
                 </div>
 
@@ -203,7 +207,7 @@ function ContactContent() {
                     className="w-full px-4 py-3 rounded-lg bg-surface-800 border border-surface-700
                                text-white placeholder-surface-500 focus:border-brand-500
                                focus:ring-1 focus:ring-brand-500 outline-none transition-colors resize-none"
-                    placeholder="Tell me about your project or question..."
+                    placeholder="Your question, comment, or details about the errata..."
                   />
                 </div>
 

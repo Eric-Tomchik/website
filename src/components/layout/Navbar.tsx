@@ -37,18 +37,20 @@ function DropdownMenu({ label, links }: { label: string; links: { href: string; 
         <ChevronDown className={cn('w-3.5 h-3.5 transition-transform', open && 'rotate-180')} />
       </button>
       {open && (
-        <div className="absolute top-full left-0 mt-1 py-1 min-w-[160px] rounded-lg glass border border-surface-800/50 shadow-xl z-50">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setOpen(false)}
-              className="block px-4 py-2 text-sm text-surface-300 hover:text-white hover:bg-surface-800/60 transition-all
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
-            >
-              {link.label}
-            </Link>
-          ))}
+        <div className="absolute top-full left-0 pt-1 z-50">
+          <div className="py-1 min-w-[160px] rounded-lg glass border border-surface-800/50 shadow-xl">
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setOpen(false)}
+                className="block px-4 py-2 text-sm text-surface-300 hover:text-white hover:bg-surface-800/60 transition-all
+                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
         </div>
       )}
     </div>
