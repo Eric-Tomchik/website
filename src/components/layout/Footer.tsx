@@ -15,17 +15,16 @@ const footerLinks = [
     links: [
       { label: 'All Books', href: '/books' },
       { label: 'Resources', href: '/resources' },
-      { label: 'Blog', href: '/blog' },
+      { label: 'Online Companions', href: '/companions' },
       { label: 'Credit Checklist', href: '/credit-checklist' },
     ],
   },
   {
-    title: 'Services',
+    title: 'Learn',
     links: [
-      { label: 'Web Development', href: '/services' },
-      { label: 'Portfolio', href: '/portfolio' },
-      { label: 'Client Portal', href: '/portal' },
-      { label: 'Get a Quote', href: '/contact' },
+      { label: 'Blog', href: '/blog' },
+      { label: 'Free Downloads', href: '/resources#downloads' },
+      { label: 'FAQ', href: '/faq' },
     ],
   },
   {
@@ -33,7 +32,6 @@ const footerLinks = [
     links: [
       { label: 'About Me', href: '/about' },
       { label: 'Contact', href: '/contact' },
-      { label: 'FAQ', href: '/faq' },
     ],
   },
 ];
@@ -51,7 +49,7 @@ export function Footer() {
               </h3>
               <p className="text-sm text-surface-400 mt-1">
                 Get notified when new books drop and receive occasional insights on
-                business credit, tech, and web development.
+                business credit, tech, and cybersecurity.
               </p>
             </div>
             <NewsletterForm />
@@ -66,8 +64,8 @@ export function Footer() {
               Eric <span className="text-brand-400">Tomchik</span>
             </h3>
             <p className="text-sm text-surface-400 leading-relaxed">
-              Author, founder of ArcLight Press, and web developer. Building digital
-              experiences and publishing books that matter.
+              Author and founder of ArcLight Press. Publishing practical guides
+              for business owners and tech professionals.
             </p>
             <div className="flex items-center gap-3">
               {socialLinks.map((social) => (

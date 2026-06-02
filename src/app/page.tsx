@@ -4,19 +4,16 @@ import { fetchQuery } from 'convex/nextjs';
 import { api } from '../../convex/_generated/api';
 import { BookCard } from '@/components/ui/BookCard';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
-import { ArrowRight, BookOpen, Code2, Sparkles, Link2, Globe, Coffee, ClipboardCheck } from 'lucide-react';
+import { ArrowRight, BookOpen, Sparkles, FileText, Monitor, ClipboardCheck, Coffee } from 'lucide-react';
 
 // Revalidate every 60s — pages are cached and served instantly from edge
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const [books, portfolioProjects] = await Promise.all([
-    fetchQuery(api.books.list, { activeOnly: true }),
-    fetchQuery(api.portfolio.list, { activeOnly: true }),
-  ]);
+  const books = await fetchQuery(api.books.list, { activeOnly: true });
   const featuredBooks = books?.filter((b) => b.is_featured).slice(0, 4) || [];
   const displayBooks = featuredBooks.length > 0 ? featuredBooks : (books || []).slice(0, 4);
-  const websiteCount = (portfolioProjects || []).length;
+  const allBooks = books || [];
 
   return (
     <>
@@ -30,28 +27,28 @@ export default async function HomePage() {
             <div className="space-y-8">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-sm text-brand-400 animate-fade-in">
                 <Sparkles className="w-4 h-4" />
-                Web Developer · Author · Creator
+                Author · ArcLight Press
               </div>
 
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-tight">
-                Hi, I&apos;m{' '}
+                Books by{' '}
                 <span className="gradient-text">Eric Tomchik</span>
               </h1>
 
               <p className="text-lg sm:text-xl text-surface-300 leading-relaxed max-w-xl animate-slide-up">
-                I write the guides business owners actually need — from
-                cybersecurity to business credit to AI — and I build the
-                websites that grow their companies.
+                Practical guides for business owners and tech professionals
+                — from cybersecurity to business credit to AI. No fluff,
+                just actionable steps you can follow today.
               </p>
 
               <div className="flex flex-wrap gap-4">
-                <Link href="/services" className="btn-primary text-lg py-4 px-8">
-                  <Code2 className="w-5 h-5 mr-2" />
-                  Hire Me
-                </Link>
-                <Link href="/books" className="btn-secondary text-lg py-4 px-8">
+                <Link href="/books" className="btn-primary text-lg py-4 px-8">
                   <BookOpen className="w-5 h-5 mr-2" />
-                  Browse My Books
+                  Browse All Books
+                </Link>
+                <Link href="/resources" className="btn-secondary text-lg py-4 px-8">
+                  <FileText className="w-5 h-5 mr-2" />
+                  Free Resources
                 </Link>
               </div>
             </div>
@@ -62,7 +59,7 @@ export default async function HomePage() {
                 <div className="relative w-80 h-96 rounded-2xl overflow-hidden border-2 border-surface-800 shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
                   <Image
                     src="/images/eric-profile.webp"
-                    alt="Eric Tomchik — Author and Web Developer"
+                    alt="Eric Tomchik — Author"
                     fill
                     sizes="320px"
                     className="object-cover object-top"
@@ -82,19 +79,19 @@ export default async function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             {[
               {
-                icon: Globe,
-                stat: `${websiteCount}`,
-                label: 'Websites Built',
-              },
-              {
-                icon: Code2,
-                stat: '100%',
-                label: 'Custom Code',
-              },
-              {
                 icon: BookOpen,
-                stat: `${(books || []).length || '4'}+`,
+                stat: `${allBooks.length || '6'}`,
                 label: 'Books Published',
+              },
+              {
+                icon: FileText,
+                stat: '4',
+                label: 'Resource Guides',
+              },
+              {
+                icon: Monitor,
+                stat: 'NEW',
+                label: 'Online Companions',
               },
               {
                 icon: Coffee,
@@ -157,28 +154,28 @@ export default async function HomePage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
-                icon: Code2,
-                title: 'Web Services',
-                description: 'Custom websites and apps built with modern tech.',
-                href: '/services',
+                icon: BookOpen,
+                title: 'All Books',
+                description: 'Browse the full ArcLight Press catalog — business, tech, and certification guides.',
+                href: '/books',
               },
               {
-                icon: BookOpen,
-                title: 'ArcLight Press',
-                description: 'Premium hardcover business & tech books by Eric Tomchik.',
-                href: '/books',
+                icon: FileText,
+                title: 'Resources',
+                description: 'Live companion pages with updated data, pricing tables, and tool directories.',
+                href: '/resources',
+              },
+              {
+                icon: Monitor,
+                title: 'Online Companions',
+                description: 'Virtual labs and interactive tools that bring each book to life.',
+                href: '/companions',
               },
               {
                 icon: ClipboardCheck,
                 title: 'Credit Checklist',
                 description: 'Free tool: Is your business ready to build credit?',
                 href: '/credit-checklist',
-              },
-              {
-                icon: Link2,
-                title: 'Connect',
-                description: 'Find me on social media and get in touch.',
-                href: '/contact',
               },
             ].map((item) => (
               <Link key={item.title} href={item.href} className="card p-8 group">

@@ -8,17 +8,17 @@ import { api } from '../../../convex/_generated/api';
 
 export const metadata: Metadata = {
   title: 'About',
-  description: 'Learn about Eric Tomchik — published author, web developer, and creator. 6+ books through ArcLight Press, custom web development services, and tech insights.',
+  description: 'Learn about Eric Tomchik — published author and founder of ArcLight Press. Practical guides on cybersecurity, business credit, AI, and more for business owners and tech professionals.',
   openGraph: {
-    title: 'About Eric Tomchik — Author & Web Developer',
-    description: 'Published author, web developer, and creator. 6+ books through ArcLight Press and custom web development services.',
+    title: 'About Eric Tomchik — Author | ArcLight Press',
+    description: 'Published author and founder of ArcLight Press. Practical guides for business owners and tech professionals.',
     url: 'https://erictomchik.com/about',
     images: [{ url: '/og-image.webp', width: 1200, height: 630, alt: 'About Eric Tomchik' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'About Eric Tomchik — Author & Web Developer',
-    description: 'Published author with 6+ books. Custom web development services.',
+    title: 'About Eric Tomchik — Author | ArcLight Press',
+    description: 'Published author with 6+ books through ArcLight Press for business owners and tech professionals.',
     images: ['/og-image.webp'],
   },
   alternates: {
