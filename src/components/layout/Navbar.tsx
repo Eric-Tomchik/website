@@ -3,19 +3,15 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
-import { Menu, X, BookOpen, LogIn, Code2, ChevronDown } from 'lucide-react';
+import { Menu, X, BookOpen, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from './ThemeToggle';
 import { SearchProvider } from '@/components/ui/SearchProvider';
 
-const webLinks = [
-  { href: '/services', label: 'Services' },
-  { href: '/portfolio', label: 'Portfolio' },
-  { href: '/resources', label: 'Resources' },
-];
-
 const bookLinks = [
   { href: '/books', label: 'All Books' },
+  { href: '/resources', label: 'Resources' },
+  { href: '/companions', label: 'Online Companions' },
 ];
 
 const navLinks = [
@@ -103,7 +99,6 @@ export function Navbar() {
               >
                 Home
               </Link>
-              <DropdownMenu label="Web Services" links={webLinks} />
               <DropdownMenu label="Books" links={bookLinks} />
               {navLinks.filter(l => l.href !== '/').map((link) => (
                 <Link
@@ -122,20 +117,11 @@ export function Navbar() {
               <SearchProvider />
               <ThemeToggle />
               <Link
-                href="/portal"
-                className="px-3 py-2 rounded-lg text-sm font-medium text-surface-400
-                           hover:text-white hover:bg-surface-800/60 transition-all flex items-center gap-1.5
-                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
-              >
-                <LogIn className="w-3.5 h-3.5" />
-                Client Portal
-              </Link>
-              <Link
-                href="/contact"
+                href="/books"
                 className="btn-primary text-sm py-2 px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-950"
               >
-                <Code2 className="w-4 h-4 mr-2" />
-                Get a Free Quote
+                <BookOpen className="w-4 h-4 mr-2" />
+                Browse Books
               </Link>
             </div>
 
@@ -172,20 +158,6 @@ export function Navbar() {
             >
               Home
             </Link>
-            {/* Web Services group */}
-            <div className="px-3 pt-3 pb-1 text-xs font-semibold text-brand-400 uppercase tracking-wider">Web Services</div>
-            {webLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2.5 pl-6 rounded-lg text-surface-300 hover:text-white
-                           hover:bg-surface-800/60 transition-all font-medium
-                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
-              >
-                {link.label}
-              </Link>
-            ))}
             {/* Books group */}
             <div className="px-3 pt-3 pb-1 text-xs font-semibold text-brand-400 uppercase tracking-wider">Books</div>
             {bookLinks.map((link) => (
@@ -213,16 +185,6 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <Link
-              href="/portal"
-              onClick={() => setMobileOpen(false)}
-              className="block px-3 py-2.5 rounded-lg text-surface-300 hover:text-white
-                         hover:bg-surface-800/60 transition-all font-medium flex items-center gap-2
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
-            >
-              <LogIn className="w-4 h-4" />
-              Client Portal
-            </Link>
             <div className="flex items-center justify-between px-3 py-2.5">
               <div className="flex items-center gap-3">
                 <ThemeToggle />
@@ -231,12 +193,12 @@ export function Navbar() {
               <SearchProvider />
             </div>
             <Link
-              href="/contact"
+              href="/books"
               onClick={() => setMobileOpen(false)}
               className="btn-primary w-full mt-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
             >
-              <Code2 className="w-4 h-4 mr-2" />
-              Get a Free Quote
+              <BookOpen className="w-4 h-4 mr-2" />
+              Browse Books
             </Link>
           </div>
         </div>

@@ -25,33 +25,33 @@ const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
 export const metadata: Metadata = {
   title: {
-    default: 'Eric Tomchik — Web Developer, Author, Creator',
+    default: 'Eric Tomchik — Author | ArcLight Press',
     template: '%s | Eric Tomchik',
   },
   description:
-    'Web developer, author, and creator. Custom websites for Gulf Coast businesses. Explore my web development services, view my portfolio, and browse my books.',
+    'Practical guides for business owners and tech professionals by Eric Tomchik. Books on cybersecurity, business credit, AI, and more — with online companions and free resources.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://erictomchik.com'),
   openGraph: {
     type: 'website',
     locale: 'en_US',
     url: 'https://erictomchik.com',
     siteName: 'Eric Tomchik',
-    title: 'Eric Tomchik — Web Developer, Author, Creator',
+    title: 'Eric Tomchik — Author | ArcLight Press',
     description:
-      'Web developer, author, and creator. Custom websites for Gulf Coast businesses. Explore my web development services, view my portfolio, and browse my books.',
+      'Practical guides for business owners and tech professionals by Eric Tomchik. Books on cybersecurity, business credit, AI, and more — with online companions and free resources.',
     images: [
       {
         url: '/og-image.webp',
         width: 1200,
         height: 630,
-        alt: 'Eric Tomchik — Web Developer, Author, Creator',
+        alt: 'Eric Tomchik — Author | ArcLight Press',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Eric Tomchik',
-    description: 'Web Developer, Author, Creator',
+    description: 'Author | ArcLight Press — Books for Business Owners & Tech Professionals',
     images: ['/og-image.webp'],
   },
   alternates: {
@@ -96,7 +96,7 @@ const websiteJsonLd = {
   name: 'Eric Tomchik',
   url: 'https://erictomchik.com',
   description:
-    'Web developer, author, and creator. Custom websites for Gulf Coast businesses. Explore my web development services, view my portfolio, and browse my books.',
+    'Practical guides for business owners and tech professionals by Eric Tomchik. Books on cybersecurity, business credit, AI, and more — with online companions and free resources.',
   potentialAction: {
     '@type': 'SearchAction',
     target: {
