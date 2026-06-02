@@ -81,7 +81,8 @@ export const create = mutation({
     is_active: v.boolean(), },
   handler: async (ctx, args) => {
     assertAdmin(args.adminKey);
-    return await ctx.db.insert("books", args);
+    const { adminKey: _adminKey, ...bookData } = args;
+    return await ctx.db.insert("books", bookData);
   },
 });
 
