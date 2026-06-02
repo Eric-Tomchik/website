@@ -251,6 +251,7 @@ interface GSCData {
   countries: GSCCountry[];
   _source?: string;
   _cachedAt?: number;
+  _notice?: string;
 }
 
 function useGSC(days: number) {
@@ -1097,6 +1098,16 @@ export default function AdminAnalyticsPage() {
 
           {gscError ? (
             <GSCSetupWizard error={gscError} onComplete={gscRefresh} />
+          ) : gsc?._notice ? (
+            <div className="card p-4 border-brand-500/20">
+              <div className="flex items-start gap-2 text-brand-400 text-xs">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium">✓ GSC Connected</p>
+                  <p className="text-surface-400 mt-1">{gsc._notice}</p>
+                </div>
+              </div>
+            </div>
           ) : gscLoading && !gsc ? (
             <div className="card p-8 flex items-center justify-center">
               <Loader2 className="w-5 h-5 text-brand-400 animate-spin" />

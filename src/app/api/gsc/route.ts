@@ -335,7 +335,31 @@ export async function GET(req: NextRequest) {
       );
     } catch (err: any) {
       console.error('GSC live fetch failed, trying cache:', err.message);
-      // Fall through to cache
+
+      // Before falling through to cache, check if the connection itself works
+      // (newly connected properties may not have data yet)
+      try {
+        const checkToken = await getAccessToken(creds);
+        const checkUrl = `${GSC_API}/sites/${encodeURIComponent(GSC_SITE_URL)}`;
+        const checkRes = await fetch(checkUrl, {
+          headers: { Authorization: `Bearer ${checkToken}` },
+        });
+        if (checkRes.ok) {
+          // Connection works but no search data yet — return empty dashboard, not an error
+          const emptyOverview = {
+            clicks: 0, impressions: 0, ctr: 0, position: 0,
+            trends: { clicks: 0, impressions: 0, ctr: 0, position: 0 },
+            prev: { clicks: 0, impressions: 0, ctr: 0, position: 0 },
+            dailySeries: [],
+          };
+          return NextResponse.json(
+            { overview: emptyOverview, queries: [], pages: [], devices: [], countries: [], _source: 'live_empty', _cachedAt: Date.now(), _notice: 'GSC is connected but has no search data yet. Data usually appears within 24–48 hours.' },
+            { headers: { 'Cache-Control': 'private, max-age=300' } },
+          );
+        }
+      } catch {
+        // Fall through to cache
+      }
     }
   }
 
