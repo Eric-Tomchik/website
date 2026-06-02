@@ -283,6 +283,182 @@ function useGSC(days: number) {
   return { data, error, loading, refresh: fetchData };
 }
 
+// ── GSC Setup Wizard ─────────────────────────────────────────────────────────
+
+function GSCSetupWizard({ error, onComplete }: { error: string; onComplete: () => void }) {
+  const [step, setStep] = useState<'idle' | 'checking' | 'registering' | 'getting_token' | 'verifying' | 'done'>('idle');
+  const [status, setStatus] = useState<string>('');
+  const [dnsRecord, setDnsRecord] = useState<{ name: string; value: string } | null>(null);
+  const [details, setDetails] = useState<string>('');
+
+  const callSetup = async (action: string, extra?: Record<string, unknown>) => {
+    const res = await fetch('/api/gsc/setup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...extra }),
+    });
+    return res.json();
+  };
+
+  const runSetup = async () => {
+    try {
+      // Step 1: Check status
+      setStep('checking');
+      setStatus('Checking current GSC connection...');
+      const statusRes = await callSetup('status');
+
+      if (statusRes.status === 'connected') {
+        setStep('done');
+        setStatus('GSC is already connected!');
+        onComplete();
+        return;
+      }
+
+      // Step 2: Try auto-registration
+      setStep('registering');
+      setStatus('Attempting auto-registration...');
+      const regRes = await callSetup('register');
+
+      if (regRes.status === 'success') {
+        setStep('done');
+        setStatus('GSC connected successfully!');
+        onComplete();
+        return;
+      }
+
+      // Step 3: Get DNS verification token
+      setStep('getting_token');
+      setStatus('Getting DNS verification token...');
+      const tokenRes = await callSetup('getToken');
+
+      if (tokenRes.status === 'api_not_enabled') {
+        setStep('idle');
+        setStatus('');
+        setDetails(
+          'The Google Site Verification API needs to be enabled in your Google Cloud project.\n\n' +
+          '1. Go to Google Cloud Console → APIs & Services → Library\n' +
+          '2. Search for "Google Site Verification API"\n' +
+          '3. Click Enable\n' +
+          '4. Then click "Setup GSC" again'
+        );
+        return;
+      }
+
+      if (tokenRes.status === 'token_ready') {
+        setDnsRecord({ name: tokenRes.dnsRecord.name, value: tokenRes.dnsRecord.value });
+        setStatus(
+          `Add this DNS TXT record to your domain in Cloudflare, then click "Verify":`
+        );
+        setStep('getting_token');
+        return;
+      }
+
+      setStep('idle');
+      setDetails(JSON.stringify(tokenRes, null, 2));
+    } catch (err: any) {
+      setStep('idle');
+      setStatus(`Error: ${err.message}`);
+    }
+  };
+
+  const runVerify = async () => {
+    try {
+      setStep('verifying');
+      setStatus('Verifying DNS record...');
+      const verifyRes = await callSetup('verify');
+
+      if (verifyRes.status === 'verified') {
+        setStep('done');
+        setStatus('Domain verified! GSC is now connected. Refreshing...');
+        setTimeout(onComplete, 1500);
+        return;
+      }
+
+      if (verifyRes.status === 'verification_pending') {
+        setStep('getting_token');
+        setStatus('DNS record not found yet. Make sure it\'s added in Cloudflare and wait a minute, then try again.');
+        return;
+      }
+
+      setStep('getting_token');
+      setStatus(`Verification issue: ${verifyRes.message}`);
+    } catch (err: any) {
+      setStep('getting_token');
+      setStatus(`Error: ${err.message}`);
+    }
+  };
+
+  return (
+    <div className="card p-4 border-yellow-500/20">
+      <div className="flex items-start gap-2 text-yellow-400 text-xs">
+        <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+        <div className="flex-1">
+          <p className="font-medium mb-2">{error}</p>
+
+          {step === 'idle' && !dnsRecord && !details && (
+            <button
+              onClick={runSetup}
+              className="mt-1 px-3 py-1.5 rounded-lg bg-brand-500 text-white text-[11px] font-medium hover:bg-brand-600 transition-colors"
+            >
+              🔧 Setup GSC Connection
+            </button>
+          )}
+
+          {step === 'idle' && details && (
+            <div className="mt-2 text-surface-400 whitespace-pre-line text-[11px]">
+              {details}
+              <button
+                onClick={() => { setDetails(''); runSetup(); }}
+                className="mt-2 block px-3 py-1.5 rounded-lg bg-brand-500 text-white text-[11px] font-medium hover:bg-brand-600 transition-colors"
+              >
+                🔄 Retry Setup
+              </button>
+            </div>
+          )}
+
+          {(step === 'checking' || step === 'registering' || step === 'verifying') && (
+            <div className="mt-2 flex items-center gap-2 text-surface-400 text-[11px]">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              <span>{status}</span>
+            </div>
+          )}
+
+          {step === 'getting_token' && dnsRecord && (
+            <div className="mt-2 space-y-2">
+              <p className="text-surface-300 text-[11px]">{status}</p>
+              <div className="bg-surface-900 rounded-lg p-3 text-[11px] font-mono space-y-1">
+                <p><span className="text-surface-500">Type:</span> <span className="text-white">TXT</span></p>
+                <p><span className="text-surface-500">Name:</span> <span className="text-white">{dnsRecord.name}</span></p>
+                <p><span className="text-surface-500">Value:</span> <span className="text-brand-400 break-all">{dnsRecord.value}</span></p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={runVerify}
+                  className="px-3 py-1.5 rounded-lg bg-green-600 text-white text-[11px] font-medium hover:bg-green-700 transition-colors"
+                >
+                  ✓ Verify DNS Record
+                </button>
+                <button
+                  onClick={() => { navigator.clipboard.writeText(dnsRecord.value); }}
+                  className="px-3 py-1.5 rounded-lg bg-surface-700 text-surface-300 text-[11px] font-medium hover:bg-surface-600 transition-colors"
+                >
+                  📋 Copy Value
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 'done' && (
+            <div className="mt-2 text-green-400 text-[11px] flex items-center gap-1">
+              <span>✓</span> {status}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── SEO helpers ──────────────────────────────────────────────────────────────
 
 function getBookSeoChecks(book: {
@@ -920,22 +1096,7 @@ export default function AdminAnalyticsPage() {
           </div>
 
           {gscError ? (
-            <div className="card p-4 border-yellow-500/20">
-              <div className="flex items-start gap-2 text-yellow-400 text-xs">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium mb-1">{gscError}</p>
-                  {gscError.includes('setup') || gscError.includes('No GSC data') ? (
-                    <div className="text-surface-400 space-y-0.5 mt-2">
-                      <p>To connect Google Search Console:</p>
-                      <p>1. Go to Search Console → Settings → Users and permissions</p>
-                      <p>2. Add your service account email as a Full user</p>
-                      <p>3. Set <code className="text-xs bg-surface-800 px-1 py-0.5 rounded">GSC_SITE_URL</code> env var (e.g. <code className="text-xs bg-surface-800 px-1 py-0.5 rounded">https://erictomchik.com</code>)</p>
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-            </div>
+            <GSCSetupWizard error={gscError} onComplete={gscRefresh} />
           ) : gscLoading && !gsc ? (
             <div className="card p-8 flex items-center justify-center">
               <Loader2 className="w-5 h-5 text-brand-400 animate-spin" />
