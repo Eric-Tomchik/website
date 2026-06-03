@@ -1,14 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  async redirects() {
-    return [
-      {
-        source: '/companions/linux-essentials',
-        destination: 'https://manuscriptcompanion-7cf60ec5.viktor.space',
-        permanent: false,
-      },
-    ];
-  },
   async rewrites() {
     return [
       // Serve WebP for old PNG/JPG paths (Convex DB still references original filenames)
