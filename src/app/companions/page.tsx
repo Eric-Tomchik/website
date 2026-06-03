@@ -43,7 +43,7 @@ const companions: CompanionCard[] = [
       'Practice exam simulations',
     ],
     status: 'live',
-    href: 'https://manuscriptcompanion-7cf60ec5.viktor.space',
+    href: '/companions/linux-essentials',
   },
   {
     title: 'Cybersecurity Lab',
