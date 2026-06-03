@@ -59,7 +59,7 @@ function buildCsp(nonce: string): string {
     // img-src allows https: broadly — the news reader shows images from many external sources
     "img-src 'self' data: blob: https:",
     "connect-src 'self' https://*.convex.cloud wss://*.convex.cloud https://api.stripe.com https://www.google-analytics.com https://www.paypal.com https://api.resend.com https://cloudflareinsights.com https://www.facebook.com",
-    "frame-src 'self' blob: https://*.convex.cloud https://js.stripe.com https://www.paypal.com",
+    "frame-src 'self' blob: https://*.convex.cloud https://js.stripe.com https://www.paypal.com https://*.viktor.space",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
