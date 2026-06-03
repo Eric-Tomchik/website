@@ -42,7 +42,8 @@ const companions: CompanionCard[] = [
       'Command reference & cheat sheets',
       'Practice exam simulations',
     ],
-    status: 'coming-soon',
+    status: 'live',
+    href: 'https://manuscriptcompanion-7cf60ec5.viktor.space',
   },
   {
     title: 'Cybersecurity Lab',
