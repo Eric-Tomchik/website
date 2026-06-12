@@ -11,11 +11,13 @@ import {
   Headphones,
   LayoutDashboard,
   Mail,
+  MessageSquareQuote,
   Phone,
   Scissors,
   ShieldCheck,
   Smartphone,
   Sparkles,
+  Star,
   Store,
   Wrench,
   Zap,
@@ -46,8 +48,8 @@ const benefits = [
   },
   {
     icon: Zap,
-    title: 'Next-Day Funding',
-    description: 'Your money hits your bank account faster — no more waiting days for your deposits to clear.',
+    title: 'Fast Funding',
+    description: 'Your money hits your bank account fast — no more waiting days for your deposits to clear.',
   },
   {
     icon: Headphones,
@@ -121,6 +123,21 @@ const serviceIndustries = [
   { icon: BadgeDollarSign, label: 'Professional Services' },
 ];
 
+const customerReviews = [
+  {
+    name: 'Eli Burke',
+    role: 'Business Owner',
+    rating: 5,
+    text: 'The setup process was effortless, and the results have been flawless. It\'s rare for a product to work this well from day one. Every transaction is instant and secure. The design is clean and intuitive. It\'s a top-tier service.',
+  },
+  {
+    name: 'Renee VanHeel',
+    role: 'President, Processing Forward',
+    rating: 5,
+    text: 'We are excited to put our customers first and have the opportunity to make a difference in our communities by donating back to charity. Every swipe benefits charity!',
+  },
+];
+
 export default function CloverPage() {
   return (
     <div className="py-16">
@@ -155,6 +172,20 @@ export default function CloverPage() {
                 Learn How It Works
                 <ArrowRight className="w-5 h-5 ml-2" />
               </a>
+            </div>
+
+            {/* Google Rating Badge */}
+            <div className="flex items-center justify-center gap-3 pt-4">
+              <div className="flex items-center gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`w-5 h-5 ${i < 5 ? 'text-yellow-400 fill-yellow-400' : 'text-surface-600'}`}
+                  />
+                ))}
+              </div>
+              <span className="text-white font-bold text-lg">4.8</span>
+              <span className="text-surface-400 text-sm">stars on Google</span>
             </div>
           </div>
         </div>
@@ -220,21 +251,24 @@ export default function CloverPage() {
                 <p>
                   You&apos;ve probably noticed that gas stations have been doing something clever for
                   years: they post <span className="text-white font-semibold">two prices</span> — a
-                  cash price and a credit price. If you pay cash, you get the lower price. If you swipe
-                  a card, you pay a little more. Nobody blinks an eye at the pump — it&apos;s
-                  transparent, simple, and{' '}
+                  cash price and a credit price. Pay cash and you pay the listed price. Choose the
+                  convenience of a card and a small fee is added. Nobody blinks an eye at the pump —
+                  it&apos;s transparent, simple, and{' '}
                   <span className="text-white font-semibold">completely legal in all 50 states</span>.
                 </p>
                 <p>
-                  Clover&apos;s Cash Discount Program works the exact same way for your business. Your
-                  listed prices reflect the card price. When a customer pays with cash, they
-                  automatically receive a small discount at checkout. You&apos;re not adding a fee —
-                  you&apos;re{' '}
-                  <span className="text-white font-semibold">rewarding customers who pay with cash</span>,
-                  while customers who choose to pay with a card simply pay the listed price.
+                  Clover&apos;s Cash Discount Program works the exact same way for your business.
+                  Your{' '}
+                  <span className="text-white font-semibold">listed prices are the cash prices</span>.
+                  When a customer chooses the convenience of paying with a credit card, a small
+                  transaction fee is automatically added at checkout. Cash customers simply pay the
+                  listed price — no fee at all. Either way,{' '}
+                  <span className="text-white font-semibold">you keep 100% of your listed price</span>{' '}
+                  on every single sale.
                 </p>
                 <p>
-                  The Clover system handles all of this automatically at the register.
+                  The Clover system handles all of this automatically at the register — no manual
+                  calculations, no awkward conversations.
                 </p>
 
                 <div className="grid sm:grid-cols-2 gap-4 pt-4">
@@ -242,13 +276,13 @@ export default function CloverPage() {
                     <div className="text-sm text-red-400 font-semibold mb-2">Standard Processing</div>
                     <div className="text-2xl font-bold text-white">$100 sale</div>
                     <div className="text-red-400 mt-1">→ $96–$98 deposited</div>
-                    <div className="text-xs text-surface-400 mt-2">You lose $2–$4 every transaction</div>
+                    <div className="text-xs text-surface-400 mt-2">You absorb $2–$4 in fees every transaction</div>
                   </div>
                   <div className="p-6 rounded-lg bg-green-900/10 border border-green-500/20 text-center">
                     <div className="text-sm text-green-400 font-semibold mb-2">Cash Discount Program</div>
-                    <div className="text-2xl font-bold text-white">$100 sale</div>
+                    <div className="text-2xl font-bold text-white">$100 listed price</div>
                     <div className="text-green-400 mt-1">→ $100 deposited</div>
-                    <div className="text-xs text-surface-400 mt-2">Zero fees. Keep every dollar.</div>
+                    <div className="text-xs text-surface-400 mt-2">Card fee paid by customer, not you</div>
                   </div>
                 </div>
               </div>
@@ -308,6 +342,52 @@ export default function CloverPage() {
                     <item.icon className="w-5 h-5 text-brand-400" />
                   </div>
                   <span className="text-sm font-medium text-white">{item.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </ScrollReveal>
+
+      {/* Customer Reviews */}
+      <ScrollReveal animation="fade-up">
+        <section className="py-16 border-t border-surface-800/50">
+          <div className="section-container">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass text-xs text-yellow-400 mb-4">
+                <Star className="w-3.5 h-3.5 fill-yellow-400" />
+                4.8-Star Google Rating
+              </div>
+              <h2 className="text-3xl font-bold text-white mb-4">
+                Trusted by <span className="gradient-text">Business Owners</span>
+              </h2>
+              <p className="text-surface-400 max-w-xl mx-auto">
+                See what our clients have to say about Charity Swipes.
+              </p>
+            </div>
+            <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              {customerReviews.map((review) => (
+                <div key={review.name} className="card p-8 relative">
+                  <MessageSquareQuote className="w-10 h-10 text-brand-600/20 absolute top-6 right-6" />
+                  <div className="flex items-center gap-1 mb-4">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-4 h-4 ${
+                          i < review.rating
+                            ? 'text-yellow-400 fill-yellow-400'
+                            : 'text-surface-600'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-surface-300 leading-relaxed mb-6 relative z-10">
+                    &ldquo;{review.text}&rdquo;
+                  </p>
+                  <div>
+                    <div className="font-semibold text-white">{review.name}</div>
+                    <div className="text-sm text-surface-400">{review.role}</div>
+                  </div>
                 </div>
               ))}
             </div>
