@@ -3,9 +3,7 @@ import { headers } from 'next/headers';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
-import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
-import { AnnouncementBanner } from '@/components/layout/AnnouncementBanner';
+import { LayoutShell } from '@/components/layout/LayoutShell';
 import ConvexClientProvider from './ConvexClientProvider';
 import { CheckoutProvider } from '@/components/checkout/CheckoutContext';
 import { CheckoutDrawer } from '@/components/checkout/CheckoutDrawer';
@@ -200,10 +198,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
         <ConvexClientProvider>
           <CheckoutProvider>
-            <Navbar />
-            <AnnouncementBanner />
-            <main id="main-content" className="flex-1">{children}</main>
-            <Footer />
+            <LayoutShell>{children}</LayoutShell>
             <CheckoutDrawer />
           </CheckoutProvider>
         </ConvexClientProvider>

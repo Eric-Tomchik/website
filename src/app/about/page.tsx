@@ -74,10 +74,17 @@ const personJsonLd = {
   url: 'https://erictomchik.com',
   image: 'https://erictomchik.com/images/eric-profile.webp',
   jobTitle: 'Author & Founder of ArcLight Press',
-  worksFor: {
-    '@type': 'Organization',
-    name: 'ArcLight Press',
-  },
+  worksFor: [
+    {
+      '@type': 'Organization',
+      name: 'ArcLight Press',
+    },
+    {
+      '@type': 'Organization',
+      name: 'Charity Swipes',
+      url: 'https://charityswipes.com',
+    },
+  ],
   sameAs: [
     'https://www.facebook.com/profile.php?id=61589407526718',
     'https://www.linkedin.com/in/eric-tomchik-jr/',
@@ -162,6 +169,31 @@ export default async function AboutPage() {
                 . I write practical, no-nonsense guides for business owners and tech
                 professionals — covering everything from cybersecurity and AI to business
                 credit and certifications.
+              </p>
+              <p className="text-lg text-surface-300 leading-relaxed">
+                I&apos;m also a{' '}
+                <span className="text-white font-semibold">Business Development Executive</span> for{' '}
+                <a
+                  href="https://charityswipes.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-brand-400 hover:text-brand-300 transition-colors"
+                >
+                  Charity Swipes
+                </a>
+                , helping businesses eliminate credit card processing fees through{' '}
+                <a
+                  href="https://www.clover.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-brand-400 hover:text-brand-300 transition-colors"
+                >
+                  Clover&apos;s Cash Discount Program
+                </a>
+                .{' '}
+                <Link href="/clover" className="text-brand-400 hover:text-brand-300 transition-colors">
+                  Learn more →
+                </Link>
               </p>
             </div>
 

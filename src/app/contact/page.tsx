@@ -172,6 +172,7 @@ function ContactContent() {
                     <option value="book-question">Question About a Book</option>
                     <option value="companion">Online Companion Feedback</option>
                     <option value="bulk-order">Bulk / Institutional Order</option>
+                    <option value="clover">Clover&apos;s Cash Discount Program Inquiry</option>
                     <option value="media">Media / Interview Request</option>
                     <option value="other">Other</option>
                   </select>
