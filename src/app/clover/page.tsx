@@ -220,21 +220,24 @@ export default function CloverPage() {
                 <p>
                   You&apos;ve probably noticed that gas stations have been doing something clever for
                   years: they post <span className="text-white font-semibold">two prices</span> — a
-                  cash price and a credit price. If you pay cash, you get the lower price. If you swipe
-                  a card, you pay a little more. Nobody blinks an eye at the pump — it&apos;s
-                  transparent, simple, and{' '}
+                  cash price and a credit price. Pay cash and you pay the listed price. Choose the
+                  convenience of a card and a small fee is added. Nobody blinks an eye at the pump —
+                  it&apos;s transparent, simple, and{' '}
                   <span className="text-white font-semibold">completely legal in all 50 states</span>.
                 </p>
                 <p>
-                  Clover&apos;s Cash Discount Program works the exact same way for your business. Your
-                  listed prices reflect the card price. When a customer pays with cash, they
-                  automatically receive a small discount at checkout. You&apos;re not adding a fee —
-                  you&apos;re{' '}
-                  <span className="text-white font-semibold">rewarding customers who pay with cash</span>,
-                  while customers who choose to pay with a card simply pay the listed price.
+                  Clover&apos;s Cash Discount Program works the exact same way for your business.
+                  Your{' '}
+                  <span className="text-white font-semibold">listed prices are the cash prices</span>.
+                  When a customer chooses the convenience of paying with a credit card, a small
+                  transaction fee is automatically added at checkout. Cash customers simply pay the
+                  listed price — no fee at all. Either way,{' '}
+                  <span className="text-white font-semibold">you keep 100% of your listed price</span>{' '}
+                  on every single sale.
                 </p>
                 <p>
-                  The Clover system handles all of this automatically at the register.
+                  The Clover system handles all of this automatically at the register — no manual
+                  calculations, no awkward conversations.
                 </p>
 
                 <div className="grid sm:grid-cols-2 gap-4 pt-4">
@@ -242,13 +245,13 @@ export default function CloverPage() {
                     <div className="text-sm text-red-400 font-semibold mb-2">Standard Processing</div>
                     <div className="text-2xl font-bold text-white">$100 sale</div>
                     <div className="text-red-400 mt-1">→ $96–$98 deposited</div>
-                    <div className="text-xs text-surface-400 mt-2">You lose $2–$4 every transaction</div>
+                    <div className="text-xs text-surface-400 mt-2">You absorb $2–$4 in fees every transaction</div>
                   </div>
                   <div className="p-6 rounded-lg bg-green-900/10 border border-green-500/20 text-center">
                     <div className="text-sm text-green-400 font-semibold mb-2">Cash Discount Program</div>
-                    <div className="text-2xl font-bold text-white">$100 sale</div>
+                    <div className="text-2xl font-bold text-white">$100 listed price</div>
                     <div className="text-green-400 mt-1">→ $100 deposited</div>
-                    <div className="text-xs text-surface-400 mt-2">Zero fees. Keep every dollar.</div>
+                    <div className="text-xs text-surface-400 mt-2">Card fee paid by customer, not you</div>
                   </div>
                 </div>
               </div>
