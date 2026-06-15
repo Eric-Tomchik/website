@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { BookOpen, ArrowRight, Monitor, Terminal, Shield, CreditCard, Brain, ShoppingCart } from 'lucide-react';
+import { BookOpen, ArrowRight, Monitor, Terminal, Shield, CreditCard, Brain, ShoppingCart, Target } from 'lucide-react';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
 
 export const metadata: Metadata = {
@@ -44,6 +44,21 @@ const companions: CompanionCard[] = [
     ],
     status: 'live',
     href: '/companions/linux-essentials',
+  },
+  {
+    title: 'ASVAB Exam Simulator',
+    bookTitle: 'The Ultimate ASVAB Study Guide 2026-2027',
+    description:
+      '430+ practice questions, full timed exam simulator, CAT-ASVAB adaptive testing, flashcards, searchable cheat sheets, and score tracking with branch eligibility.',
+    icon: Target,
+    features: [
+      '430+ questions across all 10 subtests',
+      'Full CAT-ASVAB adaptive simulator',
+      'Timed exam mode with per-subtest timers',
+      'Flashcards, cheat sheets & score dashboard',
+    ],
+    status: 'live',
+    href: '/companions/asvab',
   },
   {
     title: 'Cybersecurity Lab',
