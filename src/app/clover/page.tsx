@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import {
   ArrowRight,
@@ -486,6 +487,16 @@ export default function CloverPage() {
                     (228) 344-5724
                   </a>
                 </div>
+              </div>
+
+              <div className="pt-6">
+                <Image
+                  src="/images/charity-swipes-business-card.webp"
+                  alt="Eric Tomchik — Senior Account Executive, Charity Swipes — Business Card"
+                  width={1037}
+                  height={1190}
+                  className="mx-auto rounded-xl shadow-lg max-w-sm w-full"
+                />
               </div>
 
               <div className="flex flex-wrap justify-center gap-4 pt-4">
