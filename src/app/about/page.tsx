@@ -172,7 +172,7 @@ export default async function AboutPage() {
               </p>
               <p className="text-lg text-surface-300 leading-relaxed">
                 I&apos;m also a{' '}
-                <span className="text-white font-semibold">Business Development Executive</span> for{' '}
+                <span className="text-white font-semibold">Senior Account Executive</span> for{' '}
                 <a
                   href="https://charityswipes.com"
                   target="_blank"

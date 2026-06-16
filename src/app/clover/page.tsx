@@ -468,7 +468,7 @@ export default function CloverPage() {
               <div className="card p-8 space-y-4">
                 <div className="text-lg font-bold text-white">Eric Tomchik</div>
                 <div className="text-sm text-brand-400">
-                  Business Development Executive — Charity Swipes
+                  Senior Account Executive — Charity Swipes
                 </div>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
                   <a
