@@ -28,6 +28,7 @@ import type * as orders from "../orders.js";
 import type * as portfolio from "../portfolio.js";
 import type * as projects from "../projects.js";
 import type * as rateLimit from "../rateLimit.js";
+import type * as referrals from "../referrals.js";
 import type * as reviews from "../reviews.js";
 import type * as seoKeywords from "../seoKeywords.js";
 import type * as servicePlans from "../servicePlans.js";
@@ -64,6 +65,7 @@ declare const fullApi: ApiFromModules<{
   portfolio: typeof portfolio;
   projects: typeof projects;
   rateLimit: typeof rateLimit;
+  referrals: typeof referrals;
   reviews: typeof reviews;
   seoKeywords: typeof seoKeywords;
   servicePlans: typeof servicePlans;

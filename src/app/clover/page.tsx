@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
+import ReferralForm from '@/components/ReferralForm';
 import {
   ArrowRight,
   BadgeDollarSign,
@@ -20,6 +21,10 @@ import {
   Sparkles,
   Star,
   Store,
+  Banknote,
+  Gift,
+  Handshake,
+  Users,
   Wrench,
   Zap,
 } from 'lucide-react';
@@ -77,7 +82,7 @@ const benefits = [
 const packages = [
   {
     name: 'Keep-It-Simple',
-    price: '$149',
+    price: '$99',
     period: '/mo',
     features: [
       '6" touchscreen terminal',
@@ -172,6 +177,13 @@ export default function CloverPage() {
               <a href="#how-it-works" className="btn-secondary text-lg py-4 px-8">
                 Learn How It Works
                 <ArrowRight className="w-5 h-5 ml-2" />
+              </a>
+            </div>
+
+            <div className="pt-2">
+              <a href="#referral-program" className="inline-flex items-center gap-2 text-sm text-green-400 hover:text-green-300 transition-colors">
+                <Gift className="w-4 h-4" />
+                Know a business owner? Earn up to $300 per referral →
               </a>
             </div>
 
@@ -446,6 +458,105 @@ export default function CloverPage() {
                   </Link>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+      </ScrollReveal>
+
+      {/* Referral Program */}
+      <ScrollReveal animation="fade-up">
+        <section id="referral-program" className="py-16 border-t border-surface-800/50">
+          <div className="section-container">
+            <div className="max-w-4xl mx-auto">
+              <div className="text-center mb-12">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass text-xs text-green-400 mb-4">
+                  <Gift className="w-3.5 h-3.5" />
+                  Earn Up to $300 Per Referral
+                </div>
+                <h2 className="text-3xl font-bold text-white mb-4">
+                  Know a Business Owner? <span className="gradient-text">Get Paid for Referring Them</span>
+                </h2>
+                <p className="text-surface-400 max-w-2xl mx-auto">
+                  Refer a business to the Clover Cash Discount Program through Charity Swipes
+                  and earn a referral fee for every account that qualifies and signs up.
+                </p>
+              </div>
+
+              {/* Referral tiers */}
+              <div className="grid md:grid-cols-2 gap-6 mb-12">
+                <div className="card p-6 border-green-500/20">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-lg bg-green-600/10 border border-green-600/20 flex items-center justify-center">
+                      <Banknote className="w-5 h-5 text-green-400" />
+                    </div>
+                    <div>
+                      <div className="text-sm text-green-400 font-semibold">Qualified Referral</div>
+                      <div className="text-2xl font-extrabold text-white">$100 — $300</div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-surface-400 leading-relaxed">
+                    For any account that qualifies and signs up with the Clover Cash Discount Program
+                    via Charity Swipes. Amount depends on qualification and equipment type.
+                  </p>
+                </div>
+                <div className="card p-6 border-yellow-500/20">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-lg bg-yellow-600/10 border border-yellow-600/20 flex items-center justify-center">
+                      <Handshake className="w-5 h-5 text-yellow-400" />
+                    </div>
+                    <div>
+                      <div className="text-sm text-yellow-400 font-semibold">Bad Credit Signup</div>
+                      <div className="text-2xl font-extrabold text-white">$50 — $150</div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-surface-400 leading-relaxed">
+                    Accounts that sign up but do not fully qualify receive 50% of the standard
+                    referral fee based on qualification and equipment acquired.
+                  </p>
+                </div>
+              </div>
+
+              {/* How it works steps */}
+              <div className="grid md:grid-cols-3 gap-6 mb-12">
+                {[
+                  {
+                    step: '1',
+                    icon: Users,
+                    title: 'Identify a Business',
+                    desc: 'Know a business that could benefit from Clover\'s Cash Discount Program? They could be your next referral.',
+                  },
+                  {
+                    step: '2',
+                    icon: Mail,
+                    title: 'Submit the Referral',
+                    desc: 'Fill out the form below with the business details and your contact info. It only takes a minute.',
+                  },
+                  {
+                    step: '3',
+                    icon: Banknote,
+                    title: 'Get Paid',
+                    desc: 'Once the referred business qualifies and signs up through Charity Swipes, you receive your referral fee.',
+                  },
+                ].map((item) => (
+                  <div key={item.step} className="card p-6 text-center">
+                    <div className="w-10 h-10 rounded-full bg-brand-600/20 border border-brand-600/30 flex items-center justify-center mx-auto mb-4">
+                      <span className="text-brand-400 font-bold">{item.step}</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
+                    <p className="text-sm text-surface-400 leading-relaxed">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Referral Form */}
+              <div className="card p-8">
+                <h3 className="text-xl font-bold text-white mb-2 text-center">Submit a Referral</h3>
+                <p className="text-sm text-surface-400 text-center mb-8">
+                  You must have the referred person&apos;s permission before sharing their details.
+                  Referral fees are paid upon sign-up completion.
+                </p>
+                <ReferralForm />
+              </div>
             </div>
           </div>
         </section>

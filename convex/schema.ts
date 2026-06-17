@@ -648,6 +648,27 @@ export default defineSchema({
     .index("by_slug", ["slug"])
     .index("by_active", ["is_active"]),
 
+  // === Clover Referral Program ===
+  referrals: defineTable({
+    business_name: v.string(),
+    owner_name: v.string(),
+    business_phone: v.string(),
+    referrer_name: v.string(),
+    referrer_phone: v.string(),
+    referrer_email: v.string(),
+    notes: v.optional(v.string()),
+    status: v.union(
+      v.literal("new"),
+      v.literal("contacted"),
+      v.literal("qualified"),
+      v.literal("signed"),
+      v.literal("not_qualified"),
+      v.literal("declined")
+    ),
+    admin_notes: v.optional(v.string()),
+  })
+    .index("by_status", ["status"]),
+
   portfolio_projects: defineTable({
     title: v.string(),
     slug: v.string(),
