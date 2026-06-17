@@ -18,6 +18,7 @@ import {
   LifeBuoy,
   Share2,
   Sparkles,
+  Handshake,
   Mail,
   Send,
   FileText,
@@ -67,12 +68,9 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    label: 'Clients',
+    label: 'Clover',
     items: [
-      { href: '/admin/clients', label: 'Clients', icon: Users, badgeKey: null },
-      { href: '/admin/contracts', label: 'Contracts', icon: Sparkles, badgeKey: null },
-      { href: '/admin/kanban', label: 'Project Board', icon: Columns3, badgeKey: null },
-      { href: '/admin/tickets', label: 'Tickets', icon: LifeBuoy, badgeKey: 'tickets' },
+      { href: '/admin/referrals', label: 'Referrals', icon: Handshake, badgeKey: 'referrals' },
       { href: '/admin/messages', label: 'Messages', icon: MessageSquare, badgeKey: 'messages' },
     ],
   },
@@ -91,8 +89,6 @@ const navSections: NavSection[] = [
   {
     label: 'System',
     items: [
-      { href: '/admin/services', label: 'Services', icon: Wrench, badgeKey: null },
-      { href: '/admin/portfolio', label: 'Portfolio', icon: Briefcase, badgeKey: null },
       { href: '/admin/analytics', label: 'Analytics', icon: BarChart3, badgeKey: null },
       { href: '/admin/automations', label: 'Automations', icon: Zap, badgeKey: null },
       { href: '/admin/audit-log', label: 'Audit Log', icon: ScrollText, badgeKey: null },
@@ -116,14 +112,14 @@ export default function AdminSidebar() {
 
   const unreadMessages = useSafeQuery(api.contacts.unreadCount, 0);
   const newOrders = useSafeQuery(api.orders.newCount, 0);
-  const ticketCounts = useSafeQuery(api.tickets.counts, { total: 0, open: 0, in_progress: 0, waiting: 0, resolved: 0 });
   const socialCounts = useSafeQuery(api.socialPosts.counts, { draft: 0, scheduled: 0, published: 0, total: 0 });
   const unreadNotifications = useSafeQuery(api.notifications.unreadCount, 0);
+  const newReferrals = useSafeQuery(api.referrals.newCount, 0);
 
   const badges: Record<string, number> = {
     orders: newOrders,
     messages: unreadMessages,
-    tickets: ticketCounts.open,
+    referrals: newReferrals,
     scheduled: socialCounts.scheduled,
     notifications: unreadNotifications,
   };
