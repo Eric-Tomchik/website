@@ -2,9 +2,8 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { BookOpen, ShoppingCart, ExternalLink } from 'lucide-react';
+import { BookOpen, ExternalLink } from 'lucide-react';
 import { formatPrice, hasHardback, hasPaperback, hasDigital } from '@/lib/utils';
-import { useCheckout } from '@/components/checkout/CheckoutContext';
 
 interface Book {
   _id: string;
@@ -22,25 +21,6 @@ interface Book {
 }
 
 export function BookCard({ book }: { book: Book }) {
-  const { openCheckout } = useCheckout();
-
-  const handleBuy = (e: React.MouseEvent, format: 'paperback' | 'hardback' | 'digital') => {
-    e.preventDefault();
-    e.stopPropagation();
-    openCheckout(
-      {
-        _id: book._id,
-        title: book.title,
-        description: book.description,
-        price_cents: book.price_cents,
-        paperback_price_cents: book.paperback_price_cents,
-        digital_price_cents: book.digital_price_cents,
-        cover_image_url: book.cover_image_url,
-      },
-      format,
-    );
-  };
-
   const showHardback = hasHardback(book.book_format);
   const showPaperback = hasPaperback(book.book_format);
   const showDigital = hasDigital(book.book_format);
@@ -77,20 +57,16 @@ export function BookCard({ book }: { book: Book }) {
         </h3>
         <p className="text-xs sm:text-sm text-surface-400 mb-3 sm:mb-4 line-clamp-2 flex-1 hidden sm:block">{book.description}</p>
 
-        {/* Price rows — price left, buy button flush right, all same width */}
+        {/* Format & price info */}
         <div className="flex flex-col gap-1.5">
           {showDigital && (
             <div className="flex items-center justify-between gap-2">
               <span className="text-sm sm:text-lg font-bold text-brand-400">
                 {formatPrice(book.digital_price_cents ?? book.price_cents)}
               </span>
-              <button
-                onClick={(e) => handleBuy(e, 'digital')}
-                className="btn-primary text-xs py-1.5 w-[5.5rem] sm:w-28 text-center shrink-0"
-              >
-                <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1 inline shrink-0" />
+              <span className="text-xs text-surface-400 bg-surface-800 px-2 py-1 rounded">
                 Digital
-              </button>
+              </span>
             </div>
           )}
           {showPaperback && book.paperback_price_cents ? (
@@ -98,13 +74,9 @@ export function BookCard({ book }: { book: Book }) {
               <span className="text-sm sm:text-lg font-bold text-brand-400">
                 {formatPrice(book.paperback_price_cents)}
               </span>
-              <button
-                onClick={(e) => handleBuy(e, 'paperback')}
-                className="btn-primary text-xs py-1.5 w-[5.5rem] sm:w-28 text-center shrink-0"
-              >
-                <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1 inline shrink-0" />
+              <span className="text-xs text-surface-400 bg-surface-800 px-2 py-1 rounded">
                 Paperback
-              </button>
+              </span>
             </div>
           ) : null}
           {showHardback && (
@@ -112,13 +84,9 @@ export function BookCard({ book }: { book: Book }) {
               <span className="text-sm sm:text-lg font-bold text-brand-400">
                 {formatPrice(book.price_cents)}
               </span>
-              <button
-                onClick={(e) => handleBuy(e, 'hardback')}
-                className="btn-primary text-xs py-1.5 w-[5.5rem] sm:w-28 text-center shrink-0"
-              >
-                <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1 inline shrink-0" />
+              <span className="text-xs text-surface-400 bg-surface-800 px-2 py-1 rounded">
                 Hardback
-              </button>
+              </span>
             </div>
           )}
           {/* Fallback: digital-only without digital_price_cents */}
@@ -129,14 +97,18 @@ export function BookCard({ book }: { book: Book }) {
               </span>
             </div>
           )}
+
+          {/* Retailer links */}
           {(book.amazon_url || book.barnes_noble_url) && (
-            <div className="flex flex-col sm:flex-row gap-1.5 mt-0.5">
+            <div className="flex flex-col sm:flex-row gap-1.5 mt-1.5">
               {book.amazon_url && (
                 <a
                   href={book.amazon_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn-secondary text-xs py-1.5 flex items-center justify-center flex-1"
+                  className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-medium
+                             bg-[#FF9900] hover:bg-[#FFa31a] text-black
+                             transition-all duration-200 flex-1"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 shrink-0" />
@@ -148,7 +120,9 @@ export function BookCard({ book }: { book: Book }) {
                   href={book.barnes_noble_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn-secondary text-xs py-1.5 flex items-center justify-center flex-1"
+                  className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-medium
+                             bg-[#2D5F2E] hover:bg-[#3a7a3b] text-white
+                             transition-all duration-200 flex-1"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 shrink-0" />

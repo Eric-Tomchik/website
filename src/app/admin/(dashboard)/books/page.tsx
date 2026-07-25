@@ -113,6 +113,7 @@ export default function AdminBooksPage() {
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-surface-400 uppercase">Title</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-surface-400 uppercase">Formats</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-surface-400 uppercase">Retailers</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-surface-400 uppercase">Price</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-surface-400 uppercase">Status</th>
                 <th className="px-4 py-3 text-right text-xs font-semibold text-surface-400 uppercase">Actions</th>
@@ -135,6 +136,23 @@ export default function AdminBooksPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm text-surface-300">{formatSummary(book as Book)}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-1">
+                      {book.amazon_url && (
+                        <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-[#FF9900]/10 text-[#FF9900]">
+                          Amazon
+                        </span>
+                      )}
+                      {book.barnes_noble_url && (
+                        <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-[#2D5F2E]/20 text-[#5cb85c]">
+                          B&N
+                        </span>
+                      )}
+                      {!book.amazon_url && !book.barnes_noble_url && (
+                        <span className="text-xs text-surface-500">—</span>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-sm text-surface-300">
                     {primaryPrice(book as Book)}
                   </td>
@@ -215,6 +233,10 @@ function BookForm({
   const [fmtHardback, setFmtHardback] = useState(book ? hasHardback(book.book_format) : true);
   const [fmtDigital, setFmtDigital] = useState(book ? hasDigital(book.book_format) : false);
 
+  // ── Retailer availability checkboxes ──
+  const [onAmazon, setOnAmazon] = useState(!!book?.amazon_url);
+  const [onBarnesNoble, setOnBarnesNoble] = useState(!!book?.barnes_noble_url);
+
   const [form, setForm] = useState({
     title: book?.title || '',
     slug: book?.slug || '',
@@ -283,8 +305,8 @@ function BookForm({
         digital_price_cents: fmtDigital ? form.digital_price_cents || undefined : undefined,
         book_format,
         cover_image_url: form.cover_image_url || undefined,
-        amazon_url: form.amazon_url || undefined,
-        barnes_noble_url: form.barnes_noble_url || undefined,
+        amazon_url: onAmazon ? form.amazon_url || undefined : undefined,
+        barnes_noble_url: onBarnesNoble ? form.barnes_noble_url || undefined : undefined,
         companion_url: form.companion_url || undefined,
         digital_pdf_storage_id: form.digital_pdf_storage_id || undefined,
         digital_epub_storage_id: form.digital_epub_storage_id || undefined,
@@ -387,6 +409,64 @@ function BookForm({
             />
             Digital
           </label>
+        </div>
+      </div>
+
+      {/* ── Retailer Availability ── */}
+      <div>
+        <label className="block text-sm text-surface-300 mb-2">Available On</label>
+        <div className="flex flex-wrap gap-4 mb-3">
+          <label className="flex items-center gap-2 text-sm text-surface-300 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={onAmazon}
+              onChange={(e) => setOnAmazon(e.target.checked)}
+              className="rounded"
+            />
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#FF9900]" />
+              Amazon
+            </span>
+          </label>
+          <label className="flex items-center gap-2 text-sm text-surface-300 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={onBarnesNoble}
+              onChange={(e) => setOnBarnesNoble(e.target.checked)}
+              className="rounded"
+            />
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#2D5F2E]" />
+              Barnes &amp; Noble
+            </span>
+          </label>
+        </div>
+
+        {/* Retailer URL fields — shown when the corresponding checkbox is checked */}
+        <div className="grid sm:grid-cols-2 gap-4">
+          {onAmazon && (
+            <div>
+              <label className="block text-sm text-surface-300 mb-1">Amazon URL</label>
+              <input
+                value={form.amazon_url}
+                onChange={(e) => setForm({ ...form, amazon_url: e.target.value })}
+                placeholder="https://amazon.com/dp/..."
+                className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
+              />
+              <p className="text-xs text-surface-500 mt-1">Affiliate tag will be appended automatically if configured</p>
+            </div>
+          )}
+          {onBarnesNoble && (
+            <div>
+              <label className="block text-sm text-surface-300 mb-1">Barnes &amp; Noble URL</label>
+              <input
+                value={form.barnes_noble_url}
+                onChange={(e) => setForm({ ...form, barnes_noble_url: e.target.value })}
+                placeholder="https://barnesandnoble.com/w/..."
+                className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -505,28 +585,6 @@ function BookForm({
           </div>
         </div>
       )}
-
-      {/* Retailer URLs */}
-      <div className="grid sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm text-surface-300 mb-1">Amazon URL</label>
-          <input
-            value={form.amazon_url}
-            onChange={(e) => setForm({ ...form, amazon_url: e.target.value })}
-            placeholder="https://amazon.com/dp/..."
-            className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
-          />
-        </div>
-        <div>
-          <label className="block text-sm text-surface-300 mb-1">Barnes & Noble URL</label>
-          <input
-            value={form.barnes_noble_url}
-            onChange={(e) => setForm({ ...form, barnes_noble_url: e.target.value })}
-            placeholder="https://barnesandnoble.com/w/..."
-            className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
-          />
-        </div>
-      </div>
 
       {/* Companion URL */}
       <div>

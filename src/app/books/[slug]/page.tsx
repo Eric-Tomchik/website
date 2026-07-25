@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { fetchQuery } from 'convex/nextjs';
 import { api } from '../../../../convex/_generated/api';
-import { BookOpen, ArrowLeft, ShoppingCart, ExternalLink } from 'lucide-react';
+import { BookOpen, ArrowLeft, ExternalLink } from 'lucide-react';
 import { escapeHtml } from '@/lib/sanitize';
 import { PriceButtons } from './PriceButtons';
 import { formatPrice, hasHardback, hasPaperback, hasDigital } from '@/lib/utils';
@@ -165,18 +165,16 @@ export default async function BookDetailPage({ params }: Props) {
               <p className="text-lg text-surface-300">by Eric Tomchik</p>
             </div>
 
-            {/* Price & Buy CTAs */}
+            {/* Format & Price Info */}
             <PriceButtons
-              bookId={book._id}
-              bookTitle={book.title}
-              bookDescription={book.description}
               bookFormat={book.book_format}
               priceCents={book.price_cents}
               paperbackPriceCents={book.paperback_price_cents}
               digitalPriceCents={book.digital_price_cents}
-              coverImageUrl={book.cover_image_url}
-              amazonUrl={book.amazon_url}
             />
+
+            {/* Retailer Purchase Links */}
+            <BookDetailActions book={book} />
 
             {/* Look Inside Preview */}
             {book.preview_pdf_url && (
@@ -278,9 +276,6 @@ export default async function BookDetailPage({ params }: Props) {
                 </div>
               </div>
             )}
-
-            {/* Purchase Actions */}
-            <BookDetailActions book={book} />
           </div>
         </div>
       </div>
