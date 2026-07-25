@@ -3,17 +3,13 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { BookOpen, ExternalLink } from 'lucide-react';
-import { formatPrice, hasHardback, hasPaperback, hasDigital } from '@/lib/utils';
+import { withAmazonTag } from '@/lib/utils';
 
 interface Book {
   _id: string;
   title: string;
   slug: string;
   description: string;
-  price_cents: number;
-  paperback_price_cents?: number;
-  digital_price_cents?: number;
-  book_format: string;
   cover_image_url?: string;
   amazon_url?: string;
   barnes_noble_url?: string;
@@ -21,10 +17,6 @@ interface Book {
 }
 
 export function BookCard({ book }: { book: Book }) {
-  const showHardback = hasHardback(book.book_format);
-  const showPaperback = hasPaperback(book.book_format);
-  const showDigital = hasDigital(book.book_format);
-
   return (
     <Link href={`/books/${book.slug}`} className="card group flex flex-col cursor-pointer
            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-950">
@@ -57,81 +49,39 @@ export function BookCard({ book }: { book: Book }) {
         </h3>
         <p className="text-xs sm:text-sm text-surface-400 mb-3 sm:mb-4 line-clamp-2 flex-1 hidden sm:block">{book.description}</p>
 
-        {/* Format & price info */}
-        <div className="flex flex-col gap-1.5">
-          {showDigital && (
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-sm sm:text-lg font-bold text-brand-400">
-                {formatPrice(book.digital_price_cents ?? book.price_cents)}
-              </span>
-              <span className="text-xs text-surface-400 bg-surface-800 px-2 py-1 rounded">
-                Digital
-              </span>
-            </div>
-          )}
-          {showPaperback && book.paperback_price_cents ? (
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-sm sm:text-lg font-bold text-brand-400">
-                {formatPrice(book.paperback_price_cents)}
-              </span>
-              <span className="text-xs text-surface-400 bg-surface-800 px-2 py-1 rounded">
-                Paperback
-              </span>
-            </div>
-          ) : null}
-          {showHardback && (
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-sm sm:text-lg font-bold text-brand-400">
-                {formatPrice(book.price_cents)}
-              </span>
-              <span className="text-xs text-surface-400 bg-surface-800 px-2 py-1 rounded">
-                Hardback
-              </span>
-            </div>
-          )}
-          {/* Fallback: digital-only without digital_price_cents */}
-          {showDigital && !showHardback && !showPaperback && !book.digital_price_cents && (
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-sm sm:text-lg font-bold text-brand-400">
-                {formatPrice(book.price_cents)}
-              </span>
-            </div>
-          )}
-
-          {/* Retailer links */}
-          {(book.amazon_url || book.barnes_noble_url) && (
-            <div className="flex flex-col sm:flex-row gap-1.5 mt-1.5">
-              {book.amazon_url && (
-                <a
-                  href={book.amazon_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-medium
-                             bg-[#FF9900] hover:bg-[#FFa31a] text-black
-                             transition-all duration-200 flex-1"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 shrink-0" />
-                  Amazon
-                </a>
-              )}
-              {book.barnes_noble_url && (
-                <a
-                  href={book.barnes_noble_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-medium
-                             bg-[#2D5F2E] hover:bg-[#3a7a3b] text-white
-                             transition-all duration-200 flex-1"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 shrink-0" />
-                  B&N
-                </a>
-              )}
-            </div>
-          )}
-        </div>
+        {/* Retailer availability */}
+        {(book.amazon_url || book.barnes_noble_url) && (
+          <div className="flex flex-col sm:flex-row gap-1.5 mt-auto">
+            {book.amazon_url && (
+              <a
+                href={withAmazonTag(book.amazon_url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-medium
+                           bg-[#FF9900] hover:bg-[#FFa31a] text-black
+                           transition-all duration-200 flex-1"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 shrink-0" />
+                Amazon
+              </a>
+            )}
+            {book.barnes_noble_url && (
+              <a
+                href={book.barnes_noble_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-medium
+                           bg-[#2D5F2E] hover:bg-[#3a7a3b] text-white
+                           transition-all duration-200 flex-1"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 shrink-0" />
+                B&N
+              </a>
+            )}
+          </div>
+        )}
       </div>
     </Link>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { ExternalLink } from 'lucide-react';
+import { withAmazonTag } from '@/lib/utils';
 
 interface Book {
   _id: string;
@@ -22,7 +23,7 @@ export function BookDetailActions({ book }: { book: Book }) {
       <div className="flex flex-wrap gap-3">
         {book.amazon_url && (
           <a
-            href={book.amazon_url}
+            href={withAmazonTag(book.amazon_url)}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => {

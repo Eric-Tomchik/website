@@ -5,8 +5,7 @@ import { fetchQuery } from 'convex/nextjs';
 import { api } from '../../../../convex/_generated/api';
 import { BookOpen, ArrowLeft, ExternalLink } from 'lucide-react';
 import { escapeHtml } from '@/lib/sanitize';
-import { PriceButtons } from './PriceButtons';
-import { formatPrice, hasHardback, hasPaperback, hasDigital } from '@/lib/utils';
+import { hasHardback, hasPaperback, hasDigital } from '@/lib/utils';
 import { BookDetailActions } from './BookDetailActions';
 import { BookPreviewButton } from '@/components/ui/BookPreview';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
@@ -78,37 +77,8 @@ export default async function BookDetailPage({ params }: Props) {
     ...(book.cover_image_url ? { image: book.cover_image_url } : {}),
     publisher: { '@type': 'Organization', name: 'ArcLight Press' },
     url: `https://erictomchik.com/books/${book.slug}`,
-    offers: [
-      ...(hasHardback(book.book_format)
-        ? [{
-            '@type': 'Offer',
-            price: (book.price_cents / 100).toFixed(2),
-            priceCurrency: 'USD',
-            availability: 'https://schema.org/InStock',
-            itemCondition: 'https://schema.org/NewCondition',
-            description: 'Hardback Edition',
-          }]
-        : []),
-      ...(hasPaperback(book.book_format) && book.paperback_price_cents
-        ? [{
-            '@type': 'Offer',
-            price: (book.paperback_price_cents / 100).toFixed(2),
-            priceCurrency: 'USD',
-            availability: 'https://schema.org/InStock',
-            itemCondition: 'https://schema.org/NewCondition',
-            description: 'Paperback Edition',
-          }]
-        : []),
-      ...(hasDigital(book.book_format)
-        ? [{
-            '@type': 'Offer',
-            price: ((book.digital_price_cents || book.price_cents) / 100).toFixed(2),
-            priceCurrency: 'USD',
-            availability: 'https://schema.org/InStock',
-            description: 'Digital Edition',
-          }]
-        : []),
-    ],
+    ...(book.amazon_url ? { sameAs: [book.amazon_url, ...(book.barnes_noble_url ? [book.barnes_noble_url] : [])] } :
+        book.barnes_noble_url ? { sameAs: [book.barnes_noble_url] } : {}),
   };
 
   return (
@@ -165,15 +135,7 @@ export default async function BookDetailPage({ params }: Props) {
               <p className="text-lg text-surface-300">by Eric Tomchik</p>
             </div>
 
-            {/* Format & Price Info */}
-            <PriceButtons
-              bookFormat={book.book_format}
-              priceCents={book.price_cents}
-              paperbackPriceCents={book.paperback_price_cents}
-              digitalPriceCents={book.digital_price_cents}
-            />
-
-            {/* Retailer Purchase Links */}
+            {/* Purchase — retailer links only */}
             <BookDetailActions book={book} />
 
             {/* Look Inside Preview */}

@@ -45,6 +45,24 @@ export function toBookFormat(pb: boolean, hb: boolean, dg: boolean): BookFormat 
   return 'digital'; // fallback
 }
 
+// ── Amazon affiliate helper ──────────────────────────────────────────
+const AMAZON_ASSOCIATE_TAG = 'erictomchik-20';
+
+/**
+ * Append the Amazon Associates tag to an Amazon URL.
+ * If the URL already contains a `tag` parameter it is replaced.
+ */
+export function withAmazonTag(url: string): string {
+  try {
+    const u = new URL(url);
+    u.searchParams.set('tag', AMAZON_ASSOCIATE_TAG);
+    return u.toString();
+  } catch {
+    // If URL parsing fails, just append as query string
+    return url + (url.includes('?') ? '&' : '?') + `tag=${AMAZON_ASSOCIATE_TAG}`;
+  }
+}
+
 /** Human-readable label for a purchase format */
 export function formatLabel(fmt: string): string {
   switch (fmt) {
