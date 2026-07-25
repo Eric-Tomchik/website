@@ -92,7 +92,7 @@ export default async function BooksPage({
               <span className="gradient-text">ArcLight Press</span>
             </h1>
             <p className="text-surface-400 max-w-xl mx-auto">
-              Premium hardcover editions by Eric Tomchik. Shipped directly from the author.
+              Books by Eric Tomchik. Available on Amazon and Barnes &amp; Noble.
             </p>
           </div>
         </div>
