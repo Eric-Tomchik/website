@@ -78,7 +78,13 @@ export const create = mutation({
     isbn: v.optional(v.string()),
     published_date: v.optional(v.string()),
     is_featured: v.boolean(),
-    is_active: v.boolean(), },
+    is_active: v.boolean(),
+    recommended_products: v.optional(v.array(v.object({
+      title: v.string(),
+      url: v.string(),
+      image_url: v.optional(v.string()),
+      price: v.optional(v.string()),
+    }))), },
   handler: async (ctx, args) => {
     assertAdmin(args.adminKey);
     const { adminKey: _adminKey, ...bookData } = args;
@@ -120,7 +126,13 @@ export const update = mutation({
     isbn: v.optional(v.string()),
     published_date: v.optional(v.string()),
     is_featured: v.optional(v.boolean()),
-    is_active: v.optional(v.boolean()), },
+    is_active: v.optional(v.boolean()),
+    recommended_products: v.optional(v.array(v.object({
+      title: v.string(),
+      url: v.string(),
+      image_url: v.optional(v.string()),
+      price: v.optional(v.string()),
+    }))), },
   handler: async (ctx, args) => {
     assertAdmin(args.adminKey);
     const { id, adminKey: _adminKey, ...updates } = args;
