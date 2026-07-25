@@ -36,6 +36,13 @@ export default defineSchema({
     published_date: v.optional(v.string()),
     is_featured: v.boolean(),
     is_active: v.boolean(),
+    // Recommended Amazon products shown on book detail page
+    recommended_products: v.optional(v.array(v.object({
+      title: v.string(),
+      url: v.string(),
+      image_url: v.optional(v.string()),
+      price: v.optional(v.string()),
+    }))),
   })
     .index("by_slug", ["slug"])
     .index("by_active", ["is_active"]),

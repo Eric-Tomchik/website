@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { api } from '../../../../../convex/_generated/api';
-import { BookOpen, Plus, Pencil, Trash2, Eye, EyeOff } from 'lucide-react';
+import { BookOpen, Plus, Pencil, Trash2, Eye, EyeOff, ShoppingCart } from 'lucide-react';
 import {
   hasHardback,
   hasPaperback,
@@ -39,6 +39,7 @@ type Book = {
   published_date?: string;
   is_featured: boolean;
   is_active: boolean;
+  recommended_products?: { title: string; url: string; image_url?: string; price?: string }[];
 };
 
 export default function AdminBooksPage() {
@@ -247,6 +248,18 @@ function BookForm({
   const [onAmazon, setOnAmazon] = useState(!!book?.amazon_url);
   const [onBarnesNoble, setOnBarnesNoble] = useState(!!book?.barnes_noble_url);
 
+  // ── Recommended products (affiliate links) ──
+  const [recProducts, setRecProducts] = useState<
+    { title: string; url: string; image_url: string; price: string }[]
+  >(
+    (book?.recommended_products ?? []).map((p) => ({
+      title: p.title,
+      url: p.url,
+      image_url: p.image_url ?? '',
+      price: p.price ?? '',
+    }))
+  );
+
   const [form, setForm] = useState({
     title: book?.title || '',
     slug: book?.slug || '',
@@ -261,6 +274,9 @@ function BookForm({
     companion_url: book?.companion_url || '',
     digital_pdf_storage_id: book?.digital_pdf_storage_id || '',
     digital_epub_storage_id: book?.digital_epub_storage_id || '',
+    page_count: book?.page_count ?? 0,
+    isbn: book?.isbn || '',
+    published_date: book?.published_date || '',
     is_featured: book?.is_featured || false,
     is_active: book?.is_active ?? true,
   });
@@ -299,6 +315,16 @@ function BookForm({
     const book_format = toBookFormat(fmtPaperback, fmtHardback, fmtDigital);
 
     try {
+      // Clean recommended products — only include entries with title + url
+      const cleanedRecs = recProducts
+        .filter((p) => p.title.trim() && p.url.trim())
+        .map((p) => ({
+          title: p.title.trim(),
+          url: p.url.trim(),
+          ...(p.image_url.trim() ? { image_url: p.image_url.trim() } : {}),
+          ...(p.price.trim() ? { price: p.price.trim() } : {}),
+        }));
+
       const bookData = {
         title: form.title,
         slug,
@@ -314,8 +340,12 @@ function BookForm({
         companion_url: form.companion_url || undefined,
         digital_pdf_storage_id: form.digital_pdf_storage_id || undefined,
         digital_epub_storage_id: form.digital_epub_storage_id || undefined,
+        page_count: form.page_count || undefined,
+        isbn: form.isbn || undefined,
+        published_date: form.published_date || undefined,
         is_featured: form.is_featured,
         is_active: form.is_active,
+        ...(cleanedRecs.length > 0 ? { recommended_products: cleanedRecs } : {}),
       };
 
       if (book) {
@@ -596,6 +626,121 @@ function BookForm({
           className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
         />
         <p className="text-xs text-surface-500 mt-1">Shows an &quot;Online Companion&quot; card on the book detail page when set</p>
+      </div>
+
+      {/* Book Metadata — ISBN, Page Count, Published Date */}
+      <div className="grid sm:grid-cols-3 gap-4">
+        <div>
+          <label className="block text-sm text-surface-300 mb-1">ISBN</label>
+          <input
+            value={form.isbn}
+            onChange={(e) => setForm({ ...form, isbn: e.target.value })}
+            placeholder="979-8-xxxxxxxxx-x"
+            className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm text-surface-300 mb-1">Page Count</label>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={form.page_count || ''}
+            onChange={(e) => setForm({ ...form, page_count: parseInt(e.target.value) || 0 })}
+            placeholder="212"
+            className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm text-surface-300 mb-1">Published Date</label>
+          <input
+            value={form.published_date}
+            onChange={(e) => setForm({ ...form, published_date: e.target.value })}
+            placeholder="July 2026"
+            className="w-full px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-white text-sm outline-none focus:border-brand-500"
+          />
+        </div>
+      </div>
+
+      {/* Recommended Products (affiliate) */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-sm text-surface-300">
+            <ShoppingCart className="w-4 h-4 inline mr-1.5 -mt-0.5" />
+            Recommended Products (Amazon Affiliate)
+          </label>
+          <button
+            type="button"
+            onClick={() =>
+              setRecProducts([...recProducts, { title: '', url: '', image_url: '', price: '' }])
+            }
+            className="text-xs text-brand-400 hover:text-brand-300 transition-colors"
+          >
+            + Add Product
+          </button>
+        </div>
+        {recProducts.length === 0 && (
+          <p className="text-xs text-surface-500">
+            Add Amazon products to show as &quot;Readers Also Recommend&quot; on this book&apos;s detail page.
+          </p>
+        )}
+        <div className="space-y-3">
+          {recProducts.map((product, idx) => (
+            <div key={idx} className="rounded-lg bg-surface-800/50 border border-surface-700 p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-surface-500">Product {idx + 1}</span>
+                <button
+                  type="button"
+                  onClick={() => setRecProducts(recProducts.filter((_, i) => i !== idx))}
+                  className="text-xs text-red-400 hover:text-red-300"
+                >
+                  Remove
+                </button>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-2">
+                <input
+                  value={product.title}
+                  onChange={(e) => {
+                    const updated = [...recProducts];
+                    updated[idx] = { ...updated[idx], title: e.target.value };
+                    setRecProducts(updated);
+                  }}
+                  placeholder="Product title"
+                  className="w-full px-2.5 py-1.5 rounded-md bg-surface-800 border border-surface-700 text-white text-xs outline-none focus:border-brand-500"
+                />
+                <input
+                  value={product.url}
+                  onChange={(e) => {
+                    const updated = [...recProducts];
+                    updated[idx] = { ...updated[idx], url: e.target.value };
+                    setRecProducts(updated);
+                  }}
+                  placeholder="Amazon URL (affiliate tag auto-appended)"
+                  className="w-full px-2.5 py-1.5 rounded-md bg-surface-800 border border-surface-700 text-white text-xs outline-none focus:border-brand-500"
+                />
+                <input
+                  value={product.image_url}
+                  onChange={(e) => {
+                    const updated = [...recProducts];
+                    updated[idx] = { ...updated[idx], image_url: e.target.value };
+                    setRecProducts(updated);
+                  }}
+                  placeholder="Image URL (optional)"
+                  className="w-full px-2.5 py-1.5 rounded-md bg-surface-800 border border-surface-700 text-white text-xs outline-none focus:border-brand-500"
+                />
+                <input
+                  value={product.price}
+                  onChange={(e) => {
+                    const updated = [...recProducts];
+                    updated[idx] = { ...updated[idx], price: e.target.value };
+                    setRecProducts(updated);
+                  }}
+                  placeholder="Price display (e.g. $29.99) (optional)"
+                  className="w-full px-2.5 py-1.5 rounded-md bg-surface-800 border border-surface-700 text-white text-xs outline-none focus:border-brand-500"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Flags */}

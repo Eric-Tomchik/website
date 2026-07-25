@@ -5,7 +5,7 @@ import { fetchQuery } from 'convex/nextjs';
 import { api } from '../../../../convex/_generated/api';
 import { BookOpen, ArrowLeft, ExternalLink } from 'lucide-react';
 import { escapeHtml } from '@/lib/sanitize';
-import { hasHardback, hasPaperback, hasDigital } from '@/lib/utils';
+import { hasHardback, hasPaperback, hasDigital, withAmazonTag } from '@/lib/utils';
 import { BookDetailActions } from './BookDetailActions';
 import { BookPreviewButton } from '@/components/ui/BookPreview';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
@@ -44,7 +44,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BookDetailPage({ params }: Props) {
   const { slug } = await params;
-  const book = await fetchQuery(api.books.getBySlug, { slug });
+  const [book, allBooks] = await Promise.all([
+    fetchQuery(api.books.getBySlug, { slug }),
+    fetchQuery(api.books.list, { activeOnly: true }),
+  ]);
 
   if (!book) {
     return (
@@ -64,22 +67,64 @@ export default async function BookDetailPage({ params }: Props) {
     );
   }
 
-  // Structured data for SEO (Book + Product schema)
+  // Build the primary price for schema offers
+  const priceCents = hasPaperback(book.book_format) && book.paperback_price_cents
+    ? book.paperback_price_cents
+    : book.price_cents;
+  const priceStr = (priceCents / 100).toFixed(2);
+
+  // Book format label for schema
+  const bookFormatSchema = hasHardback(book.book_format)
+    ? 'https://schema.org/Hardcover'
+    : hasPaperback(book.book_format)
+      ? 'https://schema.org/Paperback'
+      : hasDigital(book.book_format)
+        ? 'https://schema.org/EBook'
+        : undefined;
+
+  // Structured data for SEO (Book schema with Offers for rich snippets)
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Book',
     name: book.title,
     author: { '@type': 'Person', name: 'Eric Tomchik' },
     description: book.long_description || book.description,
+    inLanguage: 'en',
     ...(book.isbn ? { isbn: book.isbn } : {}),
     ...(book.page_count ? { numberOfPages: book.page_count } : {}),
     ...(book.published_date ? { datePublished: book.published_date } : {}),
     ...(book.cover_image_url ? { image: book.cover_image_url } : {}),
+    ...(bookFormatSchema ? { bookFormat: bookFormatSchema } : {}),
     publisher: { '@type': 'Organization', name: 'ArcLight Press' },
     url: `https://erictomchik.com/books/${book.slug}`,
-    ...(book.amazon_url ? { sameAs: [book.amazon_url, ...(book.barnes_noble_url ? [book.barnes_noble_url] : [])] } :
-        book.barnes_noble_url ? { sameAs: [book.barnes_noble_url] } : {}),
+    ...(book.amazon_url || book.barnes_noble_url ? {
+      offers: {
+        '@type': 'Offer',
+        price: priceStr,
+        priceCurrency: 'USD',
+        availability: 'https://schema.org/InStock',
+        ...(book.amazon_url ? { url: book.amazon_url } : book.barnes_noble_url ? { url: book.barnes_noble_url } : {}),
+        seller: {
+          '@type': 'Organization',
+          name: book.amazon_url ? 'Amazon' : 'Barnes & Noble',
+        },
+      },
+    } : {}),
+    ...(book.amazon_url ? {
+      sameAs: [book.amazon_url, ...(book.barnes_noble_url ? [book.barnes_noble_url] : [])],
+    } : book.barnes_noble_url ? { sameAs: [book.barnes_noble_url] } : {}),
   };
+
+  // "You May Also Like" — other books, excluding current, shuffled, max 4
+  const otherBooks = allBooks
+    .filter((b) => b._id !== book._id && b.cover_image_url)
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 4);
+
+  // Recommended products (admin-managed external affiliate products)
+  const recommendedProducts = (book as Record<string, unknown>).recommended_products as
+    | { title: string; url: string; image_url?: string; price?: string }[]
+    | undefined;
 
   return (
     <div className="py-16">
@@ -238,8 +283,84 @@ export default async function BookDetailPage({ params }: Props) {
                 </div>
               </div>
             )}
+
+            {/* Recommended Products (affiliate) */}
+            {recommendedProducts && recommendedProducts.length > 0 && (
+              <div className="space-y-4">
+                <h2 className="text-xl font-bold text-white">Readers Also Recommend</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {recommendedProducts.map((product, i) => (
+                    <a
+                      key={i}
+                      href={withAmazonTag(product.url)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="card p-4 flex items-center gap-4 group hover:border-[#FF9900]/40 transition-colors"
+                    >
+                      {product.image_url && (
+                        <img
+                          src={product.image_url}
+                          alt={product.title}
+                          className="w-16 h-16 object-contain rounded flex-shrink-0 bg-white p-1"
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-white group-hover:text-[#FF9900] transition-colors line-clamp-2">
+                          {product.title}
+                        </p>
+                        {product.price && (
+                          <p className="text-xs text-surface-400 mt-1">{product.price}</p>
+                        )}
+                        <p className="text-xs text-[#FF9900] mt-1 flex items-center gap-1">
+                          <ExternalLink className="w-3 h-3" />
+                          View on Amazon
+                        </p>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
+
+        {/* You May Also Like */}
+        {otherBooks.length > 0 && (
+          <div className="mt-20">
+            <h2 className="text-2xl font-bold text-white mb-8 text-center">You May Also Like</h2>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+              {otherBooks.map((other) => (
+                <Link
+                  key={other._id}
+                  href={`/books/${other.slug}`}
+                  className="card group flex flex-col cursor-pointer
+                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
+                >
+                  <div className="relative aspect-[3/4] bg-surface-900 overflow-hidden flex items-center justify-center p-2 sm:p-4">
+                    {other.cover_image_url ? (
+                      <Image
+                        src={other.cover_image_url}
+                        alt={`Cover of ${other.title}`}
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        className="object-contain group-hover:scale-110 transition-transform duration-500 drop-shadow-lg p-2 sm:p-4"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <BookOpen className="w-12 h-12 text-surface-600" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3 sm:p-5">
+                    <h3 className="text-sm sm:text-base font-bold text-white line-clamp-2 group-hover:text-brand-400 transition-colors">
+                      {other.title}
+                    </h3>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
