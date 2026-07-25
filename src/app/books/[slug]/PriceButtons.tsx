@@ -1,77 +1,45 @@
 'use client';
 
-import { ShoppingCart } from 'lucide-react';
-import { useCheckout } from '@/components/checkout/CheckoutContext';
 import { formatPrice, hasHardback, hasPaperback, hasDigital } from '@/lib/utils';
-import type { CheckoutFormat } from '@/components/checkout/CheckoutContext';
 
 interface PriceButtonsProps {
-  bookId: string;
-  bookTitle: string;
-  bookDescription: string;
   bookFormat: string;
   priceCents: number;
   paperbackPriceCents?: number;
   digitalPriceCents?: number;
-  coverImageUrl?: string;
-  amazonUrl?: string;
 }
 
 export function PriceButtons({
-  bookId,
-  bookTitle,
-  bookDescription,
   bookFormat,
   priceCents,
   paperbackPriceCents,
   digitalPriceCents,
-  coverImageUrl,
 }: PriceButtonsProps) {
-  const { openCheckout } = useCheckout();
-
-  const handleBuy = (format: CheckoutFormat) => {
-    openCheckout(
-      {
-        _id: bookId,
-        title: bookTitle,
-        description: bookDescription,
-        price_cents: priceCents,
-        paperback_price_cents: paperbackPriceCents,
-        digital_price_cents: digitalPriceCents,
-        cover_image_url: coverImageUrl,
-      },
-      format,
-    );
-  };
-
   return (
     <div className="flex flex-wrap gap-3">
-      {hasHardback(bookFormat) && (
-        <button
-          onClick={() => handleBuy('hardback')}
-          className="btn-primary text-base py-3 px-6"
-        >
-          <ShoppingCart className="w-4 h-4 mr-2" />
-          Buy Hardback — {formatPrice(priceCents)}
-        </button>
+      {hasDigital(bookFormat) && (
+        <div className="inline-flex items-center px-5 py-2.5 rounded-lg bg-surface-800 border border-surface-700">
+          <span className="text-sm text-surface-400 mr-2">Digital</span>
+          <span className="text-lg font-bold text-brand-400">
+            {formatPrice(digitalPriceCents || priceCents)}
+          </span>
+        </div>
       )}
       {hasPaperback(bookFormat) && paperbackPriceCents && (
-        <button
-          onClick={() => handleBuy('paperback')}
-          className="btn-primary text-base py-3 px-6"
-        >
-          <ShoppingCart className="w-4 h-4 mr-2" />
-          Buy Paperback — {formatPrice(paperbackPriceCents)}
-        </button>
+        <div className="inline-flex items-center px-5 py-2.5 rounded-lg bg-surface-800 border border-surface-700">
+          <span className="text-sm text-surface-400 mr-2">Paperback</span>
+          <span className="text-lg font-bold text-brand-400">
+            {formatPrice(paperbackPriceCents)}
+          </span>
+        </div>
       )}
-      {hasDigital(bookFormat) && (
-        <button
-          onClick={() => handleBuy('digital')}
-          className="btn-primary text-base py-3 px-6"
-        >
-          <ShoppingCart className="w-4 h-4 mr-2" />
-          Buy Digital — {formatPrice(digitalPriceCents || priceCents)}
-        </button>
+      {hasHardback(bookFormat) && (
+        <div className="inline-flex items-center px-5 py-2.5 rounded-lg bg-surface-800 border border-surface-700">
+          <span className="text-sm text-surface-400 mr-2">Hardback</span>
+          <span className="text-lg font-bold text-brand-400">
+            {formatPrice(priceCents)}
+          </span>
+        </div>
       )}
     </div>
   );
