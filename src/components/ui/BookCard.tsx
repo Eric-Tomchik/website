@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { BookOpen, ExternalLink } from 'lucide-react';
+import { withAmazonTag } from '@/lib/utils';
 
 interface Book {
   _id: string;
@@ -53,7 +54,7 @@ export function BookCard({ book }: { book: Book }) {
           <div className="flex flex-col sm:flex-row gap-1.5 mt-auto">
             {book.amazon_url && (
               <a
-                href={book.amazon_url}
+                href={withAmazonTag(book.amazon_url)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-medium
