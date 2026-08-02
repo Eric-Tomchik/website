@@ -41,6 +41,9 @@ export default function BroadcastsPage() {
   const [sendResult, setSendResult] = useState<{ success: boolean; message: string } | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
 
+  // Amazon's Associates Operating Agreement bans affiliate links in email.
+  const hasAmazonLink = /amazon\.[a-z.]{2,6}\/|amzn\.to\//i.test(content);
+
   const resetForm = () => {
     setSubject('');
     setPreviewText('');
@@ -297,6 +300,13 @@ export default function BroadcastsPage() {
                   rows={16}
                   className="w-full px-4 py-3 bg-surface-800 border border-surface-700 rounded-lg text-white placeholder:text-surface-500 focus:outline-none focus:border-brand-500 font-mono text-sm leading-relaxed resize-y"
                 />
+                {hasAmazonLink && (
+                  <p className="mt-2 text-sm text-amber-400">
+                    &#9888; This email contains an Amazon link. Amazon&apos;s Associates Operating
+                    Agreement prohibits affiliate links in email. Link to a page on
+                    erictomchik.com instead.
+                  </p>
+                )}
               </div>
             </div>
           </div>
