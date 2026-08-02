@@ -288,6 +288,10 @@ export default async function BookDetailPage({ params }: Props) {
             {recommendedProducts && recommendedProducts.length > 0 && (
               <div className="space-y-4">
                 <h2 className="text-xl font-bold text-white">Readers Also Recommend</h2>
+                <p className="text-xs text-surface-500">
+                  Affiliate links &mdash; as an Amazon Associate, Eric Tomchik earns from
+                  qualifying purchases.
+                </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {recommendedProducts.map((product, i) => (
                     <a
