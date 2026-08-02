@@ -120,7 +120,12 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="mt-12 pt-8 border-t border-surface-800/50 flex flex-col sm:flex-row
+        <p className="mt-12 pt-8 border-t border-surface-800/50 text-xs text-surface-500">
+          As an Amazon Associate, Eric Tomchik earns from qualifying purchases. Links to Amazon
+          on this site are affiliate links; they never change the price you pay.
+        </p>
+
+        <div className="mt-8 flex flex-col sm:flex-row
                         items-center justify-between gap-4">
           <p className="text-sm text-surface-500">
             © {new Date().getFullYear()} Eric Tomchik. All rights reserved.
