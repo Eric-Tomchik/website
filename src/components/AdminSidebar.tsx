@@ -35,6 +35,7 @@ import {
   Menu,
   X,
   Wrench,
+  UserPlus,
 } from 'lucide-react';
 
 interface NavItem {
@@ -71,6 +72,7 @@ const navSections: NavSection[] = [
     label: 'Clover',
     items: [
       { href: '/admin/referrals', label: 'Referrals', icon: Handshake, badgeKey: 'referrals' },
+      { href: '/admin/merchant-applications', label: 'Merchant Applications', icon: UserPlus, badgeKey: 'merchantApplications' },
       { href: '/admin/messages', label: 'Messages', icon: MessageSquare, badgeKey: 'messages' },
     ],
   },
@@ -115,11 +117,13 @@ export default function AdminSidebar() {
   const socialCounts = useSafeQuery(api.socialPosts.counts, { draft: 0, scheduled: 0, published: 0, total: 0 });
   const unreadNotifications = useSafeQuery(api.notifications.unreadCount, 0);
   const newReferrals = useSafeQuery(api.referrals.newCount, 0);
+  const newMerchantApplications = useSafeQuery(api.merchantApplications.newCount, 0);
 
   const badges: Record<string, number> = {
     orders: newOrders,
     messages: unreadMessages,
     referrals: newReferrals,
+    merchantApplications: newMerchantApplications,
     scheduled: socialCounts.scheduled,
     notifications: unreadNotifications,
   };

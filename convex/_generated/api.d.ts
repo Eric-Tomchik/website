@@ -21,6 +21,7 @@ import type * as downloadTokens from "../downloadTokens.js";
 import type * as emailBroadcasts from "../emailBroadcasts.js";
 import type * as invoices from "../invoices.js";
 import type * as mediaFiles from "../mediaFiles.js";
+import type * as merchantApplications from "../merchantApplications.js";
 import type * as milestones from "../milestones.js";
 import type * as newsletter from "../newsletter.js";
 import type * as notifications from "../notifications.js";
@@ -58,6 +59,7 @@ declare const fullApi: ApiFromModules<{
   emailBroadcasts: typeof emailBroadcasts;
   invoices: typeof invoices;
   mediaFiles: typeof mediaFiles;
+  merchantApplications: typeof merchantApplications;
   milestones: typeof milestones;
   newsletter: typeof newsletter;
   notifications: typeof notifications;

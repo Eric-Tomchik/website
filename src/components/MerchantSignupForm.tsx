@@ -49,27 +49,18 @@ export default function MerchantSignupForm() {
     setStatus('submitting');
     setErrorMessage('');
 
-    const message = [
-      `Business: ${form.business_name}`,
-      `Owner / Contact: ${form.owner_name}`,
-      `Phone: ${form.phone}`,
-      `Industry: ${form.industry || 'Not specified'}`,
-      `Estimated Monthly Card Volume: ${form.monthly_volume || 'Not specified'}`,
-      form.notes ? `Notes: ${form.notes}` : null,
-    ]
-      .filter(Boolean)
-      .join('\n');
-
     try {
-      const res = await fetch('/api/contact', {
+      const res = await fetch('/api/merchant-applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: form.owner_name,
+          business_name: form.business_name,
+          owner_name: form.owner_name,
           email: form.email,
-          subject: `Merchant Application — ${form.business_name}`,
-          message,
-          service_interest: 'merchant-signup',
+          phone: form.phone,
+          industry: form.industry || undefined,
+          monthly_volume: form.monthly_volume || undefined,
+          notes: form.notes || undefined,
           company: form.company,
         }),
       });
