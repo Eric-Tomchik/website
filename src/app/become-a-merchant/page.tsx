@@ -23,13 +23,13 @@ import {
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
 
 export const metadata: Metadata = {
-  title: 'Become a Charity Swipes Merchant Partner — Free Clover POS + Cash Discount Program',
+  title: 'Become a Charity Swipes Merchant Partner — Clover POS + Cash Discount Program',
   description:
-    'Sign up as a Charity Swipes merchant and get Clover POS equipment with the Cash Discount Program — eliminate processing fees while every swipe supports charity. Free 15-minute consultation.',
+    'Sign up as a Charity Swipes merchant and get set up with Clover POS equipment and the Cash Discount Program — eliminate credit card processing fees while every swipe supports charity. Free 15-minute consultation.',
   openGraph: {
     title: 'Become a Charity Swipes Merchant Partner',
     description:
-      'Eliminate processing fees with Clover\'s Cash Discount Program and support charity with every swipe. Apply free in minutes.',
+      'Eliminate credit card processing fees with Clover\'s Cash Discount Program and support charity with every swipe. Applying takes just minutes.',
     url: 'https://erictomchik.com/become-a-merchant',
     images: [{ url: '/og-image.webp', width: 1200, height: 630, alt: 'Become a Charity Swipes Merchant Partner' }],
   },
@@ -55,7 +55,7 @@ const steps = [
     step: '3',
     icon: Truck,
     title: 'Fast Equipment Setup',
-    desc: 'Once approved, your Clover terminal ships and Charity Swipes helps you get it configured and live.',
+    desc: 'Once approved, choose your Clover terminal (leased — cost depends on the equipment) and Charity Swipes helps you get it configured and live.',
   },
   {
     step: '4',
@@ -79,7 +79,8 @@ const perks = [
   {
     icon: Zap,
     title: 'Fast, Modern Clover Hardware',
-    description: 'Tap-to-pay terminals, cloud dashboard, inventory, loyalty, and 300+ Clover apps.',
+    description:
+      'Tap-to-pay terminals, cloud dashboard, inventory, loyalty, and 300+ Clover apps. Equipment is leased at a monthly rate that depends on the terminal you choose.',
   },
   {
     icon: LayoutDashboard,
@@ -114,14 +115,15 @@ export default function BecomeAMerchantPage() {
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight">
-              Get Clover POS. <span className="gradient-text">Pay $0 in Fees.</span> Give Back
-              Automatically.
+              Run Clover POS. <span className="gradient-text">Pay $0 in Processing Fees.</span>{' '}
+              Give Back Automatically.
             </h1>
 
             <p className="text-lg sm:text-xl text-surface-300 leading-relaxed max-w-2xl mx-auto">
               Sign up as a Charity Swipes merchant and put Clover&apos;s Cash Discount Program to
               work for your business — keep 100% of every sale, and every swipe helps fund
-              charitable giving in your community.
+              charitable giving in your community. Clover terminals are leased (cost depends on
+              the equipment you choose); it&apos;s the credit card processing fees that drop to $0.
             </p>
 
             <div className="flex flex-wrap justify-center gap-4 pt-2">
