@@ -51,15 +51,15 @@ const SUBDOMAIN_TARGETS: Record<string, { origin: string; defaultPath: string; b
 function buildCsp(nonce: string): string {
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://www.google-analytics.com https://js.stripe.com https://www.paypal.com https://static.cloudflareinsights.com https://connect.facebook.net`,
+    `script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://www.google-analytics.com https://js.stripe.com https://www.paypal.com https://static.cloudflareinsights.com https://connect.facebook.net https://app.cal.com https://cal.com`,
     // style-src keeps 'unsafe-inline' — Next.js and Tailwind inject inline styles
     // that can't be nonce-tagged without a custom document setup
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://app.cal.com https://cal.com",
     "font-src 'self' https://fonts.gstatic.com",
     // img-src allows https: broadly — the news reader shows images from many external sources
     "img-src 'self' data: blob: https:",
-    "connect-src 'self' https://*.convex.cloud wss://*.convex.cloud https://api.stripe.com https://www.google-analytics.com https://www.paypal.com https://api.resend.com https://cloudflareinsights.com https://www.facebook.com",
-    "frame-src 'self' blob: https://*.convex.cloud https://js.stripe.com https://www.paypal.com https://*.viktor.space https://*.github.io",
+    "connect-src 'self' https://*.convex.cloud wss://*.convex.cloud https://api.stripe.com https://www.google-analytics.com https://www.paypal.com https://api.resend.com https://cloudflareinsights.com https://www.facebook.com https://app.cal.com https://cal.com",
+    "frame-src 'self' blob: https://*.convex.cloud https://js.stripe.com https://www.paypal.com https://*.viktor.space https://*.github.io https://app.cal.com https://cal.com",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
