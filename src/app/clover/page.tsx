@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import ReferralForm from '@/components/ReferralForm';
+import CalBooking from '@/components/CalBooking';
 import {
   ArrowRight,
   BadgeDollarSign,
@@ -170,10 +171,10 @@ export default function CloverPage() {
             </p>
 
             <div className="flex flex-wrap justify-center gap-4 pt-2">
-              <Link href="/contact?service=clover" className="btn-primary text-lg py-4 px-8">
+              <a href="#book-consultation" className="btn-primary text-lg py-4 px-8">
                 <Phone className="w-5 h-5 mr-2" />
                 Schedule a Free Consultation
-              </Link>
+              </a>
               <a href="#how-it-works" className="btn-secondary text-lg py-4 px-8">
                 Learn How It Works
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -300,6 +301,42 @@ export default function CloverPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+      </ScrollReveal>
+
+      {/* Book a Free Consultation */}
+      <ScrollReveal animation="fade-up">
+        <section id="book-consultation" className="py-16 border-t border-surface-800/50">
+          <div className="section-container">
+            <div className="max-w-3xl mx-auto text-center mb-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass text-xs text-brand-400 mb-4">
+                <Phone className="w-3.5 h-3.5" />
+                Free, No-Obligation, 15 Minutes
+              </div>
+              <h2 className="text-3xl font-bold text-white mb-4">
+                Schedule Your Free <span className="gradient-text">Consultation</span>
+              </h2>
+              <p className="text-surface-400 max-w-xl mx-auto">
+                Pick a time that works for you below and I&apos;ll walk you through exactly how much
+                your business could save with Clover&apos;s Cash Discount Program — no pressure, no
+                obligation.
+              </p>
+            </div>
+            <div className="card p-2 sm:p-4 max-w-3xl mx-auto">
+              <CalBooking calLink="eric-tomchik-tayrwz/15min" />
+            </div>
+            <p className="text-center text-sm text-surface-500 mt-6">
+              Prefer email or phone? Reach out directly at{' '}
+              <a href="mailto:eric@charityswipes.com" className="text-brand-400 hover:text-brand-300">
+                eric@charityswipes.com
+              </a>{' '}
+              or{' '}
+              <a href="tel:2283445724" className="text-brand-400 hover:text-brand-300">
+                (228) 344-5724
+              </a>
+              .
+            </p>
           </div>
         </section>
       </ScrollReveal>
@@ -611,10 +648,10 @@ export default function CloverPage() {
               </div>
 
               <div className="flex flex-wrap justify-center gap-4 pt-4">
-                <Link href="/contact?service=clover" className="btn-primary">
-                  <Mail className="w-4 h-4 mr-2" />
+                <a href="#book-consultation" className="btn-primary">
+                  <Phone className="w-4 h-4 mr-2" />
                   Schedule a Free Consultation
-                </Link>
+                </a>
                 <a
                   href="https://charityswipes.com"
                   target="_blank"
