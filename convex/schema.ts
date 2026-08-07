@@ -676,6 +676,46 @@ export default defineSchema({
   })
     .index("by_status", ["status"]),
 
+  // === Charity Swipes Merchant Applications (become-a-merchant funnel) ===
+  merchant_applications: defineTable({
+    business_name: v.string(),
+    owner_name: v.string(),
+    email: v.string(),
+    phone: v.string(),
+    industry: v.optional(v.string()),
+    monthly_volume: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    status: v.union(
+      v.literal("new"),
+      v.literal("contacted"),
+      v.literal("qualified"),
+      v.literal("signed"),
+      v.literal("not_qualified"),
+      v.literal("declined")
+    ),
+    admin_notes: v.optional(v.string()),
+  })
+    .index("by_status", ["status"]),
+
+  merchant_application_activities: defineTable({
+    application_id: v.id("merchant_applications"),
+    type: v.union(v.literal("note"), v.literal("call"), v.literal("email"), v.literal("status_change")),
+    outcome: v.optional(
+      v.union(
+        v.literal("reached"),
+        v.literal("no_answer"),
+        v.literal("voicemail"),
+        v.literal("email_sent"),
+        v.literal("scheduled"),
+        v.literal("signed"),
+        v.literal("not_interested"),
+        v.literal("other")
+      )
+    ),
+    note: v.optional(v.string()),
+  })
+    .index("by_application", ["application_id"]),
+
   portfolio_projects: defineTable({
     title: v.string(),
     slug: v.string(),
