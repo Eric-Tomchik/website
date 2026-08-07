@@ -34,6 +34,13 @@ const footerLinks = [
       { label: 'Contact', href: '/contact' },
     ],
   },
+  {
+    title: 'Charity Swipes',
+    links: [
+      { label: 'Clover Cash Discount', href: '/clover' },
+      { label: 'Become a Merchant', href: '/become-a-merchant' },
+    ],
+  },
 ];
 
 export function Footer() {

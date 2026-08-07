@@ -75,6 +75,8 @@ export async function POST(req: Request) {
               starter: 'Starter Site',
               'business-pro': 'Business Pro',
               'custom-app': 'Custom Application',
+              clover: "Clover's Cash Discount Program",
+              'merchant-signup': 'Charity Swipes Merchant Application',
               other: 'Other / General Inquiry',
             }[data.service_interest] || data.service_interest
           : 'Not specified';
