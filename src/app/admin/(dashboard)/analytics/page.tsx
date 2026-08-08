@@ -757,8 +757,6 @@ export default function AdminAnalyticsPage() {
   const sitePages = useMemo(() => [
     { path: '/', title: 'Home', hasSchema: true, note: 'Website + Org' },
     { path: '/books', title: 'Books', hasSchema: true, note: 'ItemList' },
-    { path: '/services', title: 'Services', hasSchema: true, note: 'Service' },
-    { path: '/portfolio', title: 'Portfolio', hasSchema: true, note: 'CollectionPage' },
     { path: '/about', title: 'About', hasSchema: true, note: 'Person' },
     { path: '/contact', title: 'Contact', hasSchema: true, note: 'ContactPage' },
     { path: '/links', title: 'Links', hasSchema: true, note: 'Person (redirect)' },

@@ -2,9 +2,9 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import {
   BookOpen,
-  Globe,
+  CreditCard,
+  Gift,
   Mail,
-  Briefcase,
   PenLine,
   Instagram,
   Linkedin,
@@ -14,7 +14,7 @@ import {
 export const metadata: Metadata = {
   title: 'Links — Eric Tomchik',
   description:
-    "All of Eric Tomchik's important links in one place — books, portfolio, blog, services, and social media.",
+    "All of Eric Tomchik's important links in one place — books, the free card processing analysis, blog, and social media.",
   alternates: {
     canonical: 'https://erictomchik.com/links',
   },
@@ -28,22 +28,22 @@ const links = [
     description: '6+ books on business credit, cybersecurity & tech',
   },
   {
-    label: 'View Portfolio',
-    href: '/portfolio',
-    icon: Globe,
-    description: '9+ live websites on the Mississippi Gulf Coast',
+    label: 'Free Card Processing Analysis',
+    href: '/become-a-merchant',
+    icon: CreditCard,
+    description: 'Find out what your business really pays to accept cards',
   },
   {
     label: 'Read the Blog',
     href: '/blog',
     icon: PenLine,
-    description: 'Insights on credit, cybersecurity & web dev',
+    description: 'Insights on business credit, cybersecurity & tech',
   },
   {
-    label: 'Hire Me',
-    href: '/services',
-    icon: Briefcase,
-    description: 'Web development, consulting & tech services',
+    label: 'Earn Up to $300 Per Referral',
+    href: '/become-a-merchant#referral-program',
+    icon: Gift,
+    description: 'Know a business owner tired of processing fees?',
   },
   {
     label: 'Subscribe to Newsletter',
