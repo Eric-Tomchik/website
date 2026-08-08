@@ -2,7 +2,6 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { BookOpen, Info } from 'lucide-react';
 import { RecommendedReadsGrid } from '@/components/ui/RecommendedReadsGrid';
-import { ScrollReveal } from '@/components/ui/ScrollReveal';
 import { RECOMMENDED_READS, CATEGORY_LABELS } from '@/lib/recommendedReads';
 import { amazonBookLink } from '@/lib/utils';
 
@@ -69,7 +68,11 @@ export default function RecommendedReadsPage() {
               includes a one-line reason it made the list.
             </p>
             <p className="text-sm text-surface-500">
-              Looking for my own titles instead?{' '}
+              Contains Amazon affiliate links —{' '}
+              <a href="#affiliate-disclosure" className="underline underline-offset-2 hover:text-surface-400">
+                full disclosure below
+              </a>
+              . Looking for my own titles instead?{' '}
               <Link href="/books" className="text-brand-400 hover:text-brand-300 underline underline-offset-2">
                 Browse ArcLight Press books
               </Link>
@@ -77,8 +80,24 @@ export default function RecommendedReadsPage() {
             </p>
           </div>
 
+
+          <RecommendedReadsGrid />
+
+          {/* Footer CTA */}
+          <div className="mt-16 card p-6 sm:p-8 text-center max-w-3xl mx-auto">
+            <h2 className="text-2xl font-bold text-white mb-2">Have one I should add?</h2>
+            <p className="text-surface-400 mb-5">
+              If a book earned a permanent spot on your shelf, send it over — I read the
+              recommendations and update this list.
+            </p>
+            <Link href="/contact" className="btn-primary inline-flex">
+              Send a recommendation
+            </Link>
+          </div>
           {/* Affiliate disclosure — FTC + Amazon Associates requirement */}
-          <div className="max-w-3xl mx-auto mb-10 flex gap-3 items-start rounded-xl border border-surface-800 bg-surface-900/60 p-4">
+          <div
+            id="affiliate-disclosure"
+            className="max-w-3xl mx-auto mt-12 scroll-mt-24 flex gap-3 items-start rounded-xl border border-surface-800 bg-surface-900/60 p-4">
             <Info className="w-4 h-4 text-surface-400 mt-0.5 shrink-0" />
             <p className="text-xs sm:text-sm text-surface-400">
               <strong className="text-surface-300">Affiliate disclosure:</strong> As an Amazon
@@ -95,22 +114,6 @@ export default function RecommendedReadsPage() {
               </a>
               .
             </p>
-          </div>
-
-          <ScrollReveal animation="fade-up">
-            <RecommendedReadsGrid />
-          </ScrollReveal>
-
-          {/* Footer CTA */}
-          <div className="mt-16 card p-6 sm:p-8 text-center max-w-3xl mx-auto">
-            <h2 className="text-2xl font-bold text-white mb-2">Have one I should add?</h2>
-            <p className="text-surface-400 mb-5">
-              If a book earned a permanent spot on your shelf, send it over — I read the
-              recommendations and update this list.
-            </p>
-            <Link href="/contact" className="btn-primary inline-flex">
-              Send a recommendation
-            </Link>
           </div>
         </div>
       </div>
