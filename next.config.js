@@ -1,5 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async redirects() {
+    return [
+      // /clover was merged into /become-a-merchant (single Charity Swipes page).
+      // Permanent so the old URL's search equity transfers. Fragments such as
+      // #referral-program and #how-it-works are preserved by the browser and
+      // still exist on the destination page.
+      { source: '/clover', destination: '/become-a-merchant', permanent: true },
+    ];
+  },
   async rewrites() {
     return [
       // Serve WebP for old PNG/JPG paths (Convex DB still references original filenames)
