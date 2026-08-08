@@ -44,11 +44,61 @@ export const create = mutation({
     industry: v.optional(v.string()),
     monthly_volume: v.optional(v.string()),
     notes: v.optional(v.string()),
+    // Set when the applicant uploaded a processing statement. The file is
+    // uploaded server-side via /api/merchant-statement (which validates type
+    // and size), so only a storage id reaches this mutation.
+    statement_storage_id: v.optional(v.id("_storage")),
+    statement_filename: v.optional(v.string()),
+    statement_size_bytes: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("merchant_applications", {
       ...args,
+      statement_uploaded_at: args.statement_storage_id ? Date.now() : undefined,
       status: "new",
+    });
+  },
+});
+
+// ── Uploaded processing statements ──────────────────────────────────────────
+// Statements are financial documents. There is deliberately no public read
+// path: the file is only reachable through a short-lived signed URL minted for
+// an authenticated admin.
+
+export const getStatementUrl = query({
+  args: { adminKey: v.string(), id: v.id("merchant_applications") },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
+    const application = await ctx.db.get(args.id);
+    if (!application?.statement_storage_id) return null;
+    const url = await ctx.storage.getUrl(application.statement_storage_id);
+    if (!url) return null;
+    return {
+      url,
+      filename: application.statement_filename ?? "statement",
+      sizeBytes: application.statement_size_bytes ?? null,
+      uploadedAt: application.statement_uploaded_at ?? null,
+    };
+  },
+});
+
+export const removeStatement = mutation({
+  args: { adminKey: v.string(), id: v.id("merchant_applications") },
+  handler: async (ctx, args) => {
+    assertAdmin(args.adminKey);
+    const application = await ctx.db.get(args.id);
+    if (!application?.statement_storage_id) return;
+    await ctx.storage.delete(application.statement_storage_id);
+    await ctx.db.patch(args.id, {
+      statement_storage_id: undefined,
+      statement_filename: undefined,
+      statement_size_bytes: undefined,
+      statement_uploaded_at: undefined,
+    });
+    await ctx.db.insert("merchant_application_activities", {
+      application_id: args.id,
+      type: "note",
+      note: "Processing statement deleted from storage.",
     });
   },
 });
@@ -92,6 +142,11 @@ export const remove = mutation({
       .collect();
     for (const a of activities) {
       await ctx.db.delete(a._id);
+    }
+    // Don't leave an orphaned statement file behind in storage.
+    const application = await ctx.db.get(args.id);
+    if (application?.statement_storage_id) {
+      await ctx.storage.delete(application.statement_storage_id);
     }
     await ctx.db.delete(args.id);
   },

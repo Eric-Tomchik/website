@@ -21,6 +21,9 @@ import {
   PhoneCall,
   History,
   Send,
+  FileText,
+  Download,
+  Paperclip,
 } from 'lucide-react';
 import { Id } from '../../../../../convex/_generated/dataModel';
 import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
@@ -116,6 +119,13 @@ function ApplicationCard({
           <span className="text-xs text-surface-500">
             {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
           </span>
+          {application.statement_storage_id && (
+            <span className="ml-auto inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+                             text-[11px] font-medium bg-green-500/10 border border-green-500/30 text-green-400">
+              <Paperclip className="w-3 h-3" />
+              Statement
+            </span>
+          )}
         </div>
       </div>
     </button>
@@ -135,6 +145,13 @@ function ApplicationDetail({
   const updateNotes = useAdminMutation(api.merchantApplications.updateNotes);
   const removeApplication = useAdminMutation(api.merchantApplications.remove);
   const logActivity = useAdminMutation(api.merchantApplications.logActivity);
+  const removeStatement = useAdminMutation(api.merchantApplications.removeStatement);
+  // Signed storage URLs are short-lived, so this is fetched live rather than
+  // stored on the record.
+  const statement = useAdminQuery(
+    api.merchantApplications.getStatementUrl,
+    { id: applicationId }
+  );
 
   const [notes, setNotes] = useState('');
   const [notesLoaded, setNotesLoaded] = useState(false);
@@ -146,6 +163,7 @@ function ApplicationDetail({
   const [activityOutcome, setActivityOutcome] = useState<ActivityOutcome | ''>('');
   const [activityNote, setActivityNote] = useState('');
   const [logging, setLogging] = useState(false);
+  const [deletingStatement, setDeletingStatement] = useState(false);
 
   if (!application) {
     return (
@@ -179,6 +197,13 @@ function ApplicationDetail({
     setDeleting(true);
     await removeApplication({ id: applicationId });
     onBack();
+  };
+
+  const handleDeleteStatement = async () => {
+    if (!confirm('Delete this statement file permanently? The lead record stays.')) return;
+    setDeletingStatement(true);
+    await removeStatement({ id: applicationId });
+    setDeletingStatement(false);
   };
 
   const handleLogActivity = async () => {
@@ -319,6 +344,104 @@ function ApplicationDetail({
         </a>
       </div>
 
+      {/* Processing statement — the whole point of the lead magnet */}
+      <div className="card p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <FileText className="w-4 h-4 text-brand-400" />
+          <h3 className="font-semibold text-white">Processing Statement</h3>
+        </div>
+
+        {application.statement_storage_id ? (
+          <>
+            <div className="flex items-center gap-3 p-4 rounded-lg bg-surface-800/40 border border-green-500/20">
+              <div className="w-10 h-10 rounded-lg bg-green-600/10 border border-green-600/20 flex items-center justify-center flex-shrink-0">
+                <FileText className="w-5 h-5 text-green-400" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-white font-medium truncate">
+                  {application.statement_filename || 'statement'}
+                </p>
+                <p className="text-xs text-surface-400 mt-0.5">
+                  {application.statement_size_bytes
+                    ? `${(application.statement_size_bytes / 1024 / 1024).toFixed(2)} MB`
+                    : 'Size unknown'}
+                  {application.statement_uploaded_at
+                    ? ` · uploaded ${new Date(application.statement_uploaded_at).toLocaleDateString(
+                        'en-US',
+                        { month: 'short', day: 'numeric', year: 'numeric' }
+                      )}`
+                    : ''}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              {statement?.url ? (
+                <>
+                  <a
+                    href={statement.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary py-2.5 px-5 text-sm"
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Open Statement
+                  </a>
+                  <a
+                    href={statement.url}
+                    download={statement.filename}
+                    className="btn-secondary py-2.5 px-5 text-sm"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download
+                  </a>
+                </>
+              ) : (
+                <span className="flex items-center gap-2 text-sm text-surface-400">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Preparing secure link...
+                </span>
+              )}
+              <button
+                onClick={handleDeleteStatement}
+                disabled={deletingStatement}
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm text-red-400
+                           hover:bg-red-900/20 border border-red-500/20 transition-all disabled:opacity-50"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                {deletingStatement ? 'Deleting...' : 'Delete file'}
+              </button>
+            </div>
+            <p className="text-xs text-surface-500">
+              This is the merchant&apos;s financial document. The link above is generated per
+              request and expires — it is never publicly reachable. Delete the file once the
+              analysis is done.
+            </p>
+          </>
+        ) : (
+          <div className="p-4 rounded-lg bg-surface-800/40 border border-surface-700/50">
+            <p className="text-sm text-surface-300">No statement uploaded.</p>
+            <p className="text-xs text-surface-500 mt-1.5">
+              Ask for their most recent statement on the first call — without it the analysis is
+              guesswork. They can upload it at{' '}
+              <span className="text-surface-400">erictomchik.com/become-a-merchant</span>, or just
+              email it over.
+            </p>
+            <a
+              href={`mailto:${application.email}?subject=${encodeURIComponent(
+                `Your free processing analysis — ${application.business_name}`
+              )}&body=${encodeURIComponent(
+                `Hi ${application.owner_name},\n\nThanks for requesting your free processing analysis. To run the numbers I just need your most recent credit card processing statement — you can reply to this email with it attached, or upload it here:\n\nhttps://erictomchik.com/become-a-merchant\n\nOnce I have it I'll break down exactly what you're paying today and what it could look like instead.\n\nEric Tomchik\nCharity Swipes\n(228) 344-5724`
+              )}`}
+              className="btn-secondary py-2 px-4 text-sm mt-4 inline-flex"
+            >
+              <Mail className="w-4 h-4 mr-2" />
+              Request statement by email
+            </a>
+          </div>
+        )}
+      </div>
+
       {/* Sales activity log — the follow-up pipeline */}
       <div className="card p-6 space-y-4">
         <div className="flex items-center gap-2">
@@ -439,13 +562,17 @@ export default function MerchantApplicationsPage() {
   const [selectedId, setSelectedId] = useState<Id<'merchant_applications'> | null>(null);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<AppStatus | 'all'>('all');
+  const [statementOnly, setStatementOnly] = useState(false);
 
   if (selectedId) {
     return <ApplicationDetail applicationId={selectedId} onBack={() => setSelectedId(null)} />;
   }
 
+  const statementCount = applications.filter((a: any) => a.statement_storage_id).length;
+
   const filtered = applications.filter((a: any) => {
     if (filterStatus !== 'all' && a.status !== filterStatus) return false;
+    if (statementOnly && !a.statement_storage_id) return false;
     if (search) {
       const q = search.toLowerCase();
       return (
@@ -512,6 +639,19 @@ export default function MerchantApplicationsPage() {
             </button>
           )}
         </div>
+        <button
+          onClick={() => setStatementOnly((v) => !v)}
+          title="Leads who already sent a statement — these are ready to analyze"
+          className={`flex items-center gap-1.5 px-3 py-2.5 rounded-lg text-sm whitespace-nowrap
+                      border transition-all ${
+                        statementOnly
+                          ? 'text-green-400 border-green-500/40 bg-green-500/10'
+                          : 'text-surface-300 hover:text-white border-surface-700/50 hover:border-surface-600'
+                      }`}
+        >
+          <Paperclip className="w-3.5 h-3.5" />
+          Statement ({statementCount})
+        </button>
         {filterStatus !== 'all' && (
           <button
             onClick={() => setFilterStatus('all')}
@@ -527,6 +667,7 @@ export default function MerchantApplicationsPage() {
       <p className="text-sm text-surface-500">
         {filtered.length} application{filtered.length !== 1 ? 's' : ''}{' '}
         {filterStatus !== 'all' ? `(${STATUS_CONFIG[filterStatus].label})` : ''}
+        {statementOnly ? ' with a statement attached' : ''}
       </p>
 
       {filtered.length === 0 ? (

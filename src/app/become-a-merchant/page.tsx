@@ -71,7 +71,7 @@ const steps = [
     step: '1',
     icon: FileSearch,
     title: 'Send Your Statement',
-    desc: 'Request the free analysis below. Bring your most recent processing statement — that one document holds every number we need.',
+    desc: 'Request the free analysis below and upload your most recent processing statement right on the form — that one document holds every number we need.',
   },
   {
     step: '2',
@@ -152,6 +152,11 @@ const faqs = [
     question: 'What exactly is the free processing analysis?',
     answer:
       'You send your most recent credit card processing statement and Eric reviews it with you in about 15 minutes. You get your current monthly cost, your true effective rate, the annualized figure, and a breakdown of the fees on your statement. There is no cost and no obligation to switch — many owners simply want to know their real number.',
+  },
+  {
+    question: 'Is it safe to send you my processing statement?',
+    answer:
+      'Yes. The upload goes over an encrypted connection into private storage — it is never publicly reachable, never posted anywhere, and never sold or shared for marketing. Only Eric opens it, and it is deleted the moment you ask. If you would rather not upload anything, a redacted copy or even a phone photo of the fee summary page is enough to run the numbers.',
   },
   {
     question: 'Will my customers be upset about a card fee?',

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getConvexClient } from '@/lib/convex';
 import { api } from '../../../../convex/_generated/api';
+import type { Id } from '../../../../convex/_generated/dataModel';
 import { z } from 'zod';
 
 function getClientIp(req: Request): string {
@@ -20,6 +21,10 @@ const applicationSchema = z.object({
   industry: z.string().max(150).optional(),
   monthly_volume: z.string().max(50).optional(),
   notes: z.string().max(3000).optional(),
+  // Set by /api/merchant-statement after a successful upload.
+  statement_storage_id: z.string().max(200).optional(),
+  statement_filename: z.string().max(200).optional(),
+  statement_size_bytes: z.number().int().nonnegative().optional(),
   company: z.string().optional(), // honeypot field
 });
 
@@ -62,6 +67,11 @@ export async function POST(req: Request) {
       industry: data.industry || undefined,
       monthly_volume: data.monthly_volume || undefined,
       notes: data.notes || undefined,
+      statement_storage_id: data.statement_storage_id
+        ? (data.statement_storage_id as Id<'_storage'>)
+        : undefined,
+      statement_filename: data.statement_filename || undefined,
+      statement_size_bytes: data.statement_size_bytes,
     });
 
     // Send email notification via Resend
@@ -119,6 +129,18 @@ export async function POST(req: Request) {
                   : ''
               }
 
+              ${
+                data.statement_storage_id
+                  ? `<div style="margin-top: 20px; padding: 16px; background: #052e1b; border: 1px solid #15803d; border-radius: 8px;">
+                <div style="color: #4ade80; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">Processing statement attached</div>
+                <div style="color: #e2e8f0; font-size: 14px;">${data.statement_filename || 'statement'}</div>
+                <div style="color: #94a3b8; font-size: 12px; margin-top: 6px;">Open it from the admin portal &mdash; it is not attached to this email.</div>
+              </div>`
+                  : `<div style="margin-top: 20px; padding: 16px; background: #1e293b; border-radius: 8px;">
+                <div style="color: #94a3b8; font-size: 13px;">No statement uploaded &mdash; ask for it on the first call.</div>
+              </div>`
+              }
+
               <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #1e293b;">
                 <a href="https://erictomchik.com/admin/merchant-applications"
                    style="display: inline-block; background: #2563eb; color: white; padding: 10px 24px;
@@ -140,7 +162,7 @@ export async function POST(req: Request) {
             from: `Merchant Applications <noreply@erictomchik.com>`,
             to: ['info@erictomchik.com'],
             reply_to: data.email,
-            subject: `New Processing Analysis Request: ${data.business_name}`,
+            subject: `New Processing Analysis Request${data.statement_storage_id ? ' (statement attached)' : ''}: ${data.business_name}`,
             html: emailHtml,
           }),
         });
