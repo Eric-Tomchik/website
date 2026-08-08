@@ -72,6 +72,11 @@ export function ScrollReveal({
       return;
     }
 
+    // `threshold` is a fraction of the ELEMENT, not of the viewport, so an
+    // element taller than the viewport can never reach a fraction like 0.15
+    // and would stay permanently hidden. Fall back to 0 in that case.
+    const effectiveThreshold = el.offsetHeight > window.innerHeight * threshold * 2 ? 0 : threshold;
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -81,11 +86,18 @@ export function ScrollReveal({
           setIsVisible(false);
         }
       },
-      { threshold, rootMargin: '0px 0px -40px 0px' }
+      { threshold: effectiveThreshold, rootMargin: '0px 0px -40px 0px' }
     );
 
     observer.observe(el);
-    return () => observer.disconnect();
+
+    // Last-resort safety net: never let content stay invisible.
+    const failsafe = window.setTimeout(() => setIsVisible(true), 1200);
+
+    return () => {
+      window.clearTimeout(failsafe);
+      observer.disconnect();
+    };
   }, [threshold, once]);
 
   const anim = animationStyles[animation] || animationStyles['fade-up'];
