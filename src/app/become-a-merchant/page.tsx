@@ -64,6 +64,10 @@ export const metadata: Metadata = {
   },
 };
 
+// Google reviews for Charity Swipes. Tracking parameters stripped from the
+// original link so it stays stable for every visitor.
+const GOOGLE_REVIEWS_URL = 'https://www.google.com/search?q=Charity+Swipes+google+reviews';
+
 const auditOutputs = [
   'Your current monthly processing expense, in dollars',
   'Your true effective rate — not the teaser rate you were quoted',
@@ -412,16 +416,22 @@ export default function BecomeAMerchantPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-x-5 gap-y-3 pt-3 text-sm">
-                <div className="flex items-center gap-2">
-                  {/* TODO: link this to the Google Business profile and add the review count. */}
+                <a
+                  href={GOOGLE_REVIEWS_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 group"
+                >
                   <div className="flex items-center gap-0.5">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                     ))}
                   </div>
                   <span className="text-white font-bold">4.8</span>
-                  <span className="text-surface-400">on Google</span>
-                </div>
+                  <span className="text-surface-400 group-hover:text-surface-200 underline decoration-surface-600 underline-offset-4 transition-colors">
+                    on Google
+                  </span>
+                </a>
                 <span className="flex items-center gap-1.5 text-surface-400">
                   <ShieldCheck className="w-4 h-4 text-brand-400" />
                   Authorized Clover dealer
@@ -723,10 +733,16 @@ export default function BecomeAMerchantPage() {
         <section className="py-16 border-t border-surface-800/50">
           <div className="section-container">
             <div className="text-center mb-12">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass text-xs text-yellow-400 mb-4">
+              <a
+                href={GOOGLE_REVIEWS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass text-xs text-yellow-400 mb-4
+                           hover:text-yellow-300 transition-colors"
+              >
                 <Star className="w-3.5 h-3.5 fill-yellow-400" />
-                4.8-star Google rating
-              </div>
+                4.8-star Google rating — read the reviews
+              </a>
               <h2 className="text-3xl font-bold text-white mb-4">
                 Trusted by <span className="gradient-text">Business Owners</span>
               </h2>
