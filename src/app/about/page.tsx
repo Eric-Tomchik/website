@@ -191,7 +191,7 @@ export default async function AboutPage() {
                   Clover&apos;s Cash Discount Program
                 </a>
                 .{' '}
-                <Link href="/clover" className="text-brand-400 hover:text-brand-300 transition-colors">
+                <Link href="/become-a-merchant" className="text-brand-400 hover:text-brand-300 transition-colors">
                   Learn more →
                 </Link>
               </p>

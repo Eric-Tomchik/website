@@ -17,8 +17,7 @@ const bookLinks = [
 
 const navLinks = [
   { href: '/', label: 'Home' },
-  { href: '/clover', label: 'Clover Cash Discount' },
-  { href: '/become-a-merchant', label: 'Become a Merchant' },
+  { href: '/become-a-merchant', label: 'Clover Cash Discount' },
   { href: '/blog', label: 'Blog' },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },

@@ -1,26 +1,33 @@
 import { Metadata } from 'next';
-import Link from 'next/link';
 import DeferredCalBooking from '@/components/DeferredCalBooking';
 import MerchantSignupForm from '@/components/MerchantSignupForm';
+import ReferralForm from '@/components/ReferralForm';
 import ProcessingSavingsCalculator from '@/components/ProcessingSavingsCalculator';
 import {
   ArrowRight,
   BadgeDollarSign,
+  Banknote,
+  CheckCircle,
   ClipboardCheck,
   CreditCard,
   FileSearch,
+  Fuel,
+  Gift,
   Handshake,
+  Headphones,
   Heart,
   LayoutDashboard,
   Mail,
   MapPin,
   MessageSquare,
+  MessageSquareQuote,
   Phone,
   Search,
   ShieldCheck,
   Star,
   Store,
   Truck,
+  Users,
 } from 'lucide-react';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
 
@@ -110,7 +117,7 @@ const perks = [
     icon: LayoutDashboard,
     title: 'Modern Clover Hardware',
     description:
-      'Tap-to-pay terminals, cloud dashboard, inventory, loyalty, and 300+ Clover apps. Equipment is leased at a monthly rate that depends on the terminal you choose.',
+      'Tap-to-pay terminals, cloud dashboard, inventory, loyalty, and 300+ Clover apps. Equipment is leased, with packages starting at $99/mo — see the pricing below.',
   },
   {
     icon: MapPin,
@@ -123,6 +130,12 @@ const perks = [
     title: 'Transparent & Disclosed',
     description:
       'Cash discount pricing is disclosed to your customers at the point of sale, with the required signage and program rules confirmed up front.',
+  },
+  {
+    icon: Headphones,
+    title: '24/7/365 Support',
+    description:
+      'Clover support is available any hour of any day for the hardware and software — and Eric is a local phone call for everything else.',
   },
   {
     icon: Store,
@@ -144,7 +157,97 @@ const targetIndustries = [
   'Retail shops & boutiques',
   'Convenience stores',
   'Florists',
+  'Cleaning services',
+  'Professional services',
   'Tourist & marine businesses',
+];
+
+// Clover equipment packages. Prices are the published monthly lease rates —
+// naming a starting number removes the biggest unanswered question on the page.
+const packages = [
+  {
+    name: 'Keep-It-Simple',
+    price: '$99',
+    period: '/mo',
+    best: 'Single register, straightforward checkout',
+    features: [
+      '6" touchscreen terminal',
+      'Tap-to-pay, chip & swipe',
+      'Print, email, or text receipts',
+      'Clover App Store access',
+    ],
+    accent: false,
+  },
+  {
+    name: 'Professional',
+    price: '$199',
+    period: '/mo',
+    best: 'Repeat customers and inventory to track',
+    features: [
+      '8" touchscreen terminal',
+      'Loyalty programs',
+      'Gift card management',
+      'Inventory management',
+      'Everything in Keep-It-Simple',
+    ],
+    accent: true,
+  },
+  {
+    name: 'Full Service',
+    price: '$349',
+    period: '/mo',
+    best: 'Restaurants, bars, and multi-station floors',
+    features: [
+      '14" touchscreen + 8" customer display',
+      'Full inventory & employee management',
+      'Online ordering integration',
+      'Damage & theft insurance',
+      'Everything in Professional',
+    ],
+    accent: false,
+  },
+];
+
+const feeExamples = [
+  { volume: '$10,000', fees: '$200–$400' },
+  { volume: '$25,000', fees: '$500–$1,000' },
+  { volume: '$50,000', fees: '$1,000–$2,000' },
+];
+
+const reviews = [
+  {
+    name: 'Eli Burke',
+    role: 'Business Owner',
+    rating: 5,
+    text: 'The setup process was effortless, and the results have been flawless. It\'s rare for a product to work this well from day one. Every transaction is instant and secure. The design is clean and intuitive. It\'s a top-tier service.',
+  },
+  {
+    name: 'Renee VanHeel',
+    role: 'President, Processing Forward',
+    rating: 5,
+    text: 'We are excited to put our customers first and have the opportunity to make a difference in our communities by donating back to charity. Every swipe benefits charity!',
+  },
+];
+
+const referralSteps = [
+  {
+    step: '1',
+    icon: Users,
+    title: 'Identify a Business',
+    desc: 'Know an owner who is tired of processing fees? They could be your next referral.',
+  },
+  {
+    step: '2',
+    icon: Mail,
+    title: 'Submit the Referral',
+    desc: 'Fill out the form below with their details and your contact info. It takes a minute.',
+  },
+  {
+    step: '3',
+    icon: Banknote,
+    title: 'Get Paid',
+    desc: 'Once the business qualifies and signs up through Charity Swipes, you receive your fee.',
+  },
 ];
 
 const faqs = [
@@ -171,7 +274,7 @@ const faqs = [
   {
     question: 'What does the Clover equipment cost?',
     answer:
-      'Clover terminals are leased, and the monthly cost depends on which terminal you choose — a compact handheld is very different from a full countertop station. Eric will quote the exact equipment cost for your setup during the review, before you sign anything, so it is part of the math rather than a surprise afterward.',
+      'Clover terminals are leased monthly, and packages start at $99/mo for a single-register setup, $199/mo with loyalty and inventory, and $349/mo for a full multi-station restaurant floor. Eric confirms the exact configuration and cost for your business during the review, before you sign anything, so it is part of the math rather than a surprise afterward.',
   },
   {
     question: 'Am I locked into a long-term contract?',
@@ -298,6 +401,16 @@ export default function BecomeAMerchantPage() {
                 </a>
               </div>
 
+              <div className="pt-1">
+                <a
+                  href="#referral-program"
+                  className="inline-flex items-center gap-2 text-sm text-green-400 hover:text-green-300 transition-colors"
+                >
+                  <Gift className="w-4 h-4" />
+                  Not a business owner? Earn up to $300 per referral →
+                </a>
+              </div>
+
               <div className="flex flex-wrap items-center gap-x-5 gap-y-3 pt-3 text-sm">
                 <div className="flex items-center gap-2">
                   {/* TODO: link this to the Google Business profile and add the review count. */}
@@ -345,6 +458,98 @@ export default function BecomeAMerchantPage() {
                 upward. A statement review costs you 15 minutes and tells you where you actually
                 stand.
               </p>
+            </div>
+
+            <div className="grid sm:grid-cols-3 gap-4 max-w-3xl mx-auto mt-10">
+              {feeExamples.map((item) => (
+                <div
+                  key={item.volume}
+                  className="text-center p-5 rounded-lg bg-surface-800/40 border border-surface-700/50"
+                >
+                  <div className="text-lg font-bold text-white">{item.volume}</div>
+                  <div className="text-xs text-surface-400">in monthly card sales</div>
+                  <div className="text-red-400 font-semibold mt-2">{item.fees}/mo in fees</div>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-surface-500 text-center max-w-2xl mx-auto mt-4">
+              Based on a typical 2–4% effective rate. Your actual number is on your statement — that
+              is what the analysis reads.
+            </p>
+          </div>
+        </section>
+      </ScrollReveal>
+
+      {/* ── How the cash discount program works (gas station analogy) ───────── */}
+      <ScrollReveal animation="fade-up">
+        <section id="how-it-works" className="py-16 border-t border-surface-800/50 scroll-mt-24">
+          <div className="section-container">
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass text-xs text-brand-400 mb-4">
+                  <Fuel className="w-3.5 h-3.5" />
+                  Think of it like a gas station
+                </div>
+                <h2 className="text-3xl font-bold text-white">
+                  How the <span className="gradient-text">Cash Discount Program</span> Works
+                </h2>
+              </div>
+
+              <div className="card p-8 space-y-4 text-surface-300 leading-relaxed">
+                <p>
+                  Gas stations have posted{' '}
+                  <span className="text-white font-semibold">two prices</span> for years — one for
+                  cash, one for card. Pay cash, pay the listed price. Choose the convenience of a
+                  card and a small difference applies. Nobody blinks at the pump, because it is
+                  posted plainly before you pump.
+                </p>
+                <p>
+                  A cash discount program works the same way for your business. Your{' '}
+                  <span className="text-white font-semibold">listed prices are the cash prices</span>
+                  . When a customer pays by card, the transaction fee is applied at checkout
+                  instead of coming out of your margin. Either way{' '}
+                  <span className="text-white font-semibold">
+                    you keep the full listed price on the sale
+                  </span>
+                  .
+                </p>
+                <p>
+                  Clover handles the pricing, signage prompts, and receipt language automatically at
+                  the register — no manual math and no awkward conversations for your staff. The
+                  specific program rules, disclosures, and signage requirements that apply to your
+                  business type are confirmed with you before anything changes.
+                </p>
+
+                <div className="grid sm:grid-cols-2 gap-4 pt-4">
+                  <div className="p-6 rounded-lg bg-red-900/10 border border-red-500/20 text-center">
+                    <div className="text-sm text-red-400 font-semibold mb-2">
+                      Standard Processing
+                    </div>
+                    <div className="text-2xl font-bold text-white">$100 sale</div>
+                    <div className="text-red-400 mt-1">→ $96–$98 deposited</div>
+                    <div className="text-xs text-surface-400 mt-2">
+                      You absorb the fee on every transaction
+                    </div>
+                  </div>
+                  <div className="p-6 rounded-lg bg-green-900/10 border border-green-500/20 text-center">
+                    <div className="text-sm text-green-400 font-semibold mb-2">
+                      Cash Discount Program
+                    </div>
+                    <div className="text-2xl font-bold text-white">$100 listed price</div>
+                    <div className="text-green-400 mt-1">→ $100 deposited</div>
+                    <div className="text-xs text-surface-400 mt-2">
+                      Card fee applied at checkout, not to your margin
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center mt-8">
+                <a href="#analysis" className="btn-primary py-3.5 px-8">
+                  Get My Free Processing Analysis
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </a>
+              </div>
             </div>
           </div>
         </section>
@@ -440,6 +645,108 @@ export default function BecomeAMerchantPage() {
                   </div>
                   <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
                   <p className="text-sm text-surface-400 leading-relaxed">{item.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </ScrollReveal>
+
+      {/* ── Equipment pricing ─────────────────────────────────────────────── */}
+      <ScrollReveal animation="fade-up">
+        <section id="pricing" className="py-16 border-t border-surface-800/50 scroll-mt-24">
+          <div className="section-container">
+            <div className="max-w-3xl mx-auto text-center mb-12">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass text-xs text-brand-400 mb-4">
+                <CreditCard className="w-3.5 h-3.5" />
+                Equipment, priced up front
+              </div>
+              <h2 className="text-3xl font-bold text-white mb-4">
+                What the <span className="gradient-text">Clover Hardware</span> Costs
+              </h2>
+              <p className="text-surface-400">
+                Terminals are leased monthly. Here is what each package includes so you can do the
+                math yourself before you ever talk to anyone.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              {packages.map((pkg) => (
+                <div
+                  key={pkg.name}
+                  className={`card p-8 flex flex-col ${
+                    pkg.accent ? 'border-brand-500/40 ring-1 ring-brand-500/20' : ''
+                  }`}
+                >
+                  {pkg.accent && (
+                    <div className="text-xs font-semibold text-brand-400 uppercase tracking-wider mb-2">
+                      Most Popular
+                    </div>
+                  )}
+                  <h3 className="text-xl font-bold text-white">{pkg.name}</h3>
+                  <div className="flex items-baseline gap-1 mt-3">
+                    <span className="text-3xl font-extrabold text-white">{pkg.price}</span>
+                    <span className="text-surface-400">{pkg.period}</span>
+                  </div>
+                  <p className="text-xs text-surface-500 mt-2 mb-6">Best for: {pkg.best}</p>
+                  <ul className="space-y-3 flex-1">
+                    {pkg.features.map((feature) => (
+                      <li key={feature} className="flex items-start gap-2 text-sm text-surface-300">
+                        <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                  <a
+                    href="#analysis"
+                    className={`mt-6 text-center py-3 rounded-lg font-medium transition-all w-full ${
+                      pkg.accent ? 'btn-primary' : 'btn-secondary'
+                    }`}
+                  >
+                    Get My Free Analysis
+                  </a>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-xs text-surface-500 text-center max-w-2xl mx-auto mt-6 leading-relaxed">
+              Monthly lease rates for the equipment package. Final pricing, term length, and any
+              additional fees are confirmed in writing for your specific setup before you sign
+              anything.
+            </p>
+          </div>
+        </section>
+      </ScrollReveal>
+
+      {/* ── Proof ─────────────────────────────────────────────────────────── */}
+      <ScrollReveal animation="fade-up">
+        <section className="py-16 border-t border-surface-800/50">
+          <div className="section-container">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass text-xs text-yellow-400 mb-4">
+                <Star className="w-3.5 h-3.5 fill-yellow-400" />
+                4.8-star Google rating
+              </div>
+              <h2 className="text-3xl font-bold text-white mb-4">
+                Trusted by <span className="gradient-text">Business Owners</span>
+              </h2>
+            </div>
+            <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              {reviews.map((review) => (
+                <div key={review.name} className="card p-8 relative">
+                  <MessageSquareQuote className="w-10 h-10 text-brand-600/20 absolute top-6 right-6" />
+                  <div className="flex items-center gap-1 mb-4">
+                    {[...Array(review.rating)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                    ))}
+                  </div>
+                  <p className="text-surface-300 leading-relaxed mb-6 relative z-10">
+                    &ldquo;{review.text}&rdquo;
+                  </p>
+                  <div>
+                    <div className="font-semibold text-white">{review.name}</div>
+                    <div className="text-sm text-surface-400">{review.role}</div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -594,6 +901,88 @@ export default function BecomeAMerchantPage() {
         </section>
       </ScrollReveal>
 
+      {/* ── Referral program (moved here from the retired /clover page) ─────── */}
+      <ScrollReveal animation="fade-up">
+        <section
+          id="referral-program"
+          className="py-16 border-t border-surface-800/50 scroll-mt-24"
+        >
+          <div className="section-container">
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-10">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass text-xs text-green-400 mb-4">
+                  <Gift className="w-3.5 h-3.5" />
+                  Not a business owner? Still worth your time.
+                </div>
+                <h2 className="text-3xl font-bold text-white mb-4">
+                  Earn Up to <span className="gradient-text">$300 Per Referral</span>
+                </h2>
+                <p className="text-surface-400">
+                  Know an owner who is tired of processing fees? Send them over. Eric does all the
+                  follow-up, and you earn a referral fee for every account that qualifies and signs
+                  up.
+                </p>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-6 mb-10">
+                <div className="card p-6 border-green-500/20">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-lg bg-green-600/10 border border-green-600/20 flex items-center justify-center">
+                      <Banknote className="w-5 h-5 text-green-400" />
+                    </div>
+                    <div>
+                      <div className="text-sm text-green-400 font-semibold">Qualified Referral</div>
+                      <div className="text-2xl font-extrabold text-white">$100 — $300</div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-surface-400 leading-relaxed">
+                    For any account that qualifies and signs up with the Clover Cash Discount
+                    Program via Charity Swipes. Amount depends on qualification and equipment type.
+                  </p>
+                </div>
+                <div className="card p-6 border-yellow-500/20">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-lg bg-yellow-600/10 border border-yellow-600/20 flex items-center justify-center">
+                      <Handshake className="w-5 h-5 text-yellow-400" />
+                    </div>
+                    <div>
+                      <div className="text-sm text-yellow-400 font-semibold">Partial Qualification</div>
+                      <div className="text-2xl font-extrabold text-white">$50 — $150</div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-surface-400 leading-relaxed">
+                    Accounts that sign up but do not fully qualify receive 50% of the standard
+                    referral fee, based on qualification and equipment acquired.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-3 gap-6 mb-10">
+                {referralSteps.map((item) => (
+                  <div key={item.step} className="card p-6 text-center">
+                    <div className="w-10 h-10 rounded-full bg-brand-600/20 border border-brand-600/30 flex items-center justify-center mx-auto mb-4">
+                      <span className="text-brand-400 font-bold">{item.step}</span>
+                    </div>
+                    <item.icon className="w-6 h-6 text-brand-400 mx-auto mb-3" />
+                    <h3 className="text-base font-bold text-white mb-2">{item.title}</h3>
+                    <p className="text-sm text-surface-400 leading-relaxed">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="card p-6 sm:p-8">
+                <h3 className="text-xl font-bold text-white mb-2 text-center">Submit a Referral</h3>
+                <p className="text-sm text-surface-400 text-center mb-8">
+                  Please get the owner&apos;s permission before sharing their details. Referral fees
+                  are paid once the account signs up.
+                </p>
+                <ReferralForm />
+              </div>
+            </div>
+          </div>
+        </section>
+      </ScrollReveal>
+
       {/* ── Contact / trust close ─────────────────────────────────────────── */}
       <ScrollReveal animation="fade-up">
         <section className="py-16 border-t border-surface-800/50">
@@ -637,9 +1026,9 @@ export default function BecomeAMerchantPage() {
               </div>
 
               <div className="flex flex-wrap justify-center gap-4 pt-4 text-sm">
-                <Link href="/clover" className="text-brand-400 hover:text-brand-300">
+                <a href="#how-it-works" className="text-brand-400 hover:text-brand-300">
                   How the Cash Discount Program works
-                </Link>
+                </a>
                 <a
                   href="https://charityswipes.com"
                   target="_blank"
