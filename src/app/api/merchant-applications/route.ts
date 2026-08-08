@@ -15,7 +15,8 @@ const applicationSchema = z.object({
   business_name: z.string().min(1).max(150),
   owner_name: z.string().min(1).max(100),
   email: z.string().email(),
-  phone: z.string().min(1).max(30),
+  // Optional since the landing-page form asks for phone only as an optional extra.
+  phone: z.string().max(30).optional(),
   industry: z.string().max(150).optional(),
   monthly_volume: z.string().max(50).optional(),
   notes: z.string().max(3000).optional(),
@@ -57,7 +58,7 @@ export async function POST(req: Request) {
       business_name: data.business_name,
       owner_name: data.owner_name,
       email: data.email,
-      phone: data.phone,
+      phone: data.phone || 'Not provided',
       industry: data.industry || undefined,
       monthly_volume: data.monthly_volume || undefined,
       notes: data.notes || undefined,
@@ -76,7 +77,7 @@ export async function POST(req: Request) {
         const emailHtml = `
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background: #0f172a; border-radius: 12px; padding: 32px; border: 1px solid #1e293b;">
-              <h2 style="color: #60a5fa; margin: 0 0 24px 0; font-size: 22px;">New Merchant Application</h2>
+              <h2 style="color: #60a5fa; margin: 0 0 24px 0; font-size: 22px;">New Processing Analysis Request</h2>
 
               <table style="width: 100%; border-collapse: collapse;">
                 <tr>
@@ -96,7 +97,7 @@ export async function POST(req: Request) {
                 <tr>
                   <td style="padding: 10px 12px; color: #94a3b8; font-size: 14px; vertical-align: top;">Phone</td>
                   <td style="padding: 10px 12px; color: #f1f5f9; font-size: 14px;">
-                    <a href="tel:${data.phone}" style="color: #60a5fa; text-decoration: none;">${data.phone}</a>
+                    ${data.phone ? `<a href="tel:${data.phone}" style="color: #60a5fa; text-decoration: none;">${data.phone}</a>` : 'Not provided'}
                   </td>
                 </tr>
                 <tr>
@@ -139,7 +140,7 @@ export async function POST(req: Request) {
             from: `Merchant Applications <noreply@erictomchik.com>`,
             to: ['info@erictomchik.com'],
             reply_to: data.email,
-            subject: `New Merchant Application: ${data.business_name}`,
+            subject: `New Processing Analysis Request: ${data.business_name}`,
             html: emailHtml,
           }),
         });
