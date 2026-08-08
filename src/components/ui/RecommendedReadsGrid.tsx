@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Image from 'next/image';
 import { BookOpen, ExternalLink } from 'lucide-react';
 import { cn, amazonBookLink } from '@/lib/utils';
 import {
@@ -16,12 +17,14 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: 'all', label: 'All' },
   { key: 'business', label: CATEGORY_LABELS.business },
   { key: 'tech', label: CATEGORY_LABELS.tech },
+  { key: 'security', label: CATEGORY_LABELS.security },
   { key: 'ai', label: CATEGORY_LABELS.ai },
 ];
 
 const CATEGORY_ACCENT: Record<ReadCategory, string> = {
   business: 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/30',
   tech: 'bg-sky-500/10 text-sky-300 ring-sky-500/30',
+  security: 'bg-amber-500/10 text-amber-300 ring-amber-500/30',
   ai: 'bg-brand-500/10 text-brand-300 ring-brand-500/30',
 };
 
@@ -29,6 +32,35 @@ function ReadCard({ read }: { read: RecommendedRead }) {
   const href = amazonBookLink(read.title, read.author, read.asin);
   return (
     <div className="card flex flex-col p-5 h-full">
+      {/* Cover: real image when we have a licensed one, otherwise a typographic tile */}
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer sponsored nofollow"
+        aria-label={`${read.title} on Amazon`}
+        className="block mb-4 rounded-lg overflow-hidden bg-surface-800/60 ring-1 ring-surface-800
+                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
+      >
+        {read.cover ? (
+          <Image
+            src={read.cover}
+            alt={`Cover of ${read.title} by ${read.author}`}
+            width={300}
+            height={450}
+            loading="lazy"
+            // Covers are already pre-sized/compressed webp (<=400px wide), so
+            // skip the Workers image optimizer entirely.
+            unoptimized
+            className="w-full h-56 object-contain p-3 transition-transform duration-300 hover:scale-[1.03]"
+          />
+        ) : (
+          <div className="w-full h-56 flex flex-col items-center justify-center text-center px-4 bg-gradient-to-br from-surface-800 to-surface-900">
+            <span className="text-base font-bold text-white leading-snug line-clamp-4">{read.title}</span>
+            <span className="mt-2 text-xs text-surface-400">{read.author}</span>
+          </div>
+        )}
+      </a>
+
       <div className="flex items-start justify-between gap-3 mb-3">
         <span
           className={cn(
