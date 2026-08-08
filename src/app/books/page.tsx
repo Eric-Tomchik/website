@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import Link from 'next/link';
 import { fetchQuery } from 'convex/nextjs';
 import { api } from '../../../convex/_generated/api';
 import { BookCard } from '@/components/ui/BookCard';
@@ -93,6 +94,13 @@ export default async function BooksPage({
             </h1>
             <p className="text-surface-400 max-w-xl mx-auto">
               Books by Eric Tomchik. Available on Amazon and Barnes &amp; Noble.
+            </p>
+            <p className="text-sm text-surface-500">
+              Also see my{' '}
+              <Link href="/books/recommended" className="text-brand-400 hover:text-brand-300 underline underline-offset-2">
+                Recommended Reads
+              </Link>{' '}
+              — business, IT, and AI books worth your money.
             </p>
           </div>
         </div>
