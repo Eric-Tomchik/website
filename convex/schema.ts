@@ -664,6 +664,12 @@ export default defineSchema({
     referrer_phone: v.string(),
     referrer_email: v.string(),
     notes: v.optional(v.string()),
+    // Uploaded processing statement (sensitive financial document — see
+    // convex/merchantApplications.ts for the admin-only access path).
+    statement_storage_id: v.optional(v.id("_storage")),
+    statement_filename: v.optional(v.string()),
+    statement_size_bytes: v.optional(v.number()),
+    statement_uploaded_at: v.optional(v.number()),
     status: v.union(
       v.literal("new"),
       v.literal("contacted"),
@@ -685,6 +691,12 @@ export default defineSchema({
     industry: v.optional(v.string()),
     monthly_volume: v.optional(v.string()),
     notes: v.optional(v.string()),
+    // Uploaded processing statement (sensitive financial document — see
+    // convex/merchantApplications.ts for the admin-only access path).
+    statement_storage_id: v.optional(v.id("_storage")),
+    statement_filename: v.optional(v.string()),
+    statement_size_bytes: v.optional(v.number()),
+    statement_uploaded_at: v.optional(v.number()),
     status: v.union(
       v.literal("new"),
       v.literal("contacted"),

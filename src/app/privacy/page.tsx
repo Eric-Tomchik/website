@@ -23,12 +23,14 @@ export default function PrivacyPage() {
               <li><strong className="text-white">Contact information</strong> — name, email address, and message content when you use our contact form.</li>
               <li><strong className="text-white">Purchase information</strong> — name, email, shipping address, and payment details when you buy books. Payment processing is handled securely by Stripe and PayPal; we do not store your full credit card number.</li>
               <li><strong className="text-white">Account information</strong> — email and password when you create a client portal account.</li>
+              <li><strong className="text-white">Merchant services information</strong> — business name, contact details, estimated card volume, and, if you choose to provide one, a credit card processing statement you upload when requesting a free processing analysis.</li>
             </ul>
           </section>
 
           <section>
             <h2 className="text-xl font-bold text-white mb-3">2. How We Use Your Information</h2>
             <ul className="list-disc pl-6 space-y-2">
+              <li>Review an uploaded processing statement solely to prepare the free processing analysis you requested. Uploaded statements are stored privately, are never publicly accessible, are not sold or shared for marketing, and are deleted on request &mdash; email info@erictomchik.com and we will remove the file.</li>
               <li>Process and fulfill orders for books and digital products.</li>
               <li>Provide access to the client portal and project management services.</li>
               <li>Respond to your inquiries and contact form submissions.</li>
