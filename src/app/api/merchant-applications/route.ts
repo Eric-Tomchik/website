@@ -16,21 +16,23 @@ const applicationSchema = z.object({
   business_name: z.string().min(1).max(150),
   owner_name: z.string().min(1).max(100),
   email: z.string().email(),
-  // Optional since the landing-page form asks for phone only as an optional extra.
   phone: z.string().max(30).optional(),
   industry: z.string().max(150).optional(),
   monthly_volume: z.string().max(50).optional(),
   notes: z.string().max(3000).optional(),
-  // Set by /api/merchant-statement after a successful upload.
   statement_storage_id: z.string().max(200).optional(),
   statement_filename: z.string().max(200).optional(),
   statement_size_bytes: z.number().int().nonnegative().optional(),
-  company: z.string().optional(), // honeypot field
+  company: z.string().optional(),
 });
+
+// Preferred (verified) From address. Falls back to Resend's verified onboarding
+// domain if the custom domain is not yet verified in the Resend dashboard.
+const FROM_PRIMARY = 'Merchant Applications <noreply@erictomchik.com>';
+const FROM_FALLBACK = 'Charity Swipes Merchant <onboarding@resend.dev>';
 
 export async function POST(req: Request) {
   try {
-    // Rate limit: 3 submissions per minute per IP (distributed via Convex)
     const ip = getClientIp(req);
     const convex = getConvexClient();
     const rateCheck = await convex.mutation(api.rateLimit.check, {
@@ -53,12 +55,10 @@ export async function POST(req: Request) {
     const body = await req.json();
     const data = applicationSchema.parse(body);
 
-    // Honeypot check — if the hidden "company" field has a value, it's a bot.
     if (data.company) {
       return NextResponse.json({ success: true, emailStatus: 'sent' });
     }
 
-    // Save to Convex — powers the "Merchant Applications" admin CRM tab
     await convex.mutation(api.merchantApplications.create, {
       business_name: data.business_name,
       owner_name: data.owner_name,
@@ -74,10 +74,10 @@ export async function POST(req: Request) {
       statement_size_bytes: data.statement_size_bytes,
     });
 
-    // Send email notification via Resend
     const resendKey = process.env.RESEND_API_KEY;
     let emailStatus = 'skipped';
     let emailError = '';
+    let fromAddress = FROM_PRIMARY;
 
     if (!resendKey) {
       emailStatus = 'no_api_key';
@@ -88,7 +88,6 @@ export async function POST(req: Request) {
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background: #0f172a; border-radius: 12px; padding: 32px; border: 1px solid #1e293b;">
               <h2 style="color: #60a5fa; margin: 0 0 24px 0; font-size: 22px;">New Processing Analysis Request</h2>
-
               <table style="width: 100%; border-collapse: collapse;">
                 <tr>
                   <td style="padding: 10px 12px; color: #94a3b8; font-size: 14px; width: 140px; vertical-align: top;">Business</td>
@@ -119,7 +118,6 @@ export async function POST(req: Request) {
                   <td style="padding: 10px 12px; color: #f1f5f9; font-size: 14px;">${data.monthly_volume || 'Not specified'}</td>
                 </tr>
               </table>
-
               ${
                 data.notes
                   ? `<div style="margin-top: 20px; padding: 16px; background: #1e293b; border-radius: 8px;">
@@ -128,7 +126,6 @@ export async function POST(req: Request) {
               </div>`
                   : ''
               }
-
               ${
                 data.statement_storage_id
                   ? `<div style="margin-top: 20px; padding: 16px; background: #052e1b; border: 1px solid #15803d; border-radius: 8px;">
@@ -140,7 +137,6 @@ export async function POST(req: Request) {
                 <div style="color: #94a3b8; font-size: 13px;">No statement uploaded &mdash; ask for it on the first call.</div>
               </div>`
               }
-
               <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #1e293b;">
                 <a href="https://erictomchik.com/admin/merchant-applications"
                    style="display: inline-block; background: #2563eb; color: white; padding: 10px 24px;
@@ -152,21 +148,41 @@ export async function POST(req: Request) {
           </div>
         `;
 
-        const resendRes = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${resendKey}`,
-          },
-          body: JSON.stringify({
-            from: `Merchant Applications <noreply@erictomchik.com>`,
-            to: ['info@erictomchik.com'],
-            reply_to: data.email,
-            subject: `New Processing Analysis Request${data.statement_storage_id ? ' (statement attached)' : ''}: ${data.business_name}`,
-            html: emailHtml,
-          }),
-        });
-        const resendData = await resendRes.json();
+        const sendOnce = async (from: string) => {
+          return await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${resendKey}`,
+            },
+            body: JSON.stringify({
+              from,
+              to: ['info@erictomchik.com'],
+              reply_to: data.email,
+              subject: `New Processing Analysis Request${data.statement_storage_id ? ' (statement attached)' : ''}: ${data.business_name}`,
+              html: emailHtml,
+            }),
+          });
+        };
+
+        // First attempt: the branded erictomchik.com From address.
+        let resendRes = await sendOnce(FROM_PRIMARY);
+        let resendData = await resendRes.json().catch(() => ({}));
+
+        // If Resend rejects the unverified custom domain (403/422), retry once
+        // with the verified onboarding@resend.dev fallback so the lead is
+        // never silently dropped. Logs the failure for ops to follow up.
+        if (!resendRes.ok && (resendRes.status === 403 || resendRes.status === 422)) {
+          console.error(
+            'Resend rejected custom From domain — falling back to onboarding@resend.dev:',
+            resendRes.status,
+            JSON.stringify(resendData)
+          );
+          fromAddress = FROM_FALLBACK;
+          resendRes = await sendOnce(FROM_FALLBACK);
+          resendData = await resendRes.json().catch(() => ({}));
+        }
+
         if (!resendRes.ok) {
           emailStatus = 'error';
           emailError = `${resendRes.status}: ${JSON.stringify(resendData)}`;
@@ -181,7 +197,13 @@ export async function POST(req: Request) {
       }
     }
 
-    return NextResponse.json({ success: true, emailStatus, emailError: emailError || undefined });
+    // 207 Multi-Status signals "saved but notification partially failed" so
+    // monitoring picks it up without breaking the user-facing success flow.
+    const statusCode = emailStatus === 'sent' || emailStatus === 'skipped' ? 200 : 207;
+    return NextResponse.json(
+      { success: true, emailStatus, emailError: emailError || undefined, fromAddress },
+      { status: statusCode }
+    );
   } catch (err) {
     if (err instanceof z.ZodError) {
       return NextResponse.json({ error: 'Invalid form data', details: err.errors }, { status: 400 });
