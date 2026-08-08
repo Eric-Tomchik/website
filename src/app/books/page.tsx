@@ -100,7 +100,7 @@ export default async function BooksPage({
               <Link href="/books/recommended" className="text-brand-400 hover:text-brand-300 underline underline-offset-2">
                 Recommended Reads
               </Link>{' '}
-              — business, IT, and AI books worth your money.
+              — business, IT, security, and AI books worth your money.
             </p>
           </div>
         </div>

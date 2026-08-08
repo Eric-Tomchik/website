@@ -6,9 +6,9 @@ import { ScrollReveal } from '@/components/ui/ScrollReveal';
 import { RECOMMENDED_READS, CATEGORY_LABELS } from '@/lib/recommendedReads';
 import { amazonBookLink } from '@/lib/utils';
 
-const TITLE = 'Recommended Reads — Business, IT & AI Books';
+const TITLE = 'Recommended Reads — Business, IT, Security & AI Books';
 const DESCRIPTION =
-  "Eric Tomchik's hand-picked reading list: bestselling business, computer/IT certification, and AI books worth your money — with a short note on why each one earns a spot.";
+  "Eric Tomchik's hand-picked reading list: bestselling business, computer/IT certification, cybersecurity, and AI books worth your money — with a short note on why each one earns a spot.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -32,7 +32,7 @@ export default function RecommendedReadsPage() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    name: 'Recommended Reads — Business, IT & AI',
+    name: 'Recommended Reads — Business, IT, Security & AI',
     description: DESCRIPTION,
     url: 'https://erictomchik.com/books/recommended',
     numberOfItems: RECOMMENDED_READS.length,
@@ -64,7 +64,7 @@ export default function RecommendedReadsPage() {
               <span className="gradient-text">Recommended Reads</span>
             </h1>
             <p className="text-surface-400 max-w-2xl mx-auto">
-              The business, IT, and AI books I actually recommend — the ones that changed how I run a
+              The business, IT, cybersecurity, and AI books I actually recommend — the ones that changed how I run a
               business, study for certifications, or think about where this is all going. Each pick
               includes a one-line reason it made the list.
             </p>
@@ -84,7 +84,16 @@ export default function RecommendedReadsPage() {
               <strong className="text-surface-300">Affiliate disclosure:</strong> As an Amazon
               Associate, I earn from qualifying purchases. Links on this page are affiliate links, so
               I may receive a small commission at no extra cost to you. Prices and availability are
-              shown on Amazon and can change at any time.
+              shown on Amazon and can change at any time. Cover images are sourced from the{' '}
+              <a
+                href="https://openlibrary.org/dev/docs/api/covers"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:text-surface-300"
+              >
+                Open Library Covers API
+              </a>
+              .
             </p>
           </div>
 
