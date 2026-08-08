@@ -735,6 +735,10 @@ function RealtimeSection() {
 
 export default function AdminAnalyticsPage() {
   const books = useQuery(api.books.list, {}) ?? [];
+  // Derived from `books` itself so the callbacks below stay explicitly typed even
+  // when Convex codegen has not run and `api.books.list` degrades to `any`
+  // (that turns bare `(b) =>` params into implicit-any build errors).
+  type AdminBook = (typeof books)[number];
   const [period, setPeriod] = useState<7 | 30 | 90>(30);
   const [activeTab, setActiveTab] = useState<'analytics' | 'seo'>('analytics');
   const [gscPeriod, setGscPeriod] = useState<7 | 28 | 90>(28);
@@ -745,7 +749,7 @@ export default function AdminAnalyticsPage() {
 
   const { data: gsc, error: gscError, loading: gscLoading, refresh: gscRefresh } = useGSC(gscPeriod);
 
-  const overallChecks = useMemo(() => books.flatMap((b) => getBookSeoChecks(b)), [books]);
+  const overallChecks = useMemo(() => books.flatMap((b: AdminBook) => getBookSeoChecks(b)), [books]);
   const overallScore = overallChecks.length > 0
     ? Math.round((overallChecks.filter((c) => c.pass).length / overallChecks.length) * 100)
     : 0;
@@ -1365,7 +1369,7 @@ export default function AdminAnalyticsPage() {
                   <span className="text-[10px] text-surface-500">JSON-LD on each page</span>
                 </div>
                 <div className="space-y-3">
-                  {books.map((book) => {
+                  {books.map((book: AdminBook) => {
                     const checks = getBookSeoChecks(book);
                     return (
                       <div key={book._id} className="p-3 rounded-lg bg-surface-900/50 border border-surface-800">
