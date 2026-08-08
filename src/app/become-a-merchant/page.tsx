@@ -298,7 +298,7 @@ const faqs = [
   {
     question: 'What does Charity Swipes actually do with the charitable portion?',
     answer:
-      'A portion of program proceeds from merchant transactions is directed to charitable causes. Eric can walk you through which causes are currently supported and how the giving is structured, so you can talk about it accurately with your own customers.',
+      'A portion of program proceeds from merchant transactions is directed to charitable support — it is built into the program rather than being a marketing add-on. Eric will confirm how the giving is structured for your account during the review, so anything you tell your own customers about it is accurate.',
   },
 ];
 
@@ -771,11 +771,12 @@ export default function BecomeAMerchantPage() {
       </ScrollReveal>
 
       {/* ── The giving difference ──────────────────────────────────────────────
-           TODO (needs real data from Eric before this converts at full strength):
-             1. Names/logos of the causes currently supported.
-             2. A dollars-given-to-date figure to replace the generic claim.
-             3. Merchant marketing kit assets (window decal, counter card, social
-                graphics) to link or preview here.
+           Intentionally describes the giving generally: no charity names and no
+           dollars-given figure until those are confirmed and can be stated
+           accurately. Do not add either without verified numbers.
+
+           TODO: merchant marketing kit assets (window decal, counter card,
+           social graphics) to link or preview here once they exist.
       ─────────────────────────────────────────────────────────────────────── */}
       <ScrollReveal animation="fade-up">
         <section className="py-16 border-t border-surface-800/50">
