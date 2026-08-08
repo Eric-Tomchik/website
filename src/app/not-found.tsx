@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, BookOpen, Briefcase, Mail, ArrowLeft } from 'lucide-react';
+import { Home, BookOpen, CreditCard, Mail, ArrowLeft } from 'lucide-react';
 import { useEffect } from 'react';
 
 export default function NotFound() {
@@ -60,12 +60,12 @@ export default function NotFound() {
             </span>
           </Link>
           <Link
-            href="/portfolio"
+            href="/become-a-merchant"
             className="card p-4 flex flex-col items-center gap-2 group"
           >
-            <Briefcase className="w-5 h-5 text-brand-400 group-hover:scale-110 transition-transform" />
+            <CreditCard className="w-5 h-5 text-brand-400 group-hover:scale-110 transition-transform" />
             <span className="text-sm font-medium text-surface-200 group-hover:text-white transition-colors">
-              Portfolio
+              Card Fees
             </span>
           </Link>
           <Link

@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useCallback, useRef, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, X, FileText, BookOpen, Globe, ArrowRight } from 'lucide-react';
+import { Search, X, FileText, BookOpen, ArrowRight } from 'lucide-react';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface SearchItem {
   title: string;
   description: string;
   href: string;
-  type: 'blog' | 'book' | 'portfolio';
+  type: 'blog' | 'book';
 }
 
 interface SearchModalProps {
@@ -85,7 +85,6 @@ export function SearchModal({ items }: SearchModalProps) {
     switch (type) {
       case 'blog': return <FileText className="w-4 h-4 text-brand-400" />;
       case 'book': return <BookOpen className="w-4 h-4 text-emerald-400" />;
-      case 'portfolio': return <Globe className="w-4 h-4 text-violet-400" />;
       default: return <FileText className="w-4 h-4 text-surface-400" />;
     }
   };
@@ -94,7 +93,6 @@ export function SearchModal({ items }: SearchModalProps) {
     switch (type) {
       case 'blog': return 'Article';
       case 'book': return 'Book';
-      case 'portfolio': return 'Project';
       default: return type;
     }
   };

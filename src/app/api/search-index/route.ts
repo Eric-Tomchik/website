@@ -8,13 +8,12 @@ export async function GET() {
   try {
     const convex = getConvexClient();
 
-    const [posts, books, projects] = await Promise.all([
+    const [posts, books] = await Promise.all([
       convex.query(api.blogPosts.listPublished, {}).catch(() => []),
       convex.query(api.books.list, { activeOnly: true }).catch(() => []),
-      convex.query(api.portfolio.list, { activeOnly: true }).catch(() => []),
     ]);
 
-    type SearchItem = { title: string; description: string; href: string; type: 'blog' | 'book' | 'portfolio' };
+    type SearchItem = { title: string; description: string; href: string; type: 'blog' | 'book' };
     const items: SearchItem[] = [];
 
     // Blog posts
@@ -34,16 +33,6 @@ export async function GET() {
         description: book.description || '',
         href: `/books/${book.slug}`,
         type: 'book',
-      });
-    }
-
-    // Portfolio
-    for (const project of projects) {
-      items.push({
-        title: project.title,
-        description: project.description || '',
-        href: project.live_url || '/portfolio',
-        type: 'portfolio',
       });
     }
 

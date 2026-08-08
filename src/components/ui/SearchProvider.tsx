@@ -7,7 +7,7 @@ interface SearchItem {
   title: string;
   description: string;
   href: string;
-  type: 'blog' | 'book' | 'portfolio';
+  type: 'blog' | 'book';
 }
 
 /**

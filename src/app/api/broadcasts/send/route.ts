@@ -166,7 +166,7 @@ function wrapBroadcastHtml(subject: string, content: string, previewText?: strin
       <div style="margin-bottom: 16px;">
         <a href="https://erictomchik.com/books" style="color: #60a5fa; text-decoration: none; margin: 0 10px; font-size: 13px;">Books</a>
         <a href="https://erictomchik.com/blog" style="color: #60a5fa; text-decoration: none; margin: 0 10px; font-size: 13px;">Blog</a>
-        <a href="https://erictomchik.com/services" style="color: #60a5fa; text-decoration: none; margin: 0 10px; font-size: 13px;">Services</a>
+        <a href="https://erictomchik.com/become-a-merchant" style="color: #60a5fa; text-decoration: none; margin: 0 10px; font-size: 13px;">Card Fee Analysis</a>
       </div>
       <div style="margin-bottom: 16px;">
         <a href="https://www.facebook.com/profile.php?id=61589407526718" style="color: #94a3b8; text-decoration: none; margin: 0 8px; font-size: 13px;">Facebook</a>
