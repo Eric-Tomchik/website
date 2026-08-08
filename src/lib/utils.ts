@@ -73,3 +73,16 @@ export function formatLabel(fmt: string): string {
     default: return fmt.charAt(0).toUpperCase() + fmt.slice(1);
   }
 }
+
+/**
+ * Build a tagged Amazon link for a recommended read.
+ * With an ASIN we link straight to the product page; otherwise we use a
+ * title+author search so the link never rots when editions change.
+ */
+export function amazonBookLink(title: string, author: string, asin?: string): string {
+  if (asin) {
+    return `https://www.amazon.com/dp/${asin}?tag=${AMAZON_ASSOCIATE_TAG}`;
+  }
+  const q = encodeURIComponent(`${title} ${author}`);
+  return `https://www.amazon.com/s?k=${q}&i=stripbooks&tag=${AMAZON_ASSOCIATE_TAG}`;
+}

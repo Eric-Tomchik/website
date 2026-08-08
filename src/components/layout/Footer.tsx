@@ -14,6 +14,7 @@ const footerLinks = [
     title: 'ArcLight Press',
     links: [
       { label: 'All Books', href: '/books' },
+      { label: 'Recommended Reads', href: '/books/recommended' },
       { label: 'Resources', href: '/resources' },
       { label: 'Online Companions', href: '/companions' },
       { label: 'Credit Checklist', href: '/credit-checklist' },

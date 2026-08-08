@@ -10,6 +10,7 @@ import { SearchProvider } from '@/components/ui/SearchProvider';
 
 const bookLinks = [
   { href: '/books', label: 'All Books' },
+  { href: '/books/recommended', label: 'Recommended Reads' },
   { href: '/resources', label: 'Resources' },
   { href: '/companions', label: 'Online Companions' },
 ];
