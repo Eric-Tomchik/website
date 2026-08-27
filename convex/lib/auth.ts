@@ -1,62 +1,42 @@
-/**
- * Convex authentication helpers.
- *
- * Admin-only functions call `assertAdmin(args.adminKey)`.
- * Shared functions (admin + portal) call `assertAdminOrPortal(args.adminKey)`.
- */
+import { bytesToHex, constantTimeEqual, hmacSha256 } from "./hmac";
 
-/** Constant-time string comparison to prevent timing attacks */
-function constantTimeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let result = 0;
-  for (let i = 0; i < a.length; i++) {
-    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  }
-  return result === 0;
+const ADMIN_CAPABILITY_PREFIX = "v1";
+
+/**
+ * Browser-facing admin access uses a short-lived capability signed with
+ * CONVEX_ADMIN_SESSION_SECRET. The reusable CONVEX_AUTH_SECRET remains
+ * server-only for trusted API routes, webhooks, and jobs.
+ */
+function isAdminCapability(value: string, secret: string): boolean {
+  const parts = value.split(".");
+  if (parts.length !== 4 || parts[0] !== ADMIN_CAPABILITY_PREFIX) return false;
+  const [, expiresRaw, nonce, signature] = parts;
+  const expiresAt = Number(expiresRaw);
+  if (!Number.isSafeInteger(expiresAt) || expiresAt <= Date.now()) return false;
+  // Reject unexpectedly long-lived capabilities even if a signer is misconfigured.
+  if (expiresAt - Date.now() > 8 * 24 * 60 * 60 * 1000) return false;
+  if (!/^[a-f0-9]{32}$/i.test(nonce) || !/^[a-f0-9]{64}$/i.test(signature)) return false;
+
+  const expected = bytesToHex(hmacSha256(secret, `${ADMIN_CAPABILITY_PREFIX}.${expiresRaw}.${nonce}`));
+  return constantTimeEqual(signature.toLowerCase(), expected);
 }
 
-/**
- * Validate that the caller has admin access.
- * Throws if the key is missing or doesn't match.
- */
-export function assertAdmin(adminKey: string | undefined): void {
-  const secret = process.env.CONVEX_AUTH_SECRET;
-  if (!secret) {
-    throw new Error(
-      "Server misconfigured: CONVEX_AUTH_SECRET environment variable is not set"
-    );
-  }
-  if (!adminKey || !constantTimeEqual(adminKey, secret)) {
-    throw new Error("Unauthorized: invalid admin key");
-  }
-}
-
-/**
- * Check if the caller is an authenticated admin.
- * Returns true/false without throwing.
- */
 export function isAdmin(adminKey: string | undefined): boolean {
-  const secret = process.env.CONVEX_AUTH_SECRET;
-  if (!secret || !adminKey) return false;
-  return constantTimeEqual(adminKey, secret);
+  if (!adminKey) return false;
+
+  // Trusted server-to-server callers may continue using the master secret.
+  const serverSecret = process.env.CONVEX_AUTH_SECRET;
+  if (serverSecret && constantTimeEqual(adminKey, serverSecret)) return true;
+
+  // Browser clients receive only a scoped, expiring capability.
+  const sessionSecret = process.env.CONVEX_ADMIN_SESSION_SECRET;
+  if (!sessionSecret) return false;
+  return isAdminCapability(adminKey, sessionSecret);
 }
 
-/**
- * For shared functions (admin + portal): require either a valid admin key
- * OR a clientId (portal users scope data to their own client record).
- * Throws if neither is provided.
- */
-export function assertAdminOrPortal(
-  adminKey: string | undefined,
-  clientId: string | undefined
-): { isAdmin: boolean } {
-  if (adminKey && isAdmin(adminKey)) {
-    return { isAdmin: true };
+export function assertAdmin(adminKey: string | undefined): void {
+  if (!process.env.CONVEX_AUTH_SECRET && !process.env.CONVEX_ADMIN_SESSION_SECRET) {
+    throw new Error("Server misconfigured: Convex admin authentication is not configured");
   }
-  if (clientId) {
-    // Portal access — caller must have provided their clientId
-    // (portal session validation happens at the API route level)
-    return { isAdmin: false };
-  }
-  throw new Error("Unauthorized: admin key or client ID required");
+  if (!isAdmin(adminKey)) throw new Error("Unauthorized: invalid admin credential");
 }
