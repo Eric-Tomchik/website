@@ -12,10 +12,9 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const response = NextResponse.json({ capability: createConvexAdminCapability() });
-    response.cookies.set('admin_ck', response.clone ? '' : '', { maxAge: 0 });
-    // Keep a cookie for backwards compatibility with already-rendered admin tabs.
-    response.cookies.set('admin_ck', createConvexAdminCapability(), {
+    const capability = createConvexAdminCapability();
+    const response = NextResponse.json({ capability });
+    response.cookies.set('admin_ck', capability, {
       httpOnly: false,
       secure: true,
       sameSite: 'strict',
