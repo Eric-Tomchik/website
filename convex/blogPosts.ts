@@ -58,13 +58,15 @@ export const create = mutation({
     ),
     tags: v.array(v.string()),
     is_published: v.boolean(),
-    reading_time_minutes: v.optional(v.number()), },
+    reading_time_minutes: v.optional(v.number()),
+    // Optional explicit publish date (ms since epoch) — lets admins back-date or schedule posts
+    published_at: v.optional(v.number()), },
   handler: async (ctx, args) => {
     assertAdmin(args.adminKey);
-    const { adminKey: _adminKey, ...data } = args;
+    const { adminKey: _adminKey, published_at, ...data } = args;
     return await ctx.db.insert("blog_posts", {
       ...data,
-      published_at: args.is_published ? Date.now() : undefined,
+      published_at: published_at ?? (args.is_published ? Date.now() : undefined),
     });
   },
 });
@@ -88,7 +90,9 @@ export const update = mutation({
     ),
     tags: v.optional(v.array(v.string())),
     is_published: v.optional(v.boolean()),
-    reading_time_minutes: v.optional(v.number()), },
+    reading_time_minutes: v.optional(v.number()),
+    // Optional explicit publish date (ms since epoch) — overrides the auto timestamp
+    published_at: v.optional(v.number()), },
   handler: async (ctx, args) => {
     assertAdmin(args.adminKey);
     const { id, adminKey: _adminKey, ...updates } = args;
@@ -97,7 +101,7 @@ export const update = mutation({
 
     // Set published_at when first published
     const patch: Record<string, unknown> = { ...updates };
-    if (updates.is_published && !existing.published_at) {
+    if (updates.published_at === undefined && updates.is_published && !existing.published_at) {
       patch.published_at = Date.now();
     }
 
