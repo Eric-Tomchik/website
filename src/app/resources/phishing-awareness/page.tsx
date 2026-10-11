@@ -6,7 +6,7 @@ import PhishingAwarenessContent, {
 } from '../_components/PhishingAwarenessContent';
 
 export const metadata: Metadata = {
-  title: 'Phishing Awareness: How to Spot AI-Powered Scams — Eric Tomchik',
+  title: 'Phishing Awareness: How to Spot AI-Powered Scams',
   description:
     'Learn to spot phishing emails, scam texts, AI voice-clone calls, and malicious QR codes. Annotated examples, a 5-second safety check, what to do if you clicked, and where to report phishing.',
   openGraph: {
