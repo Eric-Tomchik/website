@@ -12,7 +12,18 @@ import {
   Tag,
   Search,
   X,
+  ChevronDown,
 } from 'lucide-react';
+
+/* ─── Tag helpers ─────────────────────────────────────────────────────── */
+
+/** Normalize a tag so "AI"/"ai", "business-credit"/"business credit" collapse together. */
+function normalizeTag(t: string): string {
+  return t.toLowerCase().replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+/** Number of tags shown before the "Show all tags" toggle. */
+const TOP_TAG_COUNT = 12;
 
 /* ─── Types ───────────────────────────────────────────────────────────── */
 
@@ -122,11 +133,57 @@ export function BlogTabs({
     [posts],
   );
 
-  const allTags = useMemo(() => {
-    const tagSet = new Set<string>();
-    posts.forEach((p) => p.tags?.forEach((t) => tagSet.add(t)));
-    return [...tagSet].sort();
-  }, [posts]);
+  // Merge duplicate tag spellings (case, hyphens, simple plurals) and count usage.
+  // Only tags from posts in the selected category are shown.
+  const tagGroups = useMemo(() => {
+    const scoped =
+      postCategory === 'all' ? posts : posts.filter((p) => p.category === postCategory);
+    const groups = new Map<string, { count: number; variants: Map<string, number> }>();
+    scoped.forEach((p) => {
+      const seen = new Set<string>();
+      p.tags?.forEach((t) => {
+        const key = normalizeTag(t);
+        if (!key) return;
+        const g = groups.get(key) ?? { count: 0, variants: new Map() };
+        if (!seen.has(key)) g.count += 1;
+        seen.add(key);
+        g.variants.set(t, (g.variants.get(t) ?? 0) + 1);
+        groups.set(key, g);
+      });
+    });
+    // Fold simple plurals ("backups" -> "backup") into the singular when both exist.
+    for (const key of [...groups.keys()]) {
+      const singular = key.endsWith('s') ? key.slice(0, -1) : '';
+      if (singular && groups.has(singular)) {
+        const from = groups.get(key)!;
+        const to = groups.get(singular)!;
+        to.count += from.count;
+        from.variants.forEach((n, v) => to.variants.set(v, (to.variants.get(v) ?? 0) + n));
+        groups.delete(key);
+      }
+    }
+    return [...groups.entries()]
+      .map(([key, g]) => {
+        // Label: prefer a spelling with capitals (e.g. "AI", "ChatGPT", "POS systems"),
+        // otherwise title-case the normalized tag ("business-credit" -> "Business Credit").
+        const variants = [...g.variants.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+        const capped = variants.find(([v]) => /[A-Z]/.test(v));
+        const label = capped
+          ? capped[0].replace(/[-_]+/g, ' ')
+          : key.replace(/\b\w/g, (c) => c.toUpperCase());
+        return { key, label, count: g.count, keys: new Set([key, ...[...g.variants.keys()].map(normalizeTag)]) };
+      })
+      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+  }, [posts, postCategory]);
+
+  const [showAllTags, setShowAllTags] = useState(false);
+  const visibleTags = useMemo(() => {
+    if (showAllTags) return [...tagGroups].sort((a, b) => a.label.localeCompare(b.label));
+    const top = tagGroups.slice(0, TOP_TAG_COUNT);
+    const selected = tagGroups.find((g) => g.key === postTag);
+    if (selected && !top.includes(selected)) top.push(selected);
+    return top;
+  }, [tagGroups, showAllTags, postTag]);
 
   // Filter posts
   const filteredPosts = useMemo(() => {
@@ -137,7 +194,9 @@ export function BlogTabs({
     }
 
     if (postTag !== 'all') {
-      result = result.filter((p) => p.tags?.includes(postTag));
+      const group = tagGroups.find((g) => g.key === postTag);
+      const keys = group ? group.keys : new Set([postTag]);
+      result = result.filter((p) => p.tags?.some((t) => keys.has(normalizeTag(t))));
     }
 
     if (postSearch.trim()) {
@@ -151,7 +210,7 @@ export function BlogTabs({
     }
 
     return result;
-  }, [posts, postCategory, postTag, postSearch]);
+  }, [posts, postCategory, postTag, postSearch, tagGroups]);
 
   // Filter news
   const newsCategories = useMemo(
@@ -295,25 +354,35 @@ export function BlogTabs({
               </div>
 
               {/* Tag pills (show when there are tags) */}
-              {allTags.length > 0 && (
+              {tagGroups.length > 0 && (
                 <div className="flex flex-wrap justify-center gap-1.5">
                   <span className="text-[11px] text-surface-500 flex items-center gap-1 mr-1">
                     <Tag className="w-3 h-3" />
-                    Tags:
+                    {showAllTags ? 'All tags:' : 'Popular tags:'}
                   </span>
-                  {allTags.map((t) => (
+                  {visibleTags.map((g) => (
                     <button
-                      key={t}
-                      onClick={() => setPostTag(postTag === t ? 'all' : t)}
+                      key={g.key}
+                      onClick={() => setPostTag(postTag === g.key ? 'all' : g.key)}
                       className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors ${
-                        postTag === t
+                        postTag === g.key
                           ? 'bg-brand-600/20 text-brand-400 border-brand-600/30'
                           : 'bg-surface-800/30 text-surface-500 border-surface-700/50 hover:text-surface-300'
                       }`}
                     >
-                      {t}
+                      {g.label}
                     </button>
                   ))}
+                  {tagGroups.length > TOP_TAG_COUNT && (
+                    <button
+                      onClick={() => setShowAllTags((v) => !v)}
+                      aria-expanded={showAllTags}
+                      className="text-[11px] font-medium px-2.5 py-1 rounded-full text-brand-400 hover:text-brand-300 flex items-center gap-1 transition-colors"
+                    >
+                      {showAllTags ? 'Show fewer' : `Show all ${tagGroups.length} tags`}
+                      <ChevronDown className={`w-3 h-3 transition-transform ${showAllTags ? 'rotate-180' : ''}`} />
+                    </button>
+                  )}
                 </div>
               )}
 
