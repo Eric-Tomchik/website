@@ -54,6 +54,16 @@ const emptyPost = {
   tags: [] as string[],
   is_published: false,
   reading_time_minutes: 0,
+  publish_date: '', // YYYY-MM-DD; blank = use the moment the post is first published
+};
+
+// Date input (YYYY-MM-DD) <-> timestamp. Noon local time avoids off-by-one-day timezone shifts.
+const dateToTimestamp = (d: string) => (d ? new Date(`${d}T12:00:00`).getTime() : undefined);
+const timestampToDate = (ts?: number) => {
+  if (!ts) return '';
+  const d = new Date(ts);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 };
 
 export default function BlogAdminPage() {
@@ -103,6 +113,7 @@ export default function BlogAdminPage() {
       tags: post.tags,
       is_published: post.is_published,
       reading_time_minutes: post.reading_time_minutes || 0,
+      publish_date: timestampToDate(post.published_at),
     });
     setTagsInput(post.tags.join(', '));
     setEditing(post);
@@ -126,6 +137,7 @@ export default function BlogAdminPage() {
         tags,
         is_published: form.is_published,
         reading_time_minutes: readTime,
+        published_at: dateToTimestamp(form.publish_date),
       });
       setEditing(null);
     } else {
@@ -139,6 +151,7 @@ export default function BlogAdminPage() {
         tags,
         is_published: form.is_published,
         reading_time_minutes: readTime,
+        published_at: dateToTimestamp(form.publish_date),
       });
       setCreating(false);
     }
@@ -292,7 +305,17 @@ export default function BlogAdminPage() {
                     onChange={(e) => setForm({ ...form, is_published: e.target.checked })}
                     className="rounded border-surface-600"
                   />
-                  Publish immediately
+                  Publish
+                </label>
+                <label className="flex items-center gap-2 text-sm text-surface-300">
+                  Publish date
+                  <input
+                    type="date"
+                    value={form.publish_date}
+                    onChange={(e) => setForm({ ...form, publish_date: e.target.value })}
+                    className="px-2 py-1 bg-surface-800 border border-surface-700 rounded-lg text-white text-sm focus:outline-none focus:border-brand-500"
+                    title="Optional. Leave blank to use today. Set a past date to back-date the post."
+                  />
                 </label>
                 <button onClick={handleSave} className="btn-primary text-sm flex items-center gap-2">
                   <Save className="w-4 h-4" />
