@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -21,11 +22,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const book = await fetchQuery(api.books.getBySlug, { slug });
   if (!book) {
-    return { title: 'Book Not Found' };
+    return { title: 'Book Not Found', robots: { index: false, follow: false } };
   }
   return {
     title: `${book.title} — ArcLight Press`,
     description: book.description,
+    alternates: { canonical: `https://erictomchik.com/books/${slug}` },
     openGraph: {
       title: book.title,
       description: book.description,
@@ -50,21 +52,7 @@ export default async function BookDetailPage({ params }: Props) {
   ]);
 
   if (!book) {
-    return (
-      <div className="py-16">
-        <div className="section-container text-center">
-          <BookOpen className="w-16 h-16 text-surface-600 mx-auto mb-6" />
-          <h1 className="text-3xl font-bold text-white mb-4">Book Not Found</h1>
-          <p className="text-surface-400 mb-8">
-            The book you&apos;re looking for doesn&apos;t exist or has been removed.
-          </p>
-          <Link href="/books" className="btn-primary">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to All Books
-          </Link>
-        </div>
-      </div>
-    );
+    notFound();
   }
 
   // Build the primary price for schema offers

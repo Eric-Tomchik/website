@@ -14,6 +14,7 @@ export const metadata: Metadata = {
     description:
       'Insights on business, IT certifications, cybersecurity, AI, and Linux.',
     url: 'https://erictomchik.com/blog',
+    images: ['/og-image.webp'],
   },
   alternates: {
     canonical: 'https://erictomchik.com/blog',
