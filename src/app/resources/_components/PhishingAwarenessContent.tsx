@@ -138,7 +138,7 @@ function SectionHeader({
 export default function PhishingAwarenessContent({ showTitle = true }: { showTitle?: boolean }) {
   return (
     <div className="space-y-20">
-      {/* Intro + stats */}
+      {/* Intro */}
       <section className="space-y-8">
         <div className="max-w-3xl space-y-4">
           {showTitle && (
@@ -154,6 +154,50 @@ export default function PhishingAwarenessContent({ showTitle = true }: { showTit
             phishing works, the red flags to look for, and exactly what to do if you&apos;ve been hooked.
           </p>
         </div>
+      </section>
+
+      {/* Featured guide */}
+      <section className="space-y-8">
+        <SectionHeader
+          icon={BookOpen}
+          title="Recommended Deep Dive"
+          description="Start here. This in-depth guide covers how phishing campaigns operate, real-world breaches, and how deepfakes are changing the threat."
+          id="featured-guide"
+        />
+        <a
+          href={FEATURED_GUIDE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="card p-6 sm:p-8 block group hover:border-rose-500/40 transition-all"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+            <div className="w-14 h-14 rounded-xl bg-rose-500/15 flex items-center justify-center flex-shrink-0">
+              <ShieldAlert className="w-7 h-7 text-rose-400" />
+            </div>
+            <div className="flex-1 space-y-2">
+              <h3 className="text-xl font-bold text-white group-hover:text-rose-400 transition-colors">
+                Phishing Scams: How to Spot and Avoid Them
+              </h3>
+              <p className="text-sm text-surface-300">
+                A complete guide from Private Internet Access covering email, text, voice, QR-code,
+                and social-media phishing, real case studies (MGM Resorts, Arup&apos;s $25M deepfake
+                video call), prevention checklists, and an appendix of real-world tactics.
+              </p>
+              <p className="text-xs text-surface-500">
+                Shared with us by Catherine Sanchez, a digital literacy educator who runs tech literacy
+                workshops for seniors and young people.
+              </p>
+            </div>
+            <span className="btn-primary whitespace-nowrap self-start sm:self-center">
+              Read the Guide
+              <ExternalLink className="w-4 h-4 ml-2" />
+            </span>
+          </div>
+        </a>
+      </section>
+
+      {/* Stats */}
+      <section>
         <div className="grid md:grid-cols-3 gap-4">
           {stats.map((s) => (
             <div key={s.value} className="card p-6 space-y-2">
@@ -302,46 +346,6 @@ export default function PhishingAwarenessContent({ showTitle = true }: { showTit
             </a>
           ))}
         </div>
-      </section>
-
-      {/* Featured guide */}
-      <section className="space-y-8">
-        <SectionHeader
-          icon={BookOpen}
-          title="Recommended Deep Dive"
-          description="Want the full picture? This in-depth guide covers how phishing campaigns operate, real-world breaches, and how deepfakes are changing the threat."
-          id="featured-guide"
-        />
-        <a
-          href={FEATURED_GUIDE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="card p-6 sm:p-8 block group hover:border-rose-500/40 transition-all"
-        >
-          <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-            <div className="w-14 h-14 rounded-xl bg-rose-500/15 flex items-center justify-center flex-shrink-0">
-              <ShieldAlert className="w-7 h-7 text-rose-400" />
-            </div>
-            <div className="flex-1 space-y-2">
-              <h3 className="text-xl font-bold text-white group-hover:text-rose-400 transition-colors">
-                Phishing Scams: How to Spot and Avoid Them
-              </h3>
-              <p className="text-sm text-surface-300">
-                A complete guide from Private Internet Access covering email, text, voice, QR-code,
-                and social-media phishing, real case studies (MGM Resorts, Arup&apos;s $25M deepfake
-                video call), prevention checklists, and an appendix of real-world tactics.
-              </p>
-              <p className="text-xs text-surface-500">
-                Shared with us by Catherine Sanchez, a digital literacy educator who runs tech literacy
-                workshops for seniors and young people.
-              </p>
-            </div>
-            <span className="btn-primary whitespace-nowrap self-start sm:self-center">
-              Read the Guide
-              <ExternalLink className="w-4 h-4 ml-2" />
-            </span>
-          </div>
-        </a>
       </section>
 
       {/* Disclaimer */}
