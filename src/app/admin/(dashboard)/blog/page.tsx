@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { api } from '../../../../../convex/_generated/api';
 import type { Id } from '../../../../../convex/_generated/dataModel';
 import { useAdminQuery, useAdminMutation } from '@/hooks/useAdminAuth';
+import { BACKFILL_POSTS } from '@/data/backfillPosts';
 import {
   FileText,
   Plus,
@@ -16,6 +17,7 @@ import {
   X,
   Save,
   Clock,
+  Download,
 } from 'lucide-react';
 
 const CATEGORIES = [
@@ -78,6 +80,8 @@ export default function BlogAdminPage() {
   const [form, setForm] = useState(emptyPost);
   const [tagsInput, setTagsInput] = useState('');
   const [preview, setPreview] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState('');
 
   const filtered = posts.filter(
     (p) =>
@@ -159,6 +163,38 @@ export default function BlogAdminPage() {
     setTagsInput('');
   };
 
+  // One-time import of bundled back-dated articles; skips any slug that already exists.
+  const existingSlugs = new Set(posts.map((p) => p.slug));
+  const pendingImports = BACKFILL_POSTS.filter((p) => !existingSlugs.has(p.slug));
+
+  const handleImport = async () => {
+    if (!confirm(`Publish ${pendingImports.length} back-dated article(s)?`)) return;
+    setImporting(true);
+    setImportMsg('');
+    let done = 0;
+    try {
+      for (const p of pendingImports) {
+        await create({
+          title: p.title,
+          slug: p.slug,
+          excerpt: p.excerpt,
+          content: p.content,
+          category: p.category,
+          tags: p.tags,
+          is_published: true,
+          reading_time_minutes: estimateReadingTime(p.content),
+          published_at: dateToTimestamp(p.publish_date),
+        });
+        done++;
+      }
+      setImportMsg(`Imported ${done} article(s).`);
+    } catch (err) {
+      setImportMsg(`Imported ${done}, then failed: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const closeEditor = () => {
     setEditing(null);
     setCreating(false);
@@ -181,10 +217,23 @@ export default function BlogAdminPage() {
             {published} published · {drafts} drafts
           </p>
         </div>
-        <button onClick={openCreate} className="btn-primary text-sm flex items-center gap-2">
-          <Plus className="w-4 h-4" /> New Post
-        </button>
+        <div className="flex items-center gap-3">
+          {pendingImports.length > 0 && posts.length > 0 && (
+            <button
+              onClick={handleImport}
+              disabled={importing}
+              className="btn-secondary text-sm flex items-center gap-2 disabled:opacity-50"
+            >
+              <Download className="w-4 h-4" />
+              {importing ? 'Importing…' : `Import ${pendingImports.length} back-dated articles`}
+            </button>
+          )}
+          <button onClick={openCreate} className="btn-primary text-sm flex items-center gap-2">
+            <Plus className="w-4 h-4" /> New Post
+          </button>
+        </div>
       </div>
+      {importMsg && <p className="text-sm text-brand-400">{importMsg}</p>}
 
       {/* Editor */}
       {isEditorOpen && (
