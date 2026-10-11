@@ -6,6 +6,7 @@ import {
   Cpu,
   Shield,
   Monitor,
+  ShieldAlert,
 } from 'lucide-react';
 
 interface Tab {
@@ -55,10 +56,19 @@ const tabs: Tab[] = [
     activeColor: 'bg-amber-500/15 text-amber-400 border-amber-500',
     borderColor: 'border-amber-500',
   },
+  {
+    id: 'phishing-awareness',
+    label: 'Phishing Awareness',
+    shortLabel: 'Phishing',
+    icon: ShieldAlert,
+    color: 'text-rose-400',
+    activeColor: 'bg-rose-500/15 text-rose-400 border-rose-500',
+    borderColor: 'border-rose-500',
+  },
 ];
 
 interface ResourcesTabsProps {
-  children: [ReactNode, ReactNode, ReactNode, ReactNode];
+  children: [ReactNode, ReactNode, ReactNode, ReactNode, ReactNode];
 }
 
 export default function ResourcesTabs({ children }: ResourcesTabsProps) {

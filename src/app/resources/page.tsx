@@ -6,6 +6,7 @@ import CreditScoreContent from './_components/CreditScoreContent';
 import AIGuideContent from './_components/AIGuideContent';
 import CybersecurityContent from './_components/CybersecurityContent';
 import POSGuideContent from './_components/POSGuideContent';
+import PhishingAwarenessContent from './_components/PhishingAwarenessContent';
 import { LeadMagnet } from '@/components/ui/LeadMagnet';
 
 export const metadata: Metadata = {
@@ -50,6 +51,7 @@ export default function ResourcesPage() {
           <AIGuideContent />
           <CybersecurityContent />
           <POSGuideContent />
+          <PhishingAwarenessContent />
         </ResourcesTabs>
 
         {/* Free Downloads — Lead Magnets */}
