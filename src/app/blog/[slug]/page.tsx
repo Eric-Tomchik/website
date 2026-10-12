@@ -1,9 +1,10 @@
+import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { fetchQuery } from 'convex/nextjs';
 import { api } from '../../../../convex/_generated/api';
-import { ArrowLeft, Clock, Calendar, PenLine } from 'lucide-react';
+import { ArrowLeft, Clock, Calendar } from 'lucide-react';
 import { marked, Renderer } from 'marked';
 import { sanitizeHtml } from '@/lib/sanitize';
 import { TableOfContents } from '@/components/ui/TableOfContents';
@@ -46,18 +47,19 @@ const categoryLabels: Record<string, string> = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const post = await fetchQuery(api.blogPosts.getBySlug, { slug });
-  if (!post) {
-    return { title: 'Post Not Found' };
+  if (!post || !post.is_published) {
+    return { title: 'Post Not Found', robots: { index: false, follow: false } };
   }
   return {
     title: post.title,
     description: post.excerpt,
+    alternates: { canonical: `https://erictomchik.com/blog/${slug}` },
     openGraph: {
       title: post.title,
       description: post.excerpt,
       type: 'article',
       url: `https://erictomchik.com/blog/${slug}`,
-      ...(post.cover_image_url ? { images: [post.cover_image_url] } : {}),
+      images: [post.cover_image_url || '/og-image.webp'],
       authors: ['Eric Tomchik'],
       ...(post.published_at
         ? { publishedTime: new Date(post.published_at).toISOString() }
@@ -67,7 +69,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: 'summary_large_image',
       title: post.title,
       description: post.excerpt,
-      ...(post.cover_image_url ? { images: [post.cover_image_url] } : {}),
+      images: [post.cover_image_url || '/og-image.webp'],
     },
   };
 }
@@ -77,21 +79,7 @@ export default async function BlogPostPage({ params }: Props) {
   const post = await fetchQuery(api.blogPosts.getBySlug, { slug });
 
   if (!post || !post.is_published) {
-    return (
-      <div className="py-16">
-        <div className="section-container text-center">
-          <PenLine className="w-16 h-16 text-surface-600 mx-auto mb-6" />
-          <h1 className="text-3xl font-bold text-white mb-4">Post Not Found</h1>
-          <p className="text-surface-400 mb-8">
-            The article you&apos;re looking for doesn&apos;t exist or has been removed.
-          </p>
-          <Link href="/blog" className="btn-primary">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Blog
-          </Link>
-        </div>
-      </div>
-    );
+    notFound();
   }
 
   // Article structured data

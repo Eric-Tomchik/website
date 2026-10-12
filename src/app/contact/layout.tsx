@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Contact',
+  alternates: { canonical: 'https://erictomchik.com/contact' },
   description:
     'Contact Eric Tomchik — questions, comments, errata reports, bulk orders, or media inquiries about ArcLight Press publications.',
 };
