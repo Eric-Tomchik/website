@@ -44,7 +44,6 @@ interface NewsItem {
   link: string;
   slug: string;
   description: string;
-  fullContent: string;
   pubDate: string;
   source: string;
   category: string;
