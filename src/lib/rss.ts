@@ -165,11 +165,86 @@ async function fetchFeed(source: FeedSource, signal?: AbortSignal): Promise<Feed
   }
 }
 
-export async function fetchAllFeeds(
-  sources: FeedSource[] = FEED_SOURCES
-): Promise<FeedItem[]> {
+/* ─── Caching ────────────────────────────────────────────────────────────
+ * The site renders dynamically (per-request CSP nonce) and OpenNext has no
+ * incremental cache configured, so `export const revalidate` does nothing and
+ * every /blog or /news view used to download and parse ~12 external RSS feeds
+ * (~600 KB of XML) before the page could render. Cache the parsed result:
+ *   1. per-isolate memory (fastest, survives between requests on a warm worker)
+ *   2. Cloudflare's edge cache via the Cache API (shared across isolates)
+ * Fresh for FRESH_MS; after that we serve the stale copy immediately and
+ * refresh in the background (stale-while-revalidate) when possible.
+ */
+const FRESH_MS = 30 * 60 * 1000; // 30 minutes
+const MAX_STALE_S = 24 * 60 * 60; // keep stale copies up to a day
+const FETCH_TIMEOUT_MS = 5000;
+
+interface CachedFeeds {
+  at: number;
+  items: FeedItem[];
+}
+
+const memCache = new Map<string, CachedFeeds>();
+const inflight = new Map<string, Promise<FeedItem[]>>();
+
+function cacheKey(sources: FeedSource[]): string {
+  return `https://erictomchik.com/__cache/rss/${articleSlug(sources.map((s) => s.url).join('|'))}`;
+}
+
+function edgeCache(): Cache | null {
+  try {
+    const c = (globalThis as unknown as { caches?: { default?: Cache } }).caches;
+    return c?.default ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function readEdge(key: string): Promise<CachedFeeds | null> {
+  const cache = edgeCache();
+  if (!cache) return null;
+  try {
+    const res = await cache.match(key);
+    if (!res) return null;
+    return (await res.json()) as CachedFeeds;
+  } catch {
+    return null;
+  }
+}
+
+async function writeEdge(key: string, value: CachedFeeds): Promise<void> {
+  const cache = edgeCache();
+  if (!cache) return;
+  try {
+    await cache.put(
+      key,
+      new Response(JSON.stringify(value), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': `public, max-age=${MAX_STALE_S}`,
+        },
+      }),
+    );
+  } catch {
+    // Cache is a best-effort optimisation.
+  }
+}
+
+/** Run a background task past the end of the response when on Workers. */
+async function runInBackground(task: Promise<unknown>): Promise<boolean> {
+  try {
+    const { getCloudflareContext } = await import('@opennextjs/cloudflare');
+    const { ctx } = await getCloudflareContext({ async: true });
+    ctx.waitUntil(task);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function fetchAllFeedsUncached(sources: FeedSource[]): Promise<FeedItem[]> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
   try {
     const results = await Promise.allSettled(
@@ -191,4 +266,51 @@ export async function fetchAllFeeds(
   } finally {
     clearTimeout(timeout);
   }
+}
+
+/** Fetch fresh feeds and store them in both cache layers (deduped per isolate). */
+function refresh(key: string, sources: FeedSource[]): Promise<FeedItem[]> {
+  const existing = inflight.get(key);
+  if (existing) return existing;
+
+  const p = (async () => {
+    const items = await fetchAllFeedsUncached(sources);
+    // Don't overwrite a good cache with an empty result from a network blip.
+    if (items.length > 0) {
+      const value = { at: Date.now(), items };
+      memCache.set(key, value);
+      await writeEdge(key, value);
+    }
+    return items;
+  })().finally(() => inflight.delete(key));
+
+  inflight.set(key, p);
+  return p;
+}
+
+export async function fetchAllFeeds(
+  sources: FeedSource[] = FEED_SOURCES
+): Promise<FeedItem[]> {
+  const key = cacheKey(sources);
+
+  let cached = memCache.get(key) ?? null;
+  if (!cached) {
+    cached = await readEdge(key);
+    if (cached) memCache.set(key, cached);
+  }
+
+  if (cached && cached.items.length > 0) {
+    if (Date.now() - cached.at > FRESH_MS) {
+      // Stale: serve it now, refresh in the background if the runtime allows.
+      const task = refresh(key, sources).catch(() => []);
+      const backgrounded = await runInBackground(task);
+      if (!backgrounded) {
+        const fresh = await task;
+        return fresh.length > 0 ? fresh : cached.items;
+      }
+    }
+    return cached.items;
+  }
+
+  return refresh(key, sources);
 }

@@ -24,10 +24,16 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 export default async function BlogPage() {
-  const [posts, newsItems] = await Promise.all([
+  const [allPosts, feedItems] = await Promise.all([
     fetchQuery(api.blogPosts.listPublished, {}).catch(() => []),
     fetchAllFeeds(FEED_SOURCES).catch(() => []),
   ]);
+  // The listing never renders full article bodies; passing them to the client
+  // component serialized every post's markdown into the page (~250 KB).
+  const posts = allPosts.map(({ content: _content, ...summary }) => summary);
+  // News cards only need the short description; the full article HTML is
+  // loaded on /news/[slug] when a reader clicks through.
+  const newsItems = feedItems.map(({ fullContent: _fullContent, ...item }) => item);
 
   return (
     <div className="py-16">
