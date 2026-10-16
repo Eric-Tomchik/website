@@ -1,62 +1,9 @@
-/**
- * Convex authentication helpers.
- *
- * Admin-only functions call `assertAdmin(args.adminKey)`.
- * Shared functions (admin + portal) call `assertAdminOrPortal(args.adminKey)`.
- */
-
-/** Constant-time string comparison to prevent timing attacks */
-function constantTimeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let result = 0;
-  for (let i = 0; i < a.length; i++) {
-    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  }
-  return result === 0;
-}
-
-/**
- * Validate that the caller has admin access.
- * Throws if the key is missing or doesn't match.
- */
-export function assertAdmin(adminKey: string | undefined): void {
-  const secret = process.env.CONVEX_AUTH_SECRET;
-  if (!secret) {
-    throw new Error(
-      "Server misconfigured: CONVEX_AUTH_SECRET environment variable is not set"
-    );
-  }
-  if (!adminKey || !constantTimeEqual(adminKey, secret)) {
-    throw new Error("Unauthorized: invalid admin key");
-  }
-}
-
-/**
- * Check if the caller is an authenticated admin.
- * Returns true/false without throwing.
- */
-export function isAdmin(adminKey: string | undefined): boolean {
-  const secret = process.env.CONVEX_AUTH_SECRET;
-  if (!secret || !adminKey) return false;
-  return constantTimeEqual(adminKey, secret);
-}
-
-/**
- * For shared functions (admin + portal): require either a valid admin key
- * OR a clientId (portal users scope data to their own client record).
- * Throws if neither is provided.
- */
-export function assertAdminOrPortal(
-  adminKey: string | undefined,
-  clientId: string | undefined
-): { isAdmin: boolean } {
-  if (adminKey && isAdmin(adminKey)) {
-    return { isAdmin: true };
-  }
-  if (clientId) {
-    // Portal access — caller must have provided their clientId
-    // (portal session validation happens at the API route level)
-    return { isAdmin: false };
-  }
-  throw new Error("Unauthorized: admin key or client ID required");
-}
+import { bytesToHex, constantTimeEqual, hmacSha256 } from "./hmac";
+const ADMIN_CAPABILITY_PREFIX="v1";
+function isAdminCapability(value:string,secret:string):boolean{const p=value.split(".");if(p.length!==4||p[0]!==ADMIN_CAPABILITY_PREFIX)return false;const[,expRaw,nonce,sig]=p;const exp=Number(expRaw);if(!Number.isSafeInteger(exp)||exp<=Date.now()||exp-Date.now()>8*24*60*60*1000)return false;if(!/^[a-f0-9]{32}$/i.test(nonce)||!/^[a-f0-9]{64}$/i.test(sig))return false;const expected=bytesToHex(hmacSha256(secret,`${ADMIN_CAPABILITY_PREFIX}.${expRaw}.${nonce}`));return constantTimeEqual(sig.toLowerCase(),expected);}
+export function isAdmin(adminKey:string|undefined):boolean{if(!adminKey)return false;const master=process.env.CONVEX_AUTH_SECRET;if(master&&constantTimeEqual(adminKey,master))return true;const session=process.env.CONVEX_ADMIN_SESSION_SECRET;return!!session&&isAdminCapability(adminKey,session);}
+export function assertAdmin(adminKey:string|undefined):void{if(!process.env.CONVEX_AUTH_SECRET&&!process.env.CONVEX_ADMIN_SESSION_SECRET)throw new Error("Server misconfigured: Convex admin authentication is not configured");if(!isAdmin(adminKey))throw new Error("Unauthorized: invalid admin credential");}
+export async function requirePortalClient(ctx:any,token:string|undefined):Promise<any>{if(!token)throw new Error("Unauthorized: portal session required");const session=await ctx.db.query("client_sessions").withIndex("by_token",(q:any)=>q.eq("token",token)).first();if(!session||session.expires_at<=Date.now())throw new Error("Unauthorized: invalid or expired portal session");const client=await ctx.db.get(session.client_id);if(!client||!client.is_active)throw new Error("Unauthorized: inactive portal account");return client;}
+export async function requireAdminOrPortal(ctx:any,adminKey?:string,portalToken?:string):Promise<{isAdmin:boolean;clientId?:any}>{if(adminKey&&isAdmin(adminKey))return{isAdmin:true};const client=await requirePortalClient(ctx,portalToken);return{isAdmin:false,clientId:client._id};}
+/** @deprecated Migrate shared functions to requireAdminOrPortal(ctx,...). This helper no longer trusts clientId. */
+export function assertAdminOrPortal(adminKey:string|undefined,_clientId:string|undefined):{isAdmin:boolean}{assertAdmin(adminKey);return{isAdmin:true};}

@@ -1,0 +1,33 @@
+name: Security CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Unit tests
+        run: bun run test
+      - name: Type check
+        run: bunx tsc --noEmit
+      - name: Secret pattern check
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -nE '(sk_live_[A-Za-z0-9]|whsec_[A-Za-z0-9]|cfat_[A-Za-z0-9]|CONVEX_AUTH_SECRET=[^y])' -- ':!bun.lock' ':!.github/workflows/security-ci.yml'; then
+            echo 'Potential committed secret detected.' >&2
+            exit 1
+          fi

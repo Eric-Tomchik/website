@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { getConvexClient } from '@/lib/convex';
 import { api } from '../../../../../convex/_generated/api';
 import { is2FAEnabled, verifyTOTP } from '@/lib/totp';
+import { createAdminSessionToken, createConvexAdminCapability } from '@/lib/adminSession';
 
 function getClientIp(req: Request): string {
   const forwarded = req.headers.get('x-forwarded-for');
@@ -12,18 +13,8 @@ function getClientIp(req: Request): string {
   return 'unknown';
 }
 
-function signToken(payload: Record<string, unknown>, secret: string): string {
-  const data = Buffer.from(JSON.stringify(payload)).toString('base64url');
-  const signature = crypto
-    .createHmac('sha256', secret)
-    .update(data)
-    .digest('base64url');
-  return `${data}.${signature}`;
-}
-
 export async function POST(req: NextRequest) {
   try {
-    // Rate limit: 5 attempts per minute per IP (distributed via Convex)
     const ip = getClientIp(req);
     const convex = getConvexClient();
     const rateCheck = await convex.mutation(api.rateLimit.check, {
@@ -35,109 +26,67 @@ export async function POST(req: NextRequest) {
     if (!rateCheck.allowed) {
       return NextResponse.json(
         { error: 'Too many login attempts. Please try again later.' },
-        {
-          status: 429,
-          headers: {
-            'Retry-After': String(Math.ceil((rateCheck.resetAt - Date.now()) / 1000)),
-            'X-RateLimit-Remaining': '0',
-          },
-        }
+        { status: 429, headers: {
+          'Retry-After': String(Math.ceil((rateCheck.resetAt - Date.now()) / 1000)),
+          'X-RateLimit-Remaining': '0',
+        } }
       );
     }
 
-    const { password, totp_code } = await req.json();
+    const body = await req.json();
+    const password = typeof body?.password === 'string' ? body.password : '';
+    const totpCode = typeof body?.totp_code === 'string' ? body.totp_code : '';
     const adminPassword = process.env.ADMIN_PASSWORD;
 
-    if (!adminPassword) {
-      console.error('ADMIN_PASSWORD env var is not set');
-      return NextResponse.json(
-        { error: 'Server configuration error' },
-        { status: 500 }
-      );
+    if (!adminPassword || !process.env.ADMIN_SESSION_SECRET || !process.env.CONVEX_ADMIN_SESSION_SECRET) {
+      console.error('Admin authentication secrets are not fully configured');
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
-    // Timing-safe comparison to prevent timing attacks
     const passwordMatch =
       password.length === adminPassword.length &&
-      crypto.timingSafeEqual(
-        Buffer.from(password),
-        Buffer.from(adminPassword)
-      );
+      crypto.timingSafeEqual(Buffer.from(password), Buffer.from(adminPassword));
 
     if (!passwordMatch) {
       return NextResponse.json(
         { error: 'Invalid password' },
-        {
-          status: 401,
-          headers: { 'X-RateLimit-Remaining': String(rateCheck.remaining) },
-        }
+        { status: 401, headers: { 'X-RateLimit-Remaining': String(rateCheck.remaining) } }
       );
     }
 
-    // Password is correct — check if 2FA is required
     if (is2FAEnabled()) {
-      if (!totp_code) {
-        // Password OK, but need TOTP code — tell the client to show 2FA input
-        return NextResponse.json(
-          { requires_2fa: true },
-          { status: 200 }
-        );
-      }
-
-      // Verify the TOTP code
+      if (!totpCode) return NextResponse.json({ requires_2fa: true }, { status: 200 });
       const secret = process.env.ADMIN_TOTP_SECRET!;
-      if (!verifyTOTP(secret, totp_code)) {
+      if (!verifyTOTP(secret, totpCode)) {
         return NextResponse.json(
           { error: 'Invalid verification code', requires_2fa: true },
-          {
-            status: 401,
-            headers: { 'X-RateLimit-Remaining': String(rateCheck.remaining) },
-          }
+          { status: 401, headers: { 'X-RateLimit-Remaining': String(rateCheck.remaining) } }
         );
       }
     }
 
-    // All checks passed — issue session token
-    const token = signToken(
-      { admin: true, ts: Date.now(), jti: crypto.randomUUID() },
-      adminPassword
-    );
-
     const response = NextResponse.json({ success: true });
-    response.cookies.set('admin_session', token, {
+    response.cookies.set('admin_session', createAdminSessionToken(), {
       httpOnly: true,
       secure: true,
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 24 * 7,
       path: '/',
     });
 
-    // Set a non-httpOnly cookie with the Convex auth secret so the admin
-    // client SDK (useAdminQuery / useAdminMutation) can inject it into every
-    // real-time Convex query and mutation from the browser.
-    //
-    // SECURITY TRADEOFF: This cookie is intentionally httpOnly: false.
-    // The Convex React SDK communicates over WebSocket directly from the
-    // client, so there's no server-side proxy to inject the key. Making this
-    // httpOnly would require replacing all Convex client subscriptions with
-    // a fetch-based proxy, losing real-time updates on admin pages.
-    //
-    // XSS mitigations: strict CSP with per-request nonces, third-party
-    // scripts loaded with crossOrigin="anonymous" and domain-restricted in
-    // script-src. See useAdminAuth.ts for full documentation.
-    const convexSecret = process.env.CONVEX_AUTH_SECRET;
-    if (convexSecret) {
-      response.cookies.set('admin_ck', convexSecret, {
-        httpOnly: false,       // Required: read by Convex client SDK in browser
-        secure: true,
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7,
-        path: '/',
-      });
-    }
+    // Browser-readable by necessity for Convex WebSocket calls, but this is now
+    // a one-hour scoped capability — never CONVEX_AUTH_SECRET itself.
+    response.cookies.set('admin_ck', createConvexAdminCapability(), {
+      httpOnly: false,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 60 * 60,
+      path: '/admin',
+    });
 
     return response;
-  } catch {
+  } catch (err) {
+    console.error('Admin login failed:', err);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

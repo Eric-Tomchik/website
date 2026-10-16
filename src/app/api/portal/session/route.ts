@@ -3,52 +3,33 @@ import { getConvexClient } from '@/lib/convex';
 import { api } from '../../../../../convex/_generated/api';
 
 export async function GET(req: NextRequest) {
-  // Read directly from request cookies (works on Cloudflare Workers)
   const token = req.cookies.get('portal_session')?.value || null;
+  if (!token) return NextResponse.json({ token: null });
 
-  if (!token) {
-    return NextResponse.json({ token: null });
-  }
-
-  // Server-side validation: verify the token against Convex
   try {
-    const convex = getConvexClient();
-    const client = await convex.query(api.clients.validateSession, { token });
-
+    const client = await getConvexClient().query(api.clients.validateSession, { token });
     if (!client) {
-      // Token is invalid or expired — clear the cookie
-      const response = NextResponse.json({ token: null });
+      const response = NextResponse.json({ token: null }, { status: 401 });
       response.cookies.delete('portal_session');
       return response;
     }
-
-    return NextResponse.json({ token });
+    return NextResponse.json({ token, client });
   } catch {
-    // If Convex is unreachable, return the token and let client-side handle it
-    return NextResponse.json({ token });
+    // Authentication infrastructure failure must never be treated as success.
+    return NextResponse.json({ token: null, error: 'Session validation unavailable' }, { status: 503 });
   }
 }
 
-export async function POST(req: NextRequest) {
-  const { token } = await req.json();
-  const response = NextResponse.json({ success: true });
-
-  if (token) {
-    response.cookies.set('portal_session', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      maxAge: 30 * 24 * 60 * 60, // 30 days
-      path: '/',
-    });
-  } else {
-    response.cookies.delete('portal_session');
-  }
-
-  return response;
+// Session cookies are created only by the credential-verified login endpoint.
+export async function POST() {
+  return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
 }
 
 export async function DELETE(req: NextRequest) {
+  const token = req.cookies.get('portal_session')?.value;
+  if (token) {
+    try { await getConvexClient().mutation(api.clients.logout, { token }); } catch {}
+  }
   const response = NextResponse.json({ success: true });
   response.cookies.delete('portal_session');
   return response;
